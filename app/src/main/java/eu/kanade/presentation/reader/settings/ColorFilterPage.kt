@@ -122,6 +122,10 @@ internal fun ColumnScope.ColorFilterPage(viewModel: ReaderSettingsViewModel) {
         label = stringResource(MR.strings.pref_inverted_colors),
         pref = viewModel.preferences.invertedColors,
     )
+    CheckboxItem(
+        label = stringResource(MR.strings.pref_reader_enhance),
+        pref = viewModel.preferences.enhance,
+    )
 }
 
 private fun getColorValue(currentColor: Int, color: Int, mask: Long, bitShift: Int): Int {

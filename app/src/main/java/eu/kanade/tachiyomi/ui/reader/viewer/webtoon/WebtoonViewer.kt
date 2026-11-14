@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.ui.reader.viewer.webtoon
 
 import android.graphics.ColorFilter
+import android.view.MotionEvent
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import androidx.compose.runtime.Composable
@@ -30,6 +31,7 @@ import eu.kanade.tachiyomi.ui.reader.viewer.collectChanges
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import mihon.app.di.appGraph
+import mihon.feature.autoscroll.AutoScrollTarget
 import tachiyomi.core.common.util.system.logcat
 import java.util.Collections
 import java.util.WeakHashMap
@@ -39,7 +41,7 @@ import kotlin.math.min
 /**
  * Implementation of a [Viewer] to display pages with a [RecyclerView].
  */
-class WebtoonViewer(val activity: ReaderActivity, val isContinuous: Boolean = true) : Viewer {
+class WebtoonViewer(val activity: ReaderActivity, val isContinuous: Boolean = true) : Viewer, AutoScrollTarget {
 
     val graph by lazy { activity.appGraph }
     val downloadManager by lazy { graph.downloadManager }
@@ -102,6 +104,7 @@ class WebtoonViewer(val activity: ReaderActivity, val isContinuous: Boolean = tr
 
     init {
         recycler.sidePaddingPercent = simpleLongStrip.page.sidePadding
+        recycler.wideSidePaddingPercent = simpleLongStrip.page.wideSidePadding
         recycler.setItemViewCacheSize(RECYCLER_VIEW_CACHE_SIZE)
         recycler.isVisible = false // Don't let the recycler layout yet
         recycler.layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
@@ -118,6 +121,14 @@ class WebtoonViewer(val activity: ReaderActivity, val isContinuous: Boolean = tr
                         firstVisible = layoutManager.findFirstVisibleItemPosition(),
                         lastEndVisible = layoutManager.findLastEndVisibleItemPosition(),
                     )
+                }
+            },
+        )
+        recycler.addOnItemTouchListener(
+            object : RecyclerView.SimpleOnItemTouchListener() {
+                override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                    if (e.actionMasked == MotionEvent.ACTION_DOWN) onTouchDown?.invoke()
+                    return false
                 }
             },
         )
@@ -163,6 +174,7 @@ class WebtoonViewer(val activity: ReaderActivity, val isContinuous: Boolean = tr
         settingsViewModel.simpleLongStrip.collectChanges(scope) { old, new ->
             if (old != null && old.page != new.page) {
                 recycler.sidePaddingPercent = new.page.sidePadding
+                recycler.wideSidePaddingPercent = new.page.wideSidePadding
                 refreshAdapter()
             }
             if (old?.doubleTapZoom != new.doubleTapZoom) {
@@ -253,6 +265,17 @@ class WebtoonViewer(val activity: ReaderActivity, val isContinuous: Boolean = tr
             bottom = bottom?.let { maxOf(it, to) } ?: to
         }
         return if (top != null && bottom != null) StripSelection(top, bottom) else null
+    }
+
+    override val zoom: Float
+        get() = recycler.scaleY
+
+    override var onTouchDown: (() -> Unit)? = null
+
+    override fun autoScrollBy(px: Int): Boolean {
+        if (!recycler.canScrollVertically(1)) return false
+        recycler.scrollBy(0, px)
+        return true
     }
 
     private fun onScrolled(pos: Int? = null) {

@@ -71,6 +71,7 @@ class ReaderSettingsViewModel(
         preferences.keepScreenOn,
         preferences.grayscale,
         preferences.invertedColors,
+        preferences.enhance,
         preferences.fullscreen,
         preferences.drawUnderCutout,
         preferences.readWithLongTap,
@@ -86,6 +87,7 @@ class ReaderSettingsViewModel(
             keepScreenOn = keepScreenOn.get(),
             grayscale = grayscale.get(),
             invertedColors = invertedColors.get(),
+            enhance = enhance.get(),
             fullscreen = fullscreen.get(),
             drawUnderCutout = drawUnderCutout.get(),
             longTapEnabled = readWithLongTap.get(),
@@ -174,6 +176,8 @@ class ReaderSettingsViewModel(
      */
     val simpleLongStrip = settings(
         preferences.webtoonSidePadding,
+        preferences.webtoonWideSidePadding,
+        preferences.webtoonPageGap,
         preferences.dualPageSplitWebtoon,
         preferences.dualPageInvertWebtoon,
         preferences.dualPageRotateToFitWebtoon,
@@ -185,6 +189,8 @@ class ReaderSettingsViewModel(
         SimpleLongStripSettings(
             page = SimpleLongStripSettings.Page(
                 sidePadding = webtoonSidePadding.get(),
+                wideSidePadding = webtoonWideSidePadding.get(),
+                pageGap = webtoonPageGap.get(),
                 dualPageSplit = dualPageSplitWebtoon.get(),
                 dualPageInvert = dualPageInvertWebtoon.get(),
                 dualPageRotateToFit = dualPageRotateToFitWebtoon.get(),

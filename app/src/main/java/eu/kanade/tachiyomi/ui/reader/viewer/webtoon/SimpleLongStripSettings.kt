@@ -17,6 +17,9 @@ data class SimpleLongStripSettings(
      */
     data class Page(
         val sidePadding: Int,
+        val wideSidePadding: Int,
+        /** The gap between pages in the long strip, in dp; continuous vertical keeps its own. */
+        val pageGap: Int,
         override val dualPageSplit: Boolean,
         override val dualPageInvert: Boolean,
         override val dualPageRotateToFit: Boolean,

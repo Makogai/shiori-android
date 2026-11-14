@@ -15,6 +15,8 @@ import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderSettingsViewModel
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
 import eu.kanade.tachiyomi.ui.reader.viewer.webgpu.WebGpuViewerSettings
+import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.StripLayout
+import mihon.feature.autoscroll.AutoScrollSettings
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.CheckboxItem
 import tachiyomi.presentation.core.components.HeadingItem
@@ -168,6 +170,39 @@ private fun ColumnScope.WebtoonViewerSettings(viewModel: ReaderSettingsViewModel
         pillColor = MaterialTheme.colorScheme.surfaceContainerHighest,
     )
 
+    val wideSidePadding by viewModel.preferences.webtoonWideSidePadding.collectAsState()
+    SettingsChipRow(MR.strings.pref_webtoon_wide_side_padding) {
+        StripLayout.widePaddings.map {
+            FilterChip(
+                selected = it == wideSidePadding,
+                onClick = { viewModel.preferences.webtoonWideSidePadding.set(it) },
+                label = {
+                    Text(
+                        if (it == StripLayout.SAME_AS_SIDE_PADDING) {
+                            stringResource(MR.strings.pref_webtoon_wide_side_padding_same)
+                        } else {
+                            numberFormat.format(it / 100f)
+                        },
+                    )
+                },
+            )
+        }
+    }
+
+    val readingMode by viewModel.readingMode.collectAsState()
+    if (readingMode == ReadingMode.WEBTOON) {
+        val pageGap by viewModel.preferences.webtoonPageGap.collectAsState()
+        SettingsChipRow(MR.strings.pref_webtoon_page_gap) {
+            StripLayout.gaps.map {
+                FilterChip(
+                    selected = it == pageGap,
+                    onClick = { viewModel.preferences.webtoonPageGap.set(it) },
+                    label = { Text(if (it == 0) stringResource(MR.strings.off) else "$it dp") },
+                )
+            }
+        }
+    }
+
     CheckboxItem(
         label = stringResource(MR.strings.pref_crop_borders),
         pref = viewModel.preferences.cropBordersWebtoon,
@@ -207,6 +242,9 @@ private fun ColumnScope.WebtoonViewerSettings(viewModel: ReaderSettingsViewModel
         label = stringResource(MR.strings.pref_webtoon_disable_zoom_out),
         pref = viewModel.preferences.webtoonDisableZoomOut,
     )
+
+    HeadingItem(MR.strings.auto_scroll)
+    AutoScrollSettings(viewModel)
 }
 
 @Composable

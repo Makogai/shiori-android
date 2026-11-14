@@ -33,6 +33,7 @@ import mihon.feature.rhythm.ReleaseRhythm
 import mihon.feature.rhythm.ReleaseRhythmLogic
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.chapter.repository.ChapterRepository
+import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.source.local.isLocal
@@ -49,6 +50,7 @@ class MangaExtrasViewModel(
     private val ratings: PersonalRatings,
     private val pageBookmarks: PageBookmarks,
     private val recommendations: AniListRecommendations,
+    libraryPreferences: LibraryPreferences,
 ) : ViewModel() {
 
     @AssistedFactory
@@ -71,6 +73,9 @@ class MangaExtrasViewModel(
         val topLists: List<TopList>,
         val bookmarks: List<Bookmark>,
     )
+
+    val showPersonalBox = libraryPreferences.detailsPersonalBox
+    val showMoreLikeThis = libraryPreferences.detailsMoreLikeThis
 
     private val mangaFlow = getManga.subscribe(mangaId)
 
@@ -106,6 +111,7 @@ class MangaExtrasViewModel(
         viewModelScope.launch {
             val manga = mangaFlow.first()
             if (manga.isLocal()) return@launch
+            showMoreLikeThis.changes().first { it }
             mutableRecommendations.value = try {
                 recommendations.get(manga)
             } catch (e: Exception) {

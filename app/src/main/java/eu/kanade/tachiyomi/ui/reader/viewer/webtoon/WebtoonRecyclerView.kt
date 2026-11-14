@@ -54,8 +54,21 @@ class WebtoonRecyclerView @JvmOverloads constructor(
             x = getPositionX(x)
         }
 
+    /** The side padding when the strip is shown wide, see [StripLayout.sidePadding]. */
+    var wideSidePaddingPercent = StripLayout.SAME_AS_SIDE_PADDING
+        set(value) {
+            field = value
+            x = getPositionX(x)
+        }
+
     val sidePaddingPixels: Int
-        get() = (Resources.getSystem().displayMetrics.widthPixels * (sidePaddingPercent / 100f)).toInt()
+        get() {
+            val metrics = Resources.getSystem().displayMetrics
+            val isWide = metrics.widthPixels > metrics.heightPixels ||
+                resources.configuration.smallestScreenWidthDp >= TABLET_MIN_WIDTH_DP
+            val percent = StripLayout.sidePadding(sidePaddingPercent, wideSidePaddingPercent, isWide)
+            return (metrics.widthPixels * (percent / 100f)).toInt()
+        }
 
     var doubleTapZoom = true
 
@@ -371,3 +384,4 @@ private const val ANIMATOR_DURATION_TIME = 200
 private const val MIN_RATE = 0.5f
 private const val DEFAULT_RATE = 1f
 private const val MAX_SCALE_RATE = 3f
+private const val TABLET_MIN_WIDTH_DP = 600

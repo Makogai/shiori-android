@@ -79,6 +79,7 @@ import eu.kanade.presentation.more.settings.screen.browse.ExtensionStoresScreen
 import eu.kanade.presentation.more.settings.screen.data.RestoreBackupScreen
 import eu.kanade.presentation.util.AssistContentScreen
 import eu.kanade.presentation.util.DefaultNavigatorScreenTransition
+import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.extension.ExtensionManager
@@ -124,6 +125,8 @@ import mihon.feature.habits.TodayScreen
 import mihon.feature.sourcehealth.SourceHealthMonitor
 import mihon.feature.sourcehealth.SourceHealthScreen
 import mihon.feature.support.SupportUsScreen
+import mihon.feature.whatsnew.WhatsNewSheet
+import mihon.feature.whatsnew.shouldShowWhatsNew
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.OpenInNew
 import mihon.icons.materialsymbols.roundedfilled.VolunteerActivism
@@ -321,6 +324,7 @@ class MainActivity : BaseActivity() {
                 if (!isBenchmarkBuildType) {
                     if (isLaunch) CheckForUpdates()
                     ShowOnboarding()
+                    ShowWhatsNew()
                     ShowDonationCampaign()
                 }
             }
@@ -421,6 +425,27 @@ class MainActivity : BaseActivity() {
             if (!preferences.shownOnboardingFlow.get() && navigator.lastItem !is OnboardingScreen) {
                 navigator.push(OnboardingScreen())
             }
+        }
+    }
+
+    @Composable
+    private fun ShowWhatsNew() {
+        val seen = preferences.whatsNewSeenVersion
+        val since = remember { seen.get() }
+        var show by remember {
+            mutableStateOf(
+                shouldShowWhatsNew(seen.get(), BuildConfig.VERSION_CODE, preferences.shownOnboardingFlow.get()),
+            )
+        }
+        LaunchedEffect(Unit) { if (!show) seen.set(BuildConfig.VERSION_CODE) }
+        if (show) {
+            WhatsNewSheet(
+                sinceVersion = since,
+                onDismissRequest = {
+                    seen.set(BuildConfig.VERSION_CODE)
+                    show = false
+                },
+            )
         }
     }
 

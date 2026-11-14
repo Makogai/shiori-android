@@ -47,6 +47,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
@@ -125,6 +126,10 @@ import kotlinx.coroutines.launch
 import logcat.LogPriority
 import mihon.app.di.AppGraph
 import mihon.core.metro.metroGraph
+import mihon.feature.autoscroll.AutoScrollSpeed
+import mihon.feature.autoscroll.AutoScrollTarget
+import mihon.feature.autoscroll.ReaderAutoScroll
+import mihon.feature.enhance.PageEnhance
 import mihon.feature.friends.cards.CardMakerDialog
 import mihon.feature.friends.cards.CardMakerViewModel
 import mihon.feature.friends.cards.CardRepository
@@ -137,6 +142,8 @@ import mihon.feature.habits.ReadingTimeTracker
 import mihon.feature.readerextras.ReaderExtrasHost
 import mihon.feature.readerextras.ReaderExtrasViewModel
 import mihon.feature.readerextras.readerExtrasActions
+import mihon.feature.readingpace.ReadingPaceViewModel
+import mihon.feature.readingpace.timeLeftLabel
 import tachiyomi.core.common.Constants
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.system.logcat
@@ -185,6 +192,8 @@ class ReaderActivity : BaseActivity() {
         }
     }
     private val extrasViewModel by viewModels<ReaderExtrasViewModel> { graph.viewModelFactory }
+    private val paceViewModel by viewModels<ReadingPaceViewModel> { graph.viewModelFactory }
+    private val autoScroll by lazy { ReaderAutoScroll(resources.displayMetrics.density) }
     private val cardMakerViewModel by viewModels<CardMakerViewModel> {
         viewModelFactory { initializer { CardMakerViewModel(cardRepository) } }
     }
@@ -496,6 +505,7 @@ class ReaderActivity : BaseActivity() {
     }
 
     override fun onPause() {
+        autoScroll.pause()
         viewModel.saveHistory()
         readingTimeTracker.onPause()
         if (isFinishing) friendsRepository.requestSync(FriendsRepository.READER_SYNC_DELAY)
@@ -592,9 +602,11 @@ class ReaderActivity : BaseActivity() {
             !general.drawUnderCutout -> WindowInsets.displayCutout
             else -> WindowInsets(0)
         }
-        val colorFilter = remember(general.grayscale, general.invertedColors) {
-            viewerColorFilter(general.grayscale, general.invertedColors)
+        val colorFilter = remember(general.grayscale, general.invertedColors, general.enhance) {
+            viewerColorFilter(general.grayscale, general.invertedColors, general.enhance)
         }
+        // Sharpening runs on what the viewer draws, after the pages are scaled to the screen.
+        val sharpen = remember(general.enhance) { if (general.enhance) PageEnhance.sharpen() else null }
 
         // Each viewer filters its page images alone: transition, loading and error pages keep their colours.
         CompositionLocalProvider(LocalPageColorFilter provides colorFilter) {
@@ -602,7 +614,8 @@ class ReaderActivity : BaseActivity() {
                 viewer?.Content(
                     modifier = Modifier
                         .fillMaxSize()
-                        .windowInsetsPadding(insets),
+                        .windowInsetsPadding(insets)
+                        .graphicsLayer { renderEffect = sharpen },
                 )
             }
         }
@@ -685,11 +698,16 @@ class ReaderActivity : BaseActivity() {
         val verticalNavigatorOnLeft by readerPreferences.verticalNavigatorOnLeft.collectAsState()
         val verticalNavigatorHeight by readerPreferences.verticalNavigatorHeight.collectAsState()
 
+        val pace by paceViewModel.pace.collectAsState()
+        val autoScrolling by autoScroll.running.collectAsState()
+        val viewer by viewerFlow.collectAsState()
+        val timeLeft = pace?.let { timeLeftLabel(it, state.totalPages - state.currentPage + 1) }
+
         ReaderAppBars(
             visible = state.menuVisible,
 
             mangaTitle = state.manga?.title,
-            chapterTitle = state.currentChapter?.chapter?.name,
+            chapterTitle = listOfNotNull(state.currentChapter?.chapter?.name, timeLeft).joinToString(" · "),
             navigateUp = onBackPressedDispatcher::onBackPressed,
             onClickTopAppBar = ::openMangaScreen,
             bookmarked = state.bookmarked,
@@ -754,6 +772,8 @@ class ReaderActivity : BaseActivity() {
                 val page = state.currentChapter?.pages?.getOrNull(state.currentPage - 1)
                 if (page != null) viewModel.openPageDialog(page) else toast(MR.strings.screenshot_no_page)
             },
+            autoScrolling = autoScrolling.takeIf { viewer is AutoScrollTarget },
+            onToggleAutoScroll = ::toggleAutoScroll,
             onMakeCard = captureViewModel.cardMaker?.let {
                 {
                     hideMenu()
@@ -780,6 +800,18 @@ class ReaderActivity : BaseActivity() {
             genres = CardSeriesContext.genres(manga.genre),
             seriesKey = LeagueHashing.seriesKey(manga.source, manga.url),
         )
+    }
+
+    private fun toggleAutoScroll() {
+        if (autoScroll.running.value) return autoScroll.pause()
+        val target = viewer as? AutoScrollTarget ?: return
+        hideMenu()
+        val level = AutoScrollSpeed.forSeries(
+            AutoScrollSpeed.deserialize(readerPreferences.seriesAutoScrollSpeeds.get()),
+            viewModel.state.value.manga?.id,
+            readerPreferences.autoScrollSpeed.get(),
+        )
+        autoScroll.start(target, level) { viewModel.state.value.viewerChapters?.nextChapter != null }
     }
 
     private fun isLongStrip(): Boolean =
@@ -839,6 +871,7 @@ class ReaderActivity : BaseActivity() {
     private fun setMenuVisibility(visible: Boolean) {
         viewModel.showMenus(visible)
         if (visible) {
+            autoScroll.pause()
             windowInsetsController.show(WindowInsetsCompat.Type.systemBars())
         } else if (readerPreferences.fullscreen.get()) {
             windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
@@ -857,6 +890,7 @@ class ReaderActivity : BaseActivity() {
         setOrientation(viewModel.getMangaOrientation())
 
         // Destroy previous viewer if there was one
+        autoScroll.pause()
         prevViewer?.destroy()
         viewerFlow.value = newViewer
 
@@ -1102,9 +1136,12 @@ class ReaderActivity : BaseActivity() {
     }
 }
 
-private fun viewerColorFilter(grayscale: Boolean, invertedColors: Boolean): ColorFilter? {
-    if (!grayscale && !invertedColors) return null
+private fun viewerColorFilter(grayscale: Boolean, invertedColors: Boolean, enhance: Boolean): ColorFilter? {
+    if (!grayscale && !invertedColors && !enhance) return null
     val matrix = ColorMatrix()
+    if (enhance) {
+        matrix *= PageEnhance.contrast()
+    }
     if (invertedColors) {
         matrix *= ColorMatrix(
             floatArrayOf(

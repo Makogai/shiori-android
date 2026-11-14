@@ -9,6 +9,8 @@ import dev.zacsweers.metro.SingleIn
 import eu.kanade.tachiyomi.ui.reader.capture.ShotLayout
 import eu.kanade.tachiyomi.ui.reader.viewer.webgpu.WebGpuShader
 import eu.kanade.tachiyomi.ui.reader.viewer.webgpu.WebGpuShaders
+import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.StripLayout
+import mihon.feature.autoscroll.AutoScrollSpeed
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.getEnum
@@ -101,6 +103,19 @@ class ReaderPreferences(
 
     val webtoonSidePadding: Preference<Int> = preferenceStore.getInt("webtoon_side_padding", WEBTOON_PADDING_MIN)
 
+    val webtoonWideSidePadding: Preference<Int> = preferenceStore.getInt(
+        "webtoon_wide_side_padding",
+        StripLayout.SAME_AS_SIDE_PADDING,
+    )
+
+    val webtoonPageGap: Preference<Int> = preferenceStore.getInt("webtoon_page_gap", 0)
+
+    /** The long strip's auto-scroll level for series without their own, see [AutoScrollSpeed]. */
+    val autoScrollSpeed: Preference<Int> = preferenceStore.getInt("auto_scroll_speed", AutoScrollSpeed.DEFAULT_LEVEL)
+
+    /** Auto-scroll levels set while reading a series, by manga id, as [AutoScrollSpeed.serialize] writes them. */
+    val seriesAutoScrollSpeeds: Preference<String> = preferenceStore.getString("auto_scroll_series_speeds", "")
+
     val readerHideThreshold: Preference<ReaderHideThreshold> = preferenceStore.getEnum(
         "reader_hide_threshold",
         ReaderHideThreshold.LOW,
@@ -169,6 +184,8 @@ class ReaderPreferences(
     val grayscale: Preference<Boolean> = preferenceStore.getBoolean("pref_grayscale", false)
 
     val invertedColors: Preference<Boolean> = preferenceStore.getBoolean("pref_inverted_colors", false)
+
+    val enhance: Preference<Boolean> = preferenceStore.getBoolean("pref_reader_enhance", false)
 
     // endregion
 

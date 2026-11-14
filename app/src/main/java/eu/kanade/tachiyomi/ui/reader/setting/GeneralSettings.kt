@@ -8,6 +8,8 @@ data class GeneralSettings(
     val keepScreenOn: Boolean,
     val grayscale: Boolean,
     val invertedColors: Boolean,
+    /** Pages get more contrast and a light sharpening, see [mihon.feature.enhance.PageEnhance]. */
+    val enhance: Boolean,
     val fullscreen: Boolean,
     val drawUnderCutout: Boolean,
     val longTapEnabled: Boolean,

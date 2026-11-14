@@ -201,6 +201,11 @@ class LibraryPreferences(
     )
     // endregion
 
+    /** The details page's score, Up next, top lists and release rhythm box. */
+    val detailsPersonalBox: Preference<Boolean> = preferenceStore.getBoolean("details_personal_box", false)
+
+    val detailsMoreLikeThis: Preference<Boolean> = preferenceStore.getBoolean("details_more_like_this", true)
+
     // region Swipe Actions
 
     val swipeToStartAction: Preference<ChapterSwipeAction> = preferenceStore.getEnum(

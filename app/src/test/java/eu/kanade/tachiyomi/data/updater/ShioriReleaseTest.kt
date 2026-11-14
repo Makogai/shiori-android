@@ -45,9 +45,25 @@ class ShioriReleaseTest {
         ShioriRelease.pick(releases, "Shiori-Friends-arm64.apk", 41) shouldBe null
     }
 
-    private fun release(tag: String, vararg assets: String, draft: Boolean = false) = GithubRelease(
+    @Test
+    fun `skipped releases keep their notes, newest first`() {
+        val releases = listOf(
+            release("v0.21.3-40", FRIENDS, info = "forty"),
+            release("v0.21.3-41", FRIENDS, info = "forty-one"),
+            release("v0.21.3-39", FRIENDS, info = "old"),
+        )
+        ShioriRelease.combinedNotes(releases, FRIENDS, 39) shouldBe
+            "### v0.21.3-41\nforty-one\n\n### v0.21.3-40\nforty"
+        ShioriRelease.combinedNotes(releases, FRIENDS, 40) shouldBe "forty-one"
+    }
+
+    private companion object {
+        const val FRIENDS = "Shiori-Friends-arm64.apk"
+    }
+
+    private fun release(tag: String, vararg assets: String, draft: Boolean = false, info: String = "") = GithubRelease(
         version = tag,
-        info = "",
+        info = info,
         releaseLink = "",
         assets = assets.map { GitHubAsset(it, "https://example.com/$it") },
         draft = draft,

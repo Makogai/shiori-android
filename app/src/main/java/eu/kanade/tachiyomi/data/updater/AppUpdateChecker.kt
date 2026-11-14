@@ -35,7 +35,7 @@ class AppUpdateChecker(
         return GetApplicationRelease.Result.NewUpdate(
             Release(
                 version = release.version,
-                info = release.info,
+                info = ShioriRelease.combinedNotes(releases, BuildConfig.SHIORI_APK_ASSET, BuildConfig.VERSION_CODE),
                 releaseLink = release.releaseLink,
                 downloadLink = apk.downloadLink,
             ),

@@ -59,6 +59,7 @@ object SettingsLibraryScreen : SearchableSettings {
             getCategoriesGroup(LocalNavigator.currentOrThrow, allCategories, libraryPreferences),
             getGlobalUpdateGroup(allCategories, libraryPreferences),
             getSourceHealthGroup(LocalNavigator.currentOrThrow),
+            getSeriesPageGroup(libraryPreferences),
             getBehaviorGroup(libraryPreferences),
         )
     }
@@ -244,6 +245,25 @@ object SettingsLibraryScreen : SearchableSettings {
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(MR.strings.source_health),
                     onClick = { navigator.push(SourceHealthScreen()) },
+                ),
+            ),
+        )
+    }
+
+    @Composable
+    private fun getSeriesPageGroup(libraryPreferences: LibraryPreferences): Preference.PreferenceGroup {
+        return Preference.PreferenceGroup(
+            title = stringResource(MR.strings.pref_category_series_page),
+            preferenceItems = listOf(
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = libraryPreferences.detailsPersonalBox,
+                    title = stringResource(MR.strings.pref_details_personal_box),
+                    subtitle = stringResource(MR.strings.pref_details_personal_box_summary),
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = libraryPreferences.detailsMoreLikeThis,
+                    title = stringResource(MR.strings.pref_details_more_like_this),
+                    subtitle = stringResource(MR.strings.pref_details_more_like_this_summary),
                 ),
             ),
         )

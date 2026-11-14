@@ -1,0 +1,7 @@
+recentSamples:
+SELECT H.read_duration, C.user_last_page_read
+FROM history H
+JOIN chapter C ON C.id = H.chapter_id
+WHERE H.read_duration > 0 AND H.read_at IS NOT NULL
+ORDER BY H.read_at DESC
+LIMIT :limit;

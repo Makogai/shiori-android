@@ -88,6 +88,8 @@ fun ReaderAppBars(
     onStyledScreenshot: () -> Unit,
     onPageAsIs: () -> Unit,
     onMakeCard: (() -> Unit)?,
+    autoScrolling: Boolean?,
+    onToggleAutoScroll: () -> Unit,
 ) {
     // The iOS reader chrome: floating dark glass panels over the page, dark in either theme.
     val backgroundColor = ReaderGlass
@@ -202,6 +204,8 @@ fun ReaderAppBars(
                         onStyledScreenshot = onStyledScreenshot,
                         onPageAsIs = onPageAsIs,
                         onMakeCard = onMakeCard,
+                        autoScrolling = autoScrolling,
+                        onToggleAutoScroll = onToggleAutoScroll,
                     )
                 }
             }

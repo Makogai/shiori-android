@@ -37,4 +37,23 @@ object ShioriRelease {
         .filter { !it.draft && !it.prerelease && isNewer(it.version, installedVersionCode) }
         .mapNotNull { release -> release.assets.firstOrNull { it.name == assetName }?.let { release to it } }
         .maxByOrNull { (release, _) -> versionCode(release.version) ?: 0 }
+
+    /**
+     * Release notes for an update from [installedVersionCode]: every newer release carrying [assetName], newest
+     * first, each under its tag, so skipping a release doesn't skip its notes.
+     */
+    fun combinedNotes(
+        releases: List<GithubRelease>,
+        assetName: String,
+        installedVersionCode: Int,
+    ): String {
+        val newer = releases
+            .filter { release ->
+                !release.draft && !release.prerelease && isNewer(release.version, installedVersionCode) &&
+                    release.assets.any { it.name == assetName }
+            }
+            .sortedByDescending { versionCode(it.version) ?: 0 }
+        if (newer.size <= 1) return newer.firstOrNull()?.info.orEmpty()
+        return newer.joinToString("\n\n") { "### ${it.version}\n${it.info}" }
+    }
 }

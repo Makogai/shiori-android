@@ -51,6 +51,7 @@ import tachiyomi.presentation.core.components.LabeledCheckbox
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.theme.GroupedSection
 import tachiyomi.presentation.core.theme.GroupedSectionHeader
+import tachiyomi.presentation.core.util.collectAsState
 import java.time.DayOfWeek
 
 /**
@@ -67,45 +68,15 @@ fun MangaExtrasSection(
     val viewModel = assistedMetroViewModel<MangaExtrasViewModel, MangaExtrasViewModel.Factory> { create(mangaId) }
     val state by viewModel.state.collectAsStateWithLifecycle()
     val recommended by viewModel.recommended.collectAsStateWithLifecycle()
+    val showPersonalBox by viewModel.showPersonalBox.collectAsState()
+    val showMoreLikeThis by viewModel.showMoreLikeThis.collectAsState()
     val current = state ?: return
     var showScore by rememberSaveable { mutableStateOf(false) }
     var showLists by rememberSaveable { mutableStateOf(false) }
 
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
-        GroupedSection {
-            current.rhythm?.let { rhythm ->
-                GroupedRow(
-                    title = rhythmText(rhythm),
-                    icon = MaterialSymbols.Rounded.Schedule,
-                    iconColor = Color(0xFF34C759),
-                )
-                GroupedDivider()
-            }
-            GroupedRow(
-                title = stringResource(MR.strings.personal_score),
-                icon = MaterialSymbols.Rounded.Favorite,
-                iconColor = Color(0xFFFF2D55),
-                value = current.score?.let { stringResource(MR.strings.personal_score_value, it) }
-                    ?: stringResource(MR.strings.personal_score_none),
-                onClick = { showScore = true },
-            )
-            GroupedDivider()
-            GroupedSwitchRow(
-                title = stringResource(MR.strings.binge_queue_title),
-                checked = current.inQueue,
-                onCheckedChange = { viewModel.toggleQueue() },
-                icon = MaterialSymbols.Rounded.FormatListNumbered,
-                iconColor = Color(0xFF5856D6),
-            )
-            GroupedDivider()
-            val key = current.manga.seriesKey
-            GroupedRow(
-                title = stringResource(MR.strings.top_lists),
-                icon = MaterialSymbols.Rounded.EmojiEvents,
-                iconColor = Color(0xFFFF9500),
-                value = current.topLists.filter { key in it.entries }.joinToString { it.name }.ifEmpty { null },
-                onClick = { showLists = true },
-            )
+        if (showPersonalBox) {
+            PersonalBox(current, onScore = { showScore = true }, onQueue = viewModel::toggleQueue) { showLists = true }
         }
 
         if (current.bookmarks.isNotEmpty()) {
@@ -133,7 +104,7 @@ fun MangaExtrasSection(
             }
         }
 
-        if (recommended.isNotEmpty()) {
+        if (showMoreLikeThis && recommended.isNotEmpty()) {
             GroupedSectionHeader(stringResource(MR.strings.more_like_this))
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 16.dp),
@@ -183,6 +154,50 @@ fun MangaExtrasSection(
                 onManageTopLists()
             },
             onDismiss = { showLists = false },
+        )
+    }
+}
+
+@Composable
+private fun PersonalBox(
+    current: MangaExtrasViewModel.State,
+    onScore: () -> Unit,
+    onQueue: () -> Unit,
+    onLists: () -> Unit,
+) {
+    GroupedSection {
+        current.rhythm?.let { rhythm ->
+            GroupedRow(
+                title = rhythmText(rhythm),
+                icon = MaterialSymbols.Rounded.Schedule,
+                iconColor = Color(0xFF34C759),
+            )
+            GroupedDivider()
+        }
+        GroupedRow(
+            title = stringResource(MR.strings.personal_score),
+            icon = MaterialSymbols.Rounded.Favorite,
+            iconColor = Color(0xFFFF2D55),
+            value = current.score?.let { stringResource(MR.strings.personal_score_value, it) }
+                ?: stringResource(MR.strings.personal_score_none),
+            onClick = onScore,
+        )
+        GroupedDivider()
+        GroupedSwitchRow(
+            title = stringResource(MR.strings.binge_queue_title),
+            checked = current.inQueue,
+            onCheckedChange = { onQueue() },
+            icon = MaterialSymbols.Rounded.FormatListNumbered,
+            iconColor = Color(0xFF5856D6),
+        )
+        GroupedDivider()
+        val key = current.manga.seriesKey
+        GroupedRow(
+            title = stringResource(MR.strings.top_lists),
+            icon = MaterialSymbols.Rounded.EmojiEvents,
+            iconColor = Color(0xFFFF9500),
+            value = current.topLists.filter { key in it.entries }.joinToString { it.name }.ifEmpty { null },
+            onClick = onLists,
         )
     }
 }

@@ -1592,6 +1592,27 @@
     <string name="top_list_empty">This list is empty. Add series from their page.</string>
     <string name="top_list_delete_confirm">Delete \"%s\"?</string>
     <string name="more_like_this">More like this</string>
+    <string name="pref_category_series_page">Series pages</string>
+    <string name="pref_details_personal_box">Score, Up next and top lists</string>
+    <string name="pref_details_personal_box_summary">Your score, the Up next queue, top lists and how often it updates</string>
+    <string name="pref_details_more_like_this">More like this</string>
+    <string name="pref_details_more_like_this_summary">Similar series from AniList</string>
+    <string name="whats_new_in_version">What\'s new in %1$s</string>
+    <string name="whats_new_done">Done</string>
+    <string name="whats_new_switches">Turn on or off</string>
+    <string name="whats_new_switches_footer">You can change these later in Settings.</string>
+    <string name="whats_new_41_series_title">Calmer series pages</string>
+    <string name="whats_new_41_series">Score, Up next and top lists are off unless you switch them on.</string>
+    <string name="whats_new_41_reader_title">Reader extras</string>
+    <string name="whats_new_41_reader">Webtoon auto-scroll with a speed per series, an Enhance filter and time left in the chapter.</string>
+    <string name="whats_new_41_screenshots_title">Better screenshots</string>
+    <string name="whats_new_41_screenshots">Stylised, long and partial screenshots.</string>
+    <string name="whats_new_41_recaps_title">Recaps</string>
+    <string name="whats_new_41_recaps">Weekly and monthly looks back at your reading.</string>
+    <string name="whats_new_41_library_title">Smarter library</string>
+    <string name="whats_new_41_library">Sections, Surprise me, fuzzy search and a preview of what gets updated.</string>
+    <string name="whats_new_41_onboarding_title">New welcome</string>
+    <string name="whats_new_41_onboarding">A simpler first launch for new readers.</string>
     <string name="pref_remove_after_read_days">Delete some days after reading</string>
     <string name="storage_per_series">Storage per series</string>
     <string name="storage_per_series_summary">Downloaded space used by each series</string>
@@ -1716,4 +1737,17 @@
     <string name="surprise_me_another">Another one</string>
     <string name="surprise_me_plan_to_read">On your plan-to-read list</string>
     <string name="surprise_me_not_started">In your library, never started</string>
+    <string name="reading_left_under_minute">&lt;1 min left</string>
+    <string name="reading_left_minutes">~%d min left</string>
+    <string name="reading_left_hours">~%d h left</string>
+    <string name="reading_left_hours_minutes">~%1$d h %2$d min left</string>
+    <string name="auto_scroll">Auto-scroll</string>
+    <string name="auto_scroll_series_speed">Auto-scroll speed for this series</string>
+    <string name="auto_scroll_default_speed">Default auto-scroll speed</string>
+    <string name="auto_scroll_use_default">Use the default speed</string>
+    <string name="pref_webtoon_page_gap">Page gap</string>
+    <string name="pref_webtoon_wide_side_padding">Side padding in landscape and on tablets</string>
+    <string name="pref_webtoon_wide_side_padding_same">Same</string>
+    <string name="pref_reader_enhance">Enhance (sharpen and contrast)</string>
+>>>>>>> feat/android-reader2
 </resources>

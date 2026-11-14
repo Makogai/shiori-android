@@ -30,6 +30,12 @@ class BasePreferences(
         false,
     )
 
+    /** The versionCode whose "What's new" sheet was last seen. */
+    val whatsNewSeenVersion: Preference<Int> = preferenceStore.getInt(
+        Preference.appStateKey("whats_new_seen_version"),
+        0,
+    )
+
     enum class ExtensionInstaller(val titleRes: StringResource, val requiresSystemPermission: Boolean) {
         LEGACY(MR.strings.ext_installer_legacy, true),
         PACKAGEINSTALLER(MR.strings.ext_installer_packageinstaller, true),
