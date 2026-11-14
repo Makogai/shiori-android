@@ -44,6 +44,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.components.DropdownMenu
+import eu.kanade.presentation.components.MenuIcon
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.ui.download.DownloadQueueSection
@@ -51,7 +52,13 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.ArrowDownward
+import mihon.icons.materialsymbols.rounded.ArrowUpward
+import mihon.icons.materialsymbols.rounded.Close
+import mihon.icons.materialsymbols.rounded.DeleteSweep
 import mihon.icons.materialsymbols.rounded.DragHandle
+import mihon.icons.materialsymbols.rounded.KeyboardArrowDown
+import mihon.icons.materialsymbols.rounded.KeyboardArrowUp
 import mihon.icons.materialsymbols.rounded.MoreVert
 import sh.calvin.reorderable.ReorderableCollectionItemScope
 import sh.calvin.reorderable.ReorderableItem
@@ -408,6 +415,7 @@ private fun DownloadQueueItemMenu(
             if (canMoveToTop) {
                 DropdownMenuItem(
                     text = { Text(stringResource(MR.strings.action_move_to_top)) },
+                    leadingIcon = { MenuIcon(MaterialSymbols.Rounded.ArrowUpward) },
                     onClick = {
                         closeMenu()
                         onMove(true)
@@ -416,6 +424,7 @@ private fun DownloadQueueItemMenu(
             }
             DropdownMenuItem(
                 text = { Text(stringResource(MR.strings.action_move_to_top_all_for_series)) },
+                leadingIcon = { MenuIcon(MaterialSymbols.Rounded.KeyboardArrowUp) },
                 onClick = {
                     closeMenu()
                     onMoveSeries(true)
@@ -424,6 +433,7 @@ private fun DownloadQueueItemMenu(
             if (canMoveToBottom) {
                 DropdownMenuItem(
                     text = { Text(stringResource(MR.strings.action_move_to_bottom)) },
+                    leadingIcon = { MenuIcon(MaterialSymbols.Rounded.ArrowDownward) },
                     onClick = {
                         closeMenu()
                         onMove(false)
@@ -432,6 +442,7 @@ private fun DownloadQueueItemMenu(
             }
             DropdownMenuItem(
                 text = { Text(stringResource(MR.strings.action_move_to_bottom_all_for_series)) },
+                leadingIcon = { MenuIcon(MaterialSymbols.Rounded.KeyboardArrowDown) },
                 onClick = {
                     closeMenu()
                     onMoveSeries(false)
@@ -439,6 +450,7 @@ private fun DownloadQueueItemMenu(
             )
             DropdownMenuItem(
                 text = { Text(stringResource(MR.strings.action_cancel)) },
+                leadingIcon = { MenuIcon(MaterialSymbols.Rounded.Close) },
                 onClick = {
                     closeMenu()
                     onCancel()
@@ -446,6 +458,7 @@ private fun DownloadQueueItemMenu(
             )
             DropdownMenuItem(
                 text = { Text(stringResource(MR.strings.cancel_all_for_series)) },
+                leadingIcon = { MenuIcon(MaterialSymbols.Rounded.DeleteSweep) },
                 onClick = {
                     closeMenu()
                     onCancelSeries()

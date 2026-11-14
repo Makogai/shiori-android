@@ -335,6 +335,7 @@ fun AppBarActions(
                         showMenu = false
                     },
                     text = { Text(it.title, fontWeight = FontWeight.Normal) },
+                    leadingIcon = it.icon?.let { icon -> { MenuIcon(icon) } },
                 )
             }
         }
@@ -547,6 +548,7 @@ sealed interface AppBar {
 
     data class OverflowAction(
         val title: String,
+        val icon: ImageVector? = null,
         val onClick: () -> Unit,
     ) : AppBarAction
 }

@@ -80,6 +80,7 @@ import com.mikepenz.markdown.model.markdownAnnotator
 import com.mikepenz.markdown.model.markdownAnnotatorConfig
 import com.mikepenz.markdown.utils.getUnescapedTextInNode
 import eu.kanade.presentation.components.DropdownMenu
+import eu.kanade.presentation.components.MenuIcon
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.model.SManga
@@ -92,12 +93,14 @@ import mihon.icons.materialsymbols.rounded.AttachMoney
 import mihon.icons.materialsymbols.rounded.Block
 import mihon.icons.materialsymbols.rounded.Check
 import mihon.icons.materialsymbols.rounded.Close
+import mihon.icons.materialsymbols.rounded.ContentCopy
 import mihon.icons.materialsymbols.rounded.DoneAll
 import mihon.icons.materialsymbols.rounded.Favorite
 import mihon.icons.materialsymbols.rounded.HourglassEmpty
 import mihon.icons.materialsymbols.rounded.Person
 import mihon.icons.materialsymbols.rounded.Public
 import mihon.icons.materialsymbols.rounded.Schedule
+import mihon.icons.materialsymbols.rounded.Search
 import mihon.icons.materialsymbols.rounded.Sync
 import mihon.icons.materialsymbols.roundedfilled.Brush
 import mihon.icons.materialsymbols.roundedfilled.Favorite
@@ -313,6 +316,7 @@ fun ExpandableMangaDescription(
                 ) {
                     DropdownMenuItem(
                         text = { Text(text = stringResource(MR.strings.action_search)) },
+                        leadingIcon = { MenuIcon(MaterialSymbols.Rounded.Search) },
                         onClick = {
                             onTagSearch(tagSelected)
                             showMenu = false
@@ -320,6 +324,7 @@ fun ExpandableMangaDescription(
                     )
                     DropdownMenuItem(
                         text = { Text(text = stringResource(MR.strings.action_copy_to_clipboard)) },
+                        leadingIcon = { MenuIcon(MaterialSymbols.Rounded.ContentCopy) },
                         onClick = {
                             onCopyTagToClipboard(tagSelected)
                             showMenu = false

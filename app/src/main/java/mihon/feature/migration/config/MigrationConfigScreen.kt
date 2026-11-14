@@ -59,6 +59,7 @@ import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.ArrowForward
 import mihon.icons.materialsymbols.rounded.Deselect
 import mihon.icons.materialsymbols.rounded.DragHandle
+import mihon.icons.materialsymbols.rounded.Keep
 import mihon.icons.materialsymbols.rounded.SelectAll
 import sh.calvin.reorderable.ReorderableCollectionItemScope
 import sh.calvin.reorderable.ReorderableItem
@@ -136,10 +137,12 @@ class MigrationConfigScreen(private val mangaIds: Collection<Long>) : Screen() {
                                 ),
                                 AppBar.OverflowAction(
                                     title = stringResource(MR.strings.migrationConfigScreen_selectEnabledLabel),
+                                    icon = MaterialSymbols.Rounded.SelectAll,
                                     onClick = { viewModel.toggleSelection(Model.SelectionConfig.Enabled) },
                                 ),
                                 AppBar.OverflowAction(
                                     title = stringResource(MR.strings.migrationConfigScreen_selectPinnedLabel),
+                                    icon = MaterialSymbols.Rounded.Keep,
                                     onClick = { viewModel.toggleSelection(Model.SelectionConfig.Pinned) },
                                 ),
                             ),

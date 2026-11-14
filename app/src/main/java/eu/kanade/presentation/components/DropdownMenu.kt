@@ -14,6 +14,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
@@ -50,6 +52,12 @@ fun DropdownMenu(
     )
 }
 
+/** A menu item's leading icon, tinted like its text as on iOS. */
+@Composable
+fun MenuIcon(icon: ImageVector, tint: Color = MaterialTheme.colorScheme.onSurface) {
+    Icon(imageVector = icon, contentDescription = null, tint = tint)
+}
+
 @Composable
 fun RadioMenuItem(
     text: @Composable () -> Unit,
@@ -83,6 +91,7 @@ fun NestedMenuItem(
     text: @Composable () -> Unit,
     children: @Composable ColumnScope.(() -> Unit) -> Unit,
     modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
 ) {
     var nestedExpanded by remember { mutableStateOf(false) }
     val closeMenu = { nestedExpanded = false }
@@ -91,6 +100,7 @@ fun NestedMenuItem(
         DropdownMenuItem(
             text = text,
             onClick = { nestedExpanded = true },
+            leadingIcon = icon?.let { { MenuIcon(it) } },
             trailingIcon = {
                 Icon(
                     imageVector = MaterialSymbols.AutoMirroredRounded.ArrowRight,

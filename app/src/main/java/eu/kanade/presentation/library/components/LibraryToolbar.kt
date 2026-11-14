@@ -16,8 +16,14 @@ import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.components.SearchToolbar
 import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.Add
+import mihon.icons.materialsymbols.rounded.Autorenew
 import mihon.icons.materialsymbols.rounded.FlipToBack
+import mihon.icons.materialsymbols.rounded.QueryStats
+import mihon.icons.materialsymbols.rounded.Refresh
+import mihon.icons.materialsymbols.rounded.RocketLaunch
 import mihon.icons.materialsymbols.rounded.SelectAll
+import mihon.icons.materialsymbols.rounded.Sync
 import mihon.icons.materialsymbols.rounded.Tune
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.Pill
@@ -117,22 +123,27 @@ private fun LibraryRegularToolbar(
                     ),
                     AppBar.OverflowAction(
                         title = stringResource(MR.strings.action_update_library),
+                        icon = MaterialSymbols.Rounded.Refresh,
                         onClick = onClickGlobalUpdate,
                     ),
                     AppBar.OverflowAction(
                         title = stringResource(MR.strings.action_update_category),
+                        icon = MaterialSymbols.Rounded.Sync,
                         onClick = onClickRefresh,
                     ),
                     AppBar.OverflowAction(
                         title = stringResource(MR.strings.action_open_random_manga),
+                        icon = MaterialSymbols.Rounded.Autorenew,
                         onClick = onClickOpenRandomManga,
                     ),
                     AppBar.OverflowAction(
                         title = stringResource(MR.strings.surprise_me),
+                        icon = MaterialSymbols.Rounded.RocketLaunch,
                         onClick = onClickSurpriseMe,
                     ),
                     AppBar.OverflowAction(
                         title = stringResource(MR.strings.track_library_title),
+                        icon = MaterialSymbols.Rounded.QueryStats,
                         onClick = onClickTrackLibrary,
                     ),
                 ),
@@ -168,6 +179,7 @@ private fun LibrarySelectionToolbar(
                     ),
                     AppBar.OverflowAction(
                         title = stringResource(MR.strings.binge_queue_add),
+                        icon = MaterialSymbols.Rounded.Add,
                         onClick = onClickAddToQueue,
                     ),
                 ),

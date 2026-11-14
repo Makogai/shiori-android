@@ -49,6 +49,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.presentation.components.DropdownMenu
+import eu.kanade.presentation.components.MenuIcon
 import eu.kanade.presentation.theme.TachiyomiPreviewTheme
 import eu.kanade.presentation.track.components.TrackLogoIcon
 import eu.kanade.tachiyomi.data.track.Tracker
@@ -58,7 +59,11 @@ import eu.kanade.tachiyomi.util.lang.toLocalDate
 import eu.kanade.tachiyomi.util.system.copyToClipboard
 import kotlinx.datetime.toJavaLocalDate
 import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.automirroredrounded.OpenInNew
+import mihon.icons.materialsymbols.rounded.ContentCopy
+import mihon.icons.materialsymbols.rounded.Delete
 import mihon.icons.materialsymbols.rounded.MoreVert
+import mihon.icons.materialsymbols.roundedfilled.Visibility
 import mihon.icons.materialsymbols.roundedfilled.VisibilityOff
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
@@ -344,6 +349,7 @@ private fun TrackInfoItemMenu(
         ) {
             DropdownMenuItem(
                 text = { Text(stringResource(MR.strings.action_open_in_browser)) },
+                leadingIcon = { MenuIcon(MaterialSymbols.AutoMirroredRounded.OpenInNew) },
                 onClick = {
                     onOpenInBrowser()
                     expanded = false
@@ -351,6 +357,7 @@ private fun TrackInfoItemMenu(
             )
             DropdownMenuItem(
                 text = { Text(stringResource(MR.strings.action_copy_link)) },
+                leadingIcon = { MenuIcon(MaterialSymbols.Rounded.ContentCopy) },
                 onClick = {
                     onCopyLink()
                     expanded = false
@@ -369,6 +376,15 @@ private fun TrackInfoItemMenu(
                             ),
                         )
                     },
+                    leadingIcon = {
+                        MenuIcon(
+                            if (private) {
+                                MaterialSymbols.RoundedFilled.Visibility
+                            } else {
+                                MaterialSymbols.RoundedFilled.VisibilityOff
+                            },
+                        )
+                    },
                     onClick = {
                         onTogglePrivate()
                         expanded = false
@@ -377,6 +393,7 @@ private fun TrackInfoItemMenu(
             }
             DropdownMenuItem(
                 text = { Text(stringResource(MR.strings.action_remove)) },
+                leadingIcon = { MenuIcon(MaterialSymbols.Rounded.Delete) },
                 onClick = {
                     onRemoved()
                     expanded = false

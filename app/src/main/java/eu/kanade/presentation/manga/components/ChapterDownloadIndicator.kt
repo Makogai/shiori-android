@@ -29,11 +29,15 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.components.DropdownMenu
+import eu.kanade.presentation.components.MenuIcon
 import eu.kanade.tachiyomi.data.download.model.Download
 import mihon.icons.custommaterialsymbols.CustomMaterialSymbols
 import mihon.icons.custommaterialsymbols.rounded.DownloadArrow
 import mihon.icons.custommaterialsymbols.rounded.DownloadCircle
 import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.Close
+import mihon.icons.materialsymbols.rounded.Delete
+import mihon.icons.materialsymbols.rounded.Download
 import mihon.icons.materialsymbols.rounded.Error
 import mihon.icons.materialsymbols.roundedfilled.CheckCircle
 import tachiyomi.i18n.MR
@@ -166,6 +170,7 @@ private fun DownloadingIndicator(
         DropdownMenu(expanded = isMenuExpanded, onDismissRequest = { isMenuExpanded = false }) {
             DropdownMenuItem(
                 text = { Text(text = stringResource(MR.strings.action_start_downloading_now)) },
+                leadingIcon = { MenuIcon(MaterialSymbols.Rounded.Download) },
                 onClick = {
                     onClick(ChapterDownloadAction.START_NOW)
                     isMenuExpanded = false
@@ -173,6 +178,7 @@ private fun DownloadingIndicator(
             )
             DropdownMenuItem(
                 text = { Text(text = stringResource(MR.strings.action_cancel)) },
+                leadingIcon = { MenuIcon(MaterialSymbols.Rounded.Close) },
                 onClick = {
                     onClick(ChapterDownloadAction.CANCEL)
                     isMenuExpanded = false
@@ -215,6 +221,7 @@ private fun DownloadedIndicator(
         DropdownMenu(expanded = isMenuExpanded, onDismissRequest = { isMenuExpanded = false }) {
             DropdownMenuItem(
                 text = { Text(text = stringResource(MR.strings.action_delete)) },
+                leadingIcon = { MenuIcon(MaterialSymbols.Rounded.Delete) },
                 onClick = {
                     onClick(ChapterDownloadAction.DELETE)
                     isMenuExpanded = false

@@ -17,10 +17,16 @@ import eu.kanade.presentation.components.AppBarTitle
 import eu.kanade.presentation.components.DownloadDropdownMenu
 import eu.kanade.presentation.manga.DownloadAction
 import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.automirroredrounded.Label
 import mihon.icons.materialsymbols.rounded.Download
+import mihon.icons.materialsymbols.rounded.EditNote
 import mihon.icons.materialsymbols.rounded.FilterList
 import mihon.icons.materialsymbols.rounded.FlipToBack
+import mihon.icons.materialsymbols.rounded.Group
+import mihon.icons.materialsymbols.rounded.Refresh
 import mihon.icons.materialsymbols.rounded.SelectAll
+import mihon.icons.materialsymbols.rounded.Share
+import mihon.icons.materialsymbols.rounded.SwapHoriz
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.theme.active
@@ -114,6 +120,7 @@ fun MangaToolbar(
                     add(
                         AppBar.OverflowAction(
                             title = stringResource(MR.strings.action_webview_refresh),
+                            icon = MaterialSymbols.Rounded.Refresh,
                             onClick = onClickRefresh,
                         ),
                     )
@@ -121,6 +128,7 @@ fun MangaToolbar(
                         add(
                             AppBar.OverflowAction(
                                 title = stringResource(MR.strings.action_edit_categories),
+                                icon = MaterialSymbols.AutoMirroredRounded.Label,
                                 onClick = onClickEditCategory,
                             ),
                         )
@@ -129,6 +137,7 @@ fun MangaToolbar(
                         add(
                             AppBar.OverflowAction(
                                 title = stringResource(MR.strings.action_migrate),
+                                icon = MaterialSymbols.Rounded.SwapHoriz,
                                 onClick = onClickMigrate,
                             ),
                         )
@@ -137,6 +146,7 @@ fun MangaToolbar(
                         add(
                             AppBar.OverflowAction(
                                 title = stringResource(MR.strings.action_share),
+                                icon = MaterialSymbols.Rounded.Share,
                                 onClick = onClickShare,
                             ),
                         )
@@ -145,6 +155,7 @@ fun MangaToolbar(
                         add(
                             AppBar.OverflowAction(
                                 title = stringResource(MR.strings.friends_suggest_to_friend),
+                                icon = MaterialSymbols.Rounded.Group,
                                 onClick = onClickSuggest,
                             ),
                         )
@@ -152,6 +163,7 @@ fun MangaToolbar(
                     add(
                         AppBar.OverflowAction(
                             title = stringResource(MR.strings.action_notes),
+                            icon = MaterialSymbols.Rounded.EditNote,
                             onClick = onClickEditNotes,
                         ),
                     )

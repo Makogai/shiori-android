@@ -108,8 +108,12 @@ class RecapDetailScreen(private val challengeId: Int) : Screen() {
                 )
             },
         ) { contentPadding ->
-            if (model == null || recap == null) {
+            if (model == null) {
                 LoadingScreen(Modifier.padding(contentPadding))
+                return@Scaffold
+            }
+            if (recap == null) {
+                EmptyScreen(MR.strings.friends_recap_none, Modifier.padding(contentPadding))
                 return@Scaffold
             }
             Column(

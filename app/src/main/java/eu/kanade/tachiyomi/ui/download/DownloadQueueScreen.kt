@@ -35,11 +35,17 @@ import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.components.DropdownMenu
+import eu.kanade.presentation.components.MenuIcon
 import eu.kanade.presentation.components.NestedMenuItem
 import eu.kanade.presentation.download.DownloadQueueList
 import eu.kanade.presentation.util.Screen
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.Sort
+import mihon.icons.materialsymbols.rounded.ArrowDownward
+import mihon.icons.materialsymbols.rounded.ArrowUpward
+import mihon.icons.materialsymbols.rounded.CalendarMonth
+import mihon.icons.materialsymbols.rounded.Close
+import mihon.icons.materialsymbols.rounded.Numbers
 import mihon.icons.materialsymbols.roundedfilled.Pause
 import mihon.icons.materialsymbols.roundedfilled.PlayArrow
 import tachiyomi.i18n.MR
@@ -117,9 +123,11 @@ object DownloadQueueScreen : Screen() {
                             ) {
                                 NestedMenuItem(
                                     text = { Text(text = stringResource(MR.strings.action_order_by_upload_date)) },
+                                    icon = MaterialSymbols.Rounded.CalendarMonth,
                                     children = { closeMenu ->
                                         DropdownMenuItem(
                                             text = { Text(text = stringResource(MR.strings.action_newest)) },
+                                            leadingIcon = { MenuIcon(MaterialSymbols.Rounded.ArrowDownward) },
                                             onClick = {
                                                 viewModel.reorderQueue(
                                                     { it.chapter.dateUpload },
@@ -130,6 +138,7 @@ object DownloadQueueScreen : Screen() {
                                         )
                                         DropdownMenuItem(
                                             text = { Text(text = stringResource(MR.strings.action_oldest)) },
+                                            leadingIcon = { MenuIcon(MaterialSymbols.Rounded.ArrowUpward) },
                                             onClick = {
                                                 viewModel.reorderQueue(
                                                     { it.chapter.dateUpload },
@@ -142,9 +151,11 @@ object DownloadQueueScreen : Screen() {
                                 )
                                 NestedMenuItem(
                                     text = { Text(text = stringResource(MR.strings.action_order_by_chapter_number)) },
+                                    icon = MaterialSymbols.Rounded.Numbers,
                                     children = { closeMenu ->
                                         DropdownMenuItem(
                                             text = { Text(text = stringResource(MR.strings.action_asc)) },
+                                            leadingIcon = { MenuIcon(MaterialSymbols.Rounded.ArrowUpward) },
                                             onClick = {
                                                 viewModel.reorderQueue(
                                                     { it.chapter.chapterNumber },
@@ -155,6 +166,7 @@ object DownloadQueueScreen : Screen() {
                                         )
                                         DropdownMenuItem(
                                             text = { Text(text = stringResource(MR.strings.action_desc)) },
+                                            leadingIcon = { MenuIcon(MaterialSymbols.Rounded.ArrowDownward) },
                                             onClick = {
                                                 viewModel.reorderQueue(
                                                     { it.chapter.chapterNumber },
@@ -176,6 +188,7 @@ object DownloadQueueScreen : Screen() {
                                     ),
                                     AppBar.OverflowAction(
                                         title = stringResource(MR.strings.action_cancel_all),
+                                        icon = MaterialSymbols.Rounded.Close,
                                         onClick = { viewModel.clearQueue() },
                                     ),
                                 ),

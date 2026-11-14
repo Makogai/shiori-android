@@ -50,6 +50,7 @@ import coil3.size.Size
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.components.DropdownMenu
+import eu.kanade.presentation.components.MenuIcon
 import eu.kanade.presentation.manga.EditCoverAction
 import eu.kanade.tachiyomi.data.coil.ImageDecoder
 import eu.kanade.tachiyomi.data.coil.newDecoder
@@ -59,6 +60,7 @@ import kotlinx.coroutines.withContext
 import mihon.app.di.appGraph
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Close
+import mihon.icons.materialsymbols.rounded.Delete
 import mihon.icons.materialsymbols.rounded.Edit
 import mihon.icons.materialsymbols.rounded.Save
 import mihon.icons.materialsymbols.rounded.Share
@@ -149,6 +151,7 @@ fun MangaCoverDialog(
                                 ) {
                                     DropdownMenuItem(
                                         text = { Text(text = stringResource(MR.strings.action_edit)) },
+                                        leadingIcon = { MenuIcon(MaterialSymbols.Rounded.Edit) },
                                         onClick = {
                                             onEditClick(EditCoverAction.EDIT)
                                             expanded = false
@@ -156,6 +159,7 @@ fun MangaCoverDialog(
                                     )
                                     DropdownMenuItem(
                                         text = { Text(text = stringResource(MR.strings.action_delete)) },
+                                        leadingIcon = { MenuIcon(MaterialSymbols.Rounded.Delete) },
                                         onClick = {
                                             onEditClick(EditCoverAction.DELETE)
                                             expanded = false

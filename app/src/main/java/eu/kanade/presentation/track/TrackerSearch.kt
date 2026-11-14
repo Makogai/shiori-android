@@ -66,6 +66,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.components.DropdownMenu
+import eu.kanade.presentation.components.MenuIcon
 import eu.kanade.presentation.manga.components.MangaCover
 import eu.kanade.presentation.theme.TachiyomiPreviewTheme
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
@@ -73,7 +74,9 @@ import eu.kanade.tachiyomi.util.system.openInBrowser
 import kotlinx.coroutines.launch
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.ArrowBack
+import mihon.icons.materialsymbols.automirroredrounded.OpenInNew
 import mihon.icons.materialsymbols.rounded.Close
+import mihon.icons.materialsymbols.rounded.ContentCopy
 import mihon.icons.materialsymbols.roundedfilled.CheckCircle
 import mihon.icons.materialsymbols.roundedfilled.VisibilityOff
 import tachiyomi.i18n.MR
@@ -378,6 +381,7 @@ private fun SearchResultItemDropDownMenu(
     ) {
         DropdownMenuItem(
             text = { Text(stringResource(MR.strings.action_copy_to_clipboard)) },
+            leadingIcon = { MenuIcon(MaterialSymbols.Rounded.ContentCopy) },
             onClick = {
                 onCopyName()
                 onCollapseMenu()
@@ -385,6 +389,7 @@ private fun SearchResultItemDropDownMenu(
         )
         DropdownMenuItem(
             text = { Text(stringResource(MR.strings.action_open_in_browser)) },
+            leadingIcon = { MenuIcon(MaterialSymbols.AutoMirroredRounded.OpenInNew) },
             onClick = {
                 onOpenInBrowser()
             },

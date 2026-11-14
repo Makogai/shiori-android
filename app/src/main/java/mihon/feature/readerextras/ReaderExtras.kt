@@ -38,6 +38,9 @@ import mihon.feature.common.utils.seriesKey
 import mihon.feature.pagebookmarks.PageBookmark
 import mihon.feature.pagebookmarks.PageBookmarks
 import mihon.feature.queue.BingeQueue
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.BookmarkAdd
+import mihon.icons.materialsymbols.rounded.Schedule
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.chapter.repository.ChapterRepository
 import tachiyomi.domain.history.interactor.GetNextChapters
@@ -159,6 +162,7 @@ fun readerExtrasActions(
     return listOf(
         AppBar.OverflowAction(
             title = stringResource(MR.strings.page_bookmark_add),
+            icon = MaterialSymbols.Rounded.BookmarkAdd,
             onClick = { viewModel.showBookmark(manga, chapter, (state.currentPage - 1).coerceAtLeast(0)) },
         ),
         AppBar.OverflowAction(
@@ -167,6 +171,7 @@ fun readerExtrasActions(
             } else {
                 stringResource(MR.strings.sleep_timer_on)
             },
+            icon = MaterialSymbols.Rounded.Schedule,
             onClick = { viewModel.showSleepTimer(chapter.id) },
         ),
     )

@@ -49,6 +49,23 @@ class WeeklyRecapsTest {
     }
 
     @Test
+    fun `a week ending off local midnight keeps its last day`() {
+        val utcClose = opening.copy(end = Instant.parse("2026-11-16T00:00:00Z"))
+        WeeklyRecaps.days(utcClose, zone) shouldBe (day to LocalDate.of(2026, 11, 16))
+        val middayClose = opening.copy(end = Instant.parse("2026-11-15T11:00:00Z"))
+        WeeklyRecaps.days(middayClose, zone) shouldBe (day to LocalDate.of(2026, 11, 15))
+    }
+
+    @Test
+    fun `nobody wins a week nobody read in`() {
+        val alone = RecapInput(
+            opening, zone, "me", null, listOf("me"), emptyMap(), emptyMap(), emptyList(), emptyMap(), emptyMap(),
+        )
+        WeeklyRecaps.build(alone).winner shouldBe null
+        WeeklyRecaps.build(alone.copy(window = mapOf("me" to RecapTotals(1)))).winner shouldBe "me"
+    }
+
+    @Test
     fun `totals, xp with win and bet, best day and top series`() {
         val recap = WeeklyRecaps.build(
             input(

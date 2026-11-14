@@ -21,6 +21,9 @@ import eu.kanade.tachiyomi.extension.model.Extension
 import eu.kanade.tachiyomi.ui.browse.extension.details.ExtensionDetailsScreen
 import eu.kanade.tachiyomi.ui.webview.WebViewScreen
 import eu.kanade.tachiyomi.util.system.isPackageInstalled
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.FilterList
+import mihon.icons.materialsymbols.rounded.Storage
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
 
@@ -41,10 +44,12 @@ fun extensionsTab(
         actions = listOf(
             AppBar.OverflowAction(
                 title = stringResource(MR.strings.action_filter),
+                icon = MaterialSymbols.Rounded.FilterList,
                 onClick = { navigator.push(ExtensionFilterScreen()) },
             ),
             AppBar.OverflowAction(
                 title = stringResource(MR.strings.extensionStores),
+                icon = MaterialSymbols.Rounded.Storage,
                 onClick = { navigator.push(ExtensionStoresScreen()) },
             ),
         ),

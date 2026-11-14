@@ -54,7 +54,11 @@ import logcat.LogPriority
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.ArrowBack
 import mihon.icons.materialsymbols.automirroredrounded.ArrowForward
+import mihon.icons.materialsymbols.automirroredrounded.OpenInNew
 import mihon.icons.materialsymbols.rounded.Close
+import mihon.icons.materialsymbols.rounded.DeleteSweep
+import mihon.icons.materialsymbols.rounded.Refresh
+import mihon.icons.materialsymbols.rounded.Share
 import mihon.icons.materialsymbols.rounded.TabClose
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.i18n.MR
@@ -278,18 +282,22 @@ fun WebViewScreenContent(
                                     ),
                                     AppBar.OverflowAction(
                                         title = stringResource(MR.strings.action_webview_refresh),
+                                        icon = MaterialSymbols.Rounded.Refresh,
                                         onClick = { navigator.reload() },
                                     ),
                                     AppBar.OverflowAction(
                                         title = stringResource(MR.strings.action_share),
+                                        icon = MaterialSymbols.Rounded.Share,
                                         onClick = { onShare(currentUrl) },
                                     ),
                                     AppBar.OverflowAction(
                                         title = stringResource(MR.strings.action_open_in_browser),
+                                        icon = MaterialSymbols.AutoMirroredRounded.OpenInNew,
                                         onClick = { onOpenInBrowser(currentUrl) },
                                     ),
                                     AppBar.OverflowAction(
                                         title = stringResource(MR.strings.pref_clear_cookies),
+                                        icon = MaterialSymbols.Rounded.DeleteSweep,
                                         onClick = { onClearCookies(currentUrl) },
                                     ),
                                 ).toMutableList().apply {

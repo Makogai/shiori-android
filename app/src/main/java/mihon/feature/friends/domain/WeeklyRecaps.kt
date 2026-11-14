@@ -73,7 +73,7 @@ data class WeeklyRecap(
     val lastDay: LocalDate,
     /** Most chapters first, then seconds. */
     val players: List<RecapPlayer>,
-    /** Null for a tied week. */
+    /** Null for a tied week or one nobody read in. */
     val winner: String?,
     val challengeWinners: Set<String>,
     val genreChanges: List<GenreChange>,
@@ -105,10 +105,11 @@ object WeeklyRecaps {
 
     fun weekNumber(start: Instant, zone: ZoneId): Int = start.atZone(zone).get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)
 
-    /** Window days: from the day of the start to the day before the end. */
+    /** Window days: from the day of the start to the day of the last instant before the end. */
     fun days(week: RecapWeek, zone: ZoneId): Pair<LocalDate, LocalDate> {
         val first = LeaguePeriods.localDate(week.start, zone)
-        val last = LeaguePeriods.localDate(week.end, zone).minusDays(1)
+        // An end off local midnight (another zone, a midday close) still has reading on its own day
+        val last = LeaguePeriods.localDate(week.end.minusNanos(1), zone)
         return first to maxOf(first, last)
     }
 
@@ -138,8 +139,8 @@ object WeeklyRecaps {
         val top = players.firstOrNull()
         val runnerUp = players.getOrNull(1)
         val winner = top?.takeIf {
-            runnerUp == null || runnerUp.chapters != it.chapters ||
-                runnerUp.seconds != it.seconds
+            (it.chapters > 0 || it.seconds > 0) &&
+                (runnerUp == null || runnerUp.chapters != it.chapters || runnerUp.seconds != it.seconds)
         }
         return WeeklyRecap(
             week = input.week,

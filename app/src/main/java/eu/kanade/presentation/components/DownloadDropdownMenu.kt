@@ -6,6 +6,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpOffset
 import eu.kanade.presentation.manga.DownloadAction
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.Book
+import mihon.icons.materialsymbols.rounded.Bookmark
+import mihon.icons.materialsymbols.rounded.Download
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
@@ -63,6 +67,15 @@ private fun DownloadDropdownMenuItems(
     options.map { (downloadAction, string) ->
         DropdownMenuItem(
             text = { Text(text = string) },
+            leadingIcon = {
+                MenuIcon(
+                    when (downloadAction) {
+                        DownloadAction.UNREAD_CHAPTERS -> MaterialSymbols.Rounded.Book
+                        DownloadAction.BOOKMARKED_CHAPTERS -> MaterialSymbols.Rounded.Bookmark
+                        else -> MaterialSymbols.Rounded.Download
+                    },
+                )
+            },
             onClick = {
                 onDownloadClicked(downloadAction)
                 onDismissRequest()

@@ -57,8 +57,7 @@ private val Flame = Color(0xFFFF9500)
 fun ReadingStatsCard(
     stats: ReadingStreakStats,
     onOpenStats: () -> Unit,
-    /** Null in the plain Shiori build: recaps are Arena weeks. */
-    onOpenRecaps: (() -> Unit)?,
+    onOpenRecaps: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -139,40 +138,38 @@ fun ReadingStatsCard(
             }
             DayBars(stats.lastSevenDays)
         }
-        if (onOpenRecaps != null) {
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 14.dp),
-                thickness = 0.5.dp,
-                color = MaterialTheme.colorScheme.separator,
+        HorizontalDivider(
+            modifier = Modifier.padding(horizontal = 14.dp),
+            thickness = 0.5.dp,
+            color = MaterialTheme.colorScheme.separator,
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(role = Role.Button, onClick = onOpenRecaps)
+                .padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = MaterialSymbols.Rounded.QueryStats,
+                contentDescription = null,
+                tint = accent,
+                modifier = Modifier.size(16.dp),
             )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(role = Role.Button, onClick = onOpenRecaps)
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    imageVector = MaterialSymbols.Rounded.QueryStats,
-                    contentDescription = null,
-                    tint = accent,
-                    modifier = Modifier.size(16.dp),
-                )
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    text = stringResource(MR.strings.friends_recaps),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = accent,
-                    modifier = Modifier.weight(1f),
-                )
-                Icon(
-                    imageVector = MaterialSymbols.Rounded.ChevronRight,
-                    contentDescription = null,
-                    tint = accent.copy(alpha = 0.6f),
-                    modifier = Modifier.size(18.dp),
-                )
-            }
+            Spacer(Modifier.width(6.dp))
+            Text(
+                text = stringResource(MR.strings.recap_entry),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = accent,
+                modifier = Modifier.weight(1f),
+            )
+            Icon(
+                imageVector = MaterialSymbols.Rounded.ChevronRight,
+                contentDescription = null,
+                tint = accent.copy(alpha = 0.6f),
+                modifier = Modifier.size(18.dp),
+            )
         }
     }
 }

@@ -55,7 +55,10 @@ import eu.kanade.tachiyomi.ui.browse.extension.details.ExtensionDetailsViewModel
 import eu.kanade.tachiyomi.util.system.LocaleHelper
 import eu.kanade.tachiyomi.util.system.copyToClipboard
 import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.DeleteSweep
+import mihon.icons.materialsymbols.rounded.DoneAll
 import mihon.icons.materialsymbols.rounded.Eyeglasses2
+import mihon.icons.materialsymbols.rounded.RemoveDone
 import mihon.icons.materialsymbols.rounded.Settings
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.ScrollbarLazyColumn
@@ -87,14 +90,17 @@ fun ExtensionDetailsScreen(
                         actions = listOf(
                             AppBar.OverflowAction(
                                 title = stringResource(MR.strings.action_enable_all),
+                                icon = MaterialSymbols.Rounded.DoneAll,
                                 onClick = onClickEnableAll,
                             ),
                             AppBar.OverflowAction(
                                 title = stringResource(MR.strings.action_disable_all),
+                                icon = MaterialSymbols.Rounded.RemoveDone,
                                 onClick = onClickDisableAll,
                             ),
                             AppBar.OverflowAction(
                                 title = stringResource(MR.strings.pref_clear_cookies),
+                                icon = MaterialSymbols.Rounded.DeleteSweep,
                                 onClick = onClickClearCookies,
                             ),
                         ),

@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
+import eu.kanade.presentation.components.MenuIcon
 import eu.kanade.presentation.manga.components.MangaCover
 import eu.kanade.presentation.util.formatChapterNumber
 import eu.kanade.presentation.util.rememberResourceBitmapPainter
@@ -55,6 +56,9 @@ import mihon.icons.materialsymbols.rounded.ContentCopy
 import mihon.icons.materialsymbols.rounded.CopyAll
 import mihon.icons.materialsymbols.rounded.DoneAll
 import mihon.icons.materialsymbols.rounded.MoreVert
+import mihon.icons.materialsymbols.rounded.Search
+import mihon.icons.materialsymbols.rounded.SkipNext
+import mihon.icons.materialsymbols.rounded.SwapHoriz
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.Badge
@@ -347,6 +351,7 @@ private fun MigrationListItemAction(
                 ) {
                     DropdownMenuItem(
                         text = { Text(stringResource(MR.strings.migrationListScreen_searchManuallyActionLabel)) },
+                        leadingIcon = { MenuIcon(MaterialSymbols.Rounded.Search) },
                         onClick = {
                             closeMenu()
                             onSearchManually()
@@ -354,6 +359,7 @@ private fun MigrationListItemAction(
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(MR.strings.migrationListScreen_skipActionLabel)) },
+                        leadingIcon = { MenuIcon(MaterialSymbols.Rounded.SkipNext) },
                         onClick = {
                             closeMenu()
                             onSkip()
@@ -362,6 +368,7 @@ private fun MigrationListItemAction(
                     if (result is MigratingManga.SearchResult.Success) {
                         DropdownMenuItem(
                             text = { Text(stringResource(MR.strings.migrationListScreen_migrateNowActionLabel)) },
+                            leadingIcon = { MenuIcon(MaterialSymbols.Rounded.SwapHoriz) },
                             onClick = {
                                 closeMenu()
                                 onMigrate()
@@ -369,6 +376,7 @@ private fun MigrationListItemAction(
                         )
                         DropdownMenuItem(
                             text = { Text(stringResource(MR.strings.migrationListScreen_copyNowActionLabel)) },
+                            leadingIcon = { MenuIcon(MaterialSymbols.Rounded.ContentCopy) },
                             onClick = {
                                 closeMenu()
                                 onCopy()

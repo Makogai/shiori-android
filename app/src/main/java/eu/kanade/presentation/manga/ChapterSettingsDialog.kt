@@ -25,10 +25,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.kanade.domain.manga.model.downloadedFilter
+import eu.kanade.presentation.components.MenuIcon
 import eu.kanade.presentation.components.TabbedDialog
 import eu.kanade.presentation.components.TabbedDialogPaddings
 import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.Check
 import mihon.icons.materialsymbols.rounded.Group
+import mihon.icons.materialsymbols.rounded.Refresh
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
@@ -72,6 +75,7 @@ fun ChapterSettingsDialog(
         tabOverflowMenuContent = { closeMenu ->
             DropdownMenuItem(
                 text = { Text(stringResource(MR.strings.set_chapter_settings_as_default)) },
+                leadingIcon = { MenuIcon(MaterialSymbols.Rounded.Check) },
                 onClick = {
                     showSetAsDefaultDialog = true
                     closeMenu()
@@ -79,6 +83,7 @@ fun ChapterSettingsDialog(
             )
             DropdownMenuItem(
                 text = { Text(stringResource(MR.strings.action_reset)) },
+                leadingIcon = { MenuIcon(MaterialSymbols.Rounded.Refresh) },
                 onClick = {
                     onResetToDefault()
                     closeMenu()

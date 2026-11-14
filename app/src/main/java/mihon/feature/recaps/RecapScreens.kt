@@ -67,6 +67,7 @@ import tachiyomi.presentation.core.components.SegmentedPicker
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.screens.EmptyScreen
 import tachiyomi.presentation.core.theme.GroupedSection
 import tachiyomi.presentation.core.theme.IosColors
 import java.time.LocalDate
@@ -110,47 +111,55 @@ class RecapsScreen : Screen() {
         ) { contentPadding ->
             val (library, today) = state ?: return@Scaffold
             val kind = RecapKind.entries[kindIndex]
-            val periods = remember(library, kind) { library.periods(kind) }
+            val periods = remember(library, kind, today) { library.pastPeriods(kind, today) }
             LazyColumn(
                 contentPadding = PaddingValues(
                     top = contentPadding.calculateTopPadding() + 8.dp,
                     bottom = contentPadding.calculateBottomPadding() + 24.dp,
                 ),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
+                item {
+                    GroupedSection(header = stringResource(MR.strings.recap_in_progress)) {
+                        RecapKind.entries.forEachIndexed { index, current ->
+                            if (index > 0) GroupedDivider()
+                            val period = RecapPeriod.containing(current, today)
+                            val chapters = remember(library, period, today) {
+                                library.recap(period, today).totals.chapters
+                            }
+                            PeriodRow(period, today, chapters) { navigator.push(RecapDetailScreen(period.key)) }
+                        }
+                    }
+                }
                 item {
                     SegmentedPicker(
                         options = listOf(stringResource(MR.strings.recap_week), stringResource(MR.strings.recap_month)),
                         selectedIndex = kindIndex,
                         onSelect = { kindIndex = it },
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp),
                     )
                 }
-                if (periods.isEmpty()) {
-                    item {
+                item {
+                    if (periods.isEmpty()) {
                         Text(
-                            text = stringResource(MR.strings.recap_empty),
+                            text = stringResource(
+                                when (kind) {
+                                    RecapKind.Week -> MR.strings.recap_no_past_weeks
+                                    RecapKind.Month -> MR.strings.recap_no_past_months
+                                },
+                            ),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 48.dp),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 24.dp),
                         )
-                    }
-                } else {
-                    item {
+                    } else {
                         GroupedSection {
                             periods.forEachIndexed { index, (period, totals) ->
                                 if (index > 0) GroupedDivider()
-                                GroupedRow(
-                                    title = periodTitle(period, today),
-                                    icon = MaterialSymbols.Rounded.CalendarMonth,
-                                    iconColor = if (kind == RecapKind.Week) IosColors.Indigo else IosColors.Orange,
-                                    value = pluralStringResource(
-                                        MR.plurals.recap_chapters_count,
-                                        totals.chapters,
-                                        totals.chapters,
-                                    ),
-                                    onClick = { navigator.push(RecapDetailScreen(period.key)) },
-                                )
+                                PeriodRow(period, today, totals.chapters) {
+                                    navigator.push(RecapDetailScreen(period.key))
+                                }
                             }
                         }
                     }
@@ -158,6 +167,17 @@ class RecapsScreen : Screen() {
             }
         }
     }
+}
+
+@Composable
+private fun PeriodRow(period: RecapPeriod, today: LocalDate, chapters: Int, onClick: () -> Unit) {
+    GroupedRow(
+        title = periodTitle(period, today),
+        icon = MaterialSymbols.Rounded.CalendarMonth,
+        iconColor = if (period.kind == RecapKind.Week) IosColors.Indigo else IosColors.Orange,
+        value = pluralStringResource(MR.plurals.recap_chapters_count, chapters, chapters),
+        onClick = onClick,
+    )
 }
 
 class RecapDetailScreen(private val periodKey: String) : Screen() {
@@ -183,7 +203,10 @@ class RecapDetailScreen(private val periodKey: String) : Screen() {
         ) { contentPadding ->
             val library = state?.first ?: return@Scaffold
             val recap = remember(library, period, today) { library.recap(period, today) }
-            val title = periodTitle(period, today)
+            if (recap.totals.chapters == 0) {
+                EmptyScreen(MR.strings.recap_nothing_read, Modifier.padding(contentPadding))
+                return@Scaffold
+            }
             LazyColumn(
                 contentPadding = PaddingValues(
                     top = contentPadding.calculateTopPadding() + 8.dp,
@@ -200,7 +223,7 @@ class RecapDetailScreen(private val periodKey: String) : Screen() {
                                 drawLayer(layer)
                             },
                     ) {
-                        RecapCard(recap, title)
+                        RecapCard(recap, periodName(period, today))
                     }
                 }
                 item {
@@ -262,7 +285,10 @@ private fun RecapCard(recap: Recap, title: String) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Column {
-            Text(text = "Shiori", style = MaterialTheme.typography.labelLarge, color = CardMuted)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = "Shiori", style = MaterialTheme.typography.labelLarge, color = CardMuted)
+                if (recap.inProgress) Pill(stringResource(MR.strings.recap_in_progress))
+            }
             Text(text = title, style = MaterialTheme.typography.headlineMedium, color = CardText)
         }
         Column {
@@ -373,8 +399,20 @@ private fun DayBars(recap: Recap) {
 @Composable
 private fun RecapStat(value: String, label: String, change: Double?, modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
-        Text(text = value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = CardText)
-        Text(text = label, style = MaterialTheme.typography.labelMedium, color = CardMuted)
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = CardText,
+            maxLines = 1,
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = CardMuted,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
         ChangeBadge(change)
     }
 }
@@ -383,8 +421,13 @@ private fun RecapStat(value: String, label: String, change: Double?, modifier: M
 private fun ChangeBadge(change: Double?, modifier: Modifier = Modifier) {
     change ?: return
     val percent = (abs(change) * 100).roundToInt()
+    Pill((if (change >= 0) "▲ " else "▼ ") + "$percent%", modifier)
+}
+
+@Composable
+private fun Pill(text: String, modifier: Modifier = Modifier) {
     Text(
-        text = (if (change >= 0) "▲ " else "▼ ") + "$percent%",
+        text = text,
         style = MaterialTheme.typography.labelSmall,
         fontWeight = FontWeight.Bold,
         color = CardText,
@@ -395,24 +438,27 @@ private fun ChangeBadge(change: Double?, modifier: Modifier = Modifier) {
     )
 }
 
-/** "This week", "Last month", "3 Nov – 9 Nov" or "November 2026". */
+/** "This week", "Last month", or the [periodName]. */
 @Composable
 private fun periodTitle(period: RecapPeriod, today: LocalDate): String {
     val current = RecapPeriod.containing(period.kind, today)
-    return when {
-        period == current -> stringResource(
+    return when (period) {
+        current -> stringResource(
             if (period.kind == RecapKind.Week) MR.strings.recap_this_week else MR.strings.recap_this_month,
         )
-        period == current.previous() -> stringResource(
+        current.previous() -> stringResource(
             if (period.kind == RecapKind.Week) MR.strings.recap_last_week else MR.strings.recap_last_month,
         )
-        period.kind == RecapKind.Month ->
-            period.start.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.getDefault()))
-        else -> {
-            val format = DateTimeFormatter.ofPattern("d MMM", Locale.getDefault())
-            val last = period.end.minusDays(1)
-            val year = if (last.year != today.year) " ${last.year}" else ""
-            "${period.start.format(format)} – ${last.format(format)}$year"
-        }
+        else -> periodName(period, today)
+    }
+}
+
+/** "3 Nov – 9 Nov", "29 Dec – 4 Jan 2026" or "November 2026": dated, so a shared card still reads right later. */
+private fun periodName(period: RecapPeriod, today: LocalDate): String = when (period.kind) {
+    RecapKind.Month -> period.start.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.getDefault()))
+    RecapKind.Week -> {
+        val format = DateTimeFormatter.ofPattern("d MMM", Locale.getDefault())
+        val year = if (period.lastDay.year != today.year) " ${period.lastDay.year}" else ""
+        "${period.start.format(format)} – ${period.lastDay.format(format)}$year"
     }
 }

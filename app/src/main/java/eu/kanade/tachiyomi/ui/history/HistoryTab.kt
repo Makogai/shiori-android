@@ -32,15 +32,14 @@ import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.ui.stats.StatsScreen
-import eu.kanade.tachiyomi.util.system.friendsConfigured
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import mihon.feature.friends.ui.ReadingStatsCard
 import mihon.feature.friends.ui.ReadingStreakViewModel
-import mihon.feature.friends.ui.RecapListScreen
 import mihon.feature.habits.TodayPill
 import mihon.feature.migration.dialog.MigrateMangaDialog
+import mihon.feature.recaps.RecapsScreen
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.QueryStats
 import tachiyomi.core.common.i18n.stringResource
@@ -97,7 +96,7 @@ data object HistoryTab : Tab {
                         ReadingStatsCard(
                             stats = stats,
                             onOpenStats = { navigator.push(StatsScreen()) },
-                            onOpenRecaps = { navigator.push(RecapListScreen()) }.takeIf { friendsConfigured },
+                            onOpenRecaps = { navigator.push(RecapsScreen()) },
                         )
                     }
                 }

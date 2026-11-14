@@ -16,7 +16,10 @@ import eu.kanade.presentation.components.SearchToolbar
 import eu.kanade.tachiyomi.source.ConfigurableSource
 import eu.kanade.tachiyomi.source.Source
 import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.automirroredrounded.Help
 import mihon.icons.materialsymbols.automirroredroundedfilled.ViewList
+import mihon.icons.materialsymbols.rounded.Public
+import mihon.icons.materialsymbols.rounded.Settings
 import mihon.icons.materialsymbols.roundedfilled.ViewCompact
 import mihon.icons.materialsymbols.roundedfilled.ViewModule
 import tachiyomi.domain.library.model.LibraryDisplayMode
@@ -72,6 +75,7 @@ fun BrowseSourceToolbar(
                         add(
                             AppBar.OverflowAction(
                                 title = stringResource(MR.strings.label_help),
+                                icon = MaterialSymbols.AutoMirroredRounded.Help,
                                 onClick = onHelpClick,
                             ),
                         )
@@ -79,6 +83,7 @@ fun BrowseSourceToolbar(
                         add(
                             AppBar.OverflowAction(
                                 title = stringResource(MR.strings.action_open_in_web_view),
+                                icon = MaterialSymbols.Rounded.Public,
                                 onClick = onWebViewClick,
                             ),
                         )
@@ -87,6 +92,7 @@ fun BrowseSourceToolbar(
                         add(
                             AppBar.OverflowAction(
                                 title = stringResource(MR.strings.action_settings),
+                                icon = MaterialSymbols.Rounded.Settings,
                                 onClick = onSettingsClick,
                             ),
                         )

@@ -31,7 +31,11 @@ data class RecapPeriod(val kind: RecapKind, val start: LocalDate) {
             RecapKind.Month -> "month-%04d-%02d".format(start.year, start.monthValue)
         }
 
+    val lastDay: LocalDate get() = end.minusDays(1)
+
     operator fun contains(day: LocalDate) = day >= start && day < end
+
+    fun hasEnded(today: LocalDate) = today >= end
 
     fun previous() = when (kind) {
         RecapKind.Week -> RecapPeriod(kind, start.minusWeeks(1))
@@ -131,9 +135,10 @@ class RecapLibrary(reads: List<FinishedRead>, private val zone: ZoneId) {
     private val firstRead: Map<Long, LocalDate> = entries.groupBy({ it.first.mangaId }, { it.second })
         .mapValues { (_, days) -> days.min() }
 
-    /** Periods of [kind] with reading, newest first, each with its totals. */
-    fun periods(kind: RecapKind): List<Pair<RecapPeriod, RecapTotals>> =
+    /** Periods of [kind] with reading that are over by [today], newest first, each with its totals. */
+    fun pastPeriods(kind: RecapKind, today: LocalDate): List<Pair<RecapPeriod, RecapTotals>> =
         entries.groupBy { RecapPeriod.containing(kind, it.second) }
+            .filterKeys { it.hasEnded(today) }
             .map { (period, inPeriod) -> period to totals(inPeriod.map { it.first }) }
             .sortedByDescending { it.first.start }
 
@@ -150,7 +155,7 @@ class RecapLibrary(reads: List<FinishedRead>, private val zone: ZoneId) {
             newSeries = top.filter { firstRead[it.mangaId]?.let { day -> day in period } == true },
             days = days,
             longestStreak = Recap.longestStreak(days.map { it.second }),
-            inProgress = today < period.end,
+            inProgress = !period.hasEnded(today),
         )
     }
 

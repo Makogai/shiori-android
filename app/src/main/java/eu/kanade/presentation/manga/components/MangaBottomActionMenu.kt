@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.components.DownloadDropdownMenu
 import eu.kanade.presentation.components.DropdownMenu
+import eu.kanade.presentation.components.MenuIcon
 import eu.kanade.presentation.manga.DownloadAction
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -62,6 +63,7 @@ import mihon.icons.materialsymbols.rounded.Download
 import mihon.icons.materialsymbols.rounded.MoreVert
 import mihon.icons.materialsymbols.rounded.RemoveDone
 import mihon.icons.materialsymbols.rounded.SwapCalls
+import mihon.icons.materialsymbols.rounded.SwapHoriz
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
 import kotlin.time.Duration.Companion.seconds
@@ -340,10 +342,12 @@ fun LibraryBottomActionMenu(
                         ) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(MR.strings.migrate)) },
+                                leadingIcon = { MenuIcon(MaterialSymbols.Rounded.SwapHoriz) },
                                 onClick = onMigrateClicked,
                             )
                             DropdownMenuItem(
                                 text = { Text(stringResource(MR.strings.action_delete)) },
+                                leadingIcon = { MenuIcon(MaterialSymbols.Rounded.Delete) },
                                 onClick = onDeleteClicked,
                             )
                         }

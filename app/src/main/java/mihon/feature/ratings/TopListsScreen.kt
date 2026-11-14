@@ -42,6 +42,8 @@ import mihon.feature.queue.BingeQueue
 import mihon.feature.queue.ReorderableSeriesList
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Add
+import mihon.icons.materialsymbols.rounded.Delete
+import mihon.icons.materialsymbols.rounded.Edit
 import mihon.icons.materialsymbols.rounded.EmojiEvents
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
@@ -169,10 +171,12 @@ class TopListScreen(private val id: Long) : Screen() {
                             listOf(
                                 AppBar.OverflowAction(
                                     title = stringResource(MR.strings.action_rename_category),
+                                    icon = MaterialSymbols.Rounded.Edit,
                                     onClick = { renaming = true },
                                 ),
                                 AppBar.OverflowAction(
                                     title = stringResource(MR.strings.action_delete),
+                                    icon = MaterialSymbols.Rounded.Delete,
                                     onClick = { deleting = true },
                                 ),
                             ),
