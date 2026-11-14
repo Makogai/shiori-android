@@ -70,6 +70,22 @@
     kotlinx.serialization.KSerializer serializer(...);
 }
 
+# Shiori's models (Friends/Supabase, Cards, habits, updater) live outside eu.kanade
+-keep,includedescriptorclasses class mihon.**$$serializer { *; }
+-keepclassmembers class mihon.** {
+    *** Companion;
+}
+-keepclasseswithmembers class mihon.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keep,includedescriptorclasses class tachiyomi.**$$serializer { *; }
+-keepclassmembers class tachiyomi.** {
+    *** Companion;
+}
+-keepclasseswithmembers class tachiyomi.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
 -keep class kotlinx.serialization.**
 -keepclassmembers class kotlinx.serialization.** {
     <methods>;

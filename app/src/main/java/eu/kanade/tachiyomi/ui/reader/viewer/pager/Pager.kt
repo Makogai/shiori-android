@@ -27,6 +27,9 @@ open class Pager(
      */
     var longTapListener: ((MotionEvent) -> Boolean)? = null
 
+    /** Called whenever a finger lands on the pager. */
+    var touchDownListener: (() -> Unit)? = null
+
     /**
      * Gesture listener that implements tap and long tap events.
      */
@@ -58,6 +61,7 @@ open class Pager(
      * Dispatches a touch event.
      */
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        if (ev.actionMasked == MotionEvent.ACTION_DOWN) touchDownListener?.invoke()
         val handled = super.dispatchTouchEvent(ev)
         if (isGestureDetectorEnabled) {
             gestureDetector.onTouchEvent(ev)

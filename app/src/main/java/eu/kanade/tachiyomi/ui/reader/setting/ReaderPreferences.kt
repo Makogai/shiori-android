@@ -10,6 +10,7 @@ import eu.kanade.tachiyomi.ui.reader.capture.ShotLayout
 import eu.kanade.tachiyomi.ui.reader.viewer.webgpu.WebGpuShader
 import eu.kanade.tachiyomi.ui.reader.viewer.webgpu.WebGpuShaders
 import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.StripLayout
+import mihon.feature.autoscroll.AutoPageInterval
 import mihon.feature.autoscroll.AutoScrollSpeed
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
@@ -115,6 +116,12 @@ class ReaderPreferences(
 
     /** Auto-scroll levels set while reading a series, by manga id, as [AutoScrollSpeed.serialize] writes them. */
     val seriesAutoScrollSpeeds: Preference<String> = preferenceStore.getString("auto_scroll_series_speeds", "")
+
+    /** The paged reader's seconds a page for series without their own, see [AutoPageInterval]. */
+    val autoPageInterval: Preference<Int> = preferenceStore.getInt("auto_page_interval", AutoPageInterval.DEFAULT)
+
+    /** Auto page-turn intervals set while reading a series, stored like [seriesAutoScrollSpeeds]. */
+    val seriesAutoPageIntervals: Preference<String> = preferenceStore.getString("auto_page_series_intervals", "")
 
     val readerHideThreshold: Preference<ReaderHideThreshold> = preferenceStore.getEnum(
         "reader_hide_threshold",

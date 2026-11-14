@@ -30,8 +30,12 @@ import mihon.icons.materialsymbols.rounded.Favorite
 import mihon.icons.materialsymbols.rounded.Info
 import mihon.icons.materialsymbols.rounded.LocalFireDepartment
 import mihon.icons.materialsymbols.rounded.LocalLibrary
+import mihon.icons.materialsymbols.rounded.Mobile
 import mihon.icons.materialsymbols.rounded.Person
 import mihon.icons.materialsymbols.rounded.Photo
+import mihon.icons.materialsymbols.rounded.RocketLaunch
+import mihon.icons.materialsymbols.rounded.Schedule
+import mihon.icons.materialsymbols.rounded.Share
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.GroupedDivider
@@ -112,6 +116,32 @@ private val notesByVersion: List<Pair<Int, List<Highlight>>> = listOf(
             Color(0xFF8E8E93),
             MR.strings.whats_new_44_version_title,
             MR.strings.whats_new_44_version,
+        ),
+    ),
+    45 to listOf(
+        Highlight(
+            MaterialSymbols.Rounded.RocketLaunch,
+            Color(0xFFFF9500),
+            MR.strings.whats_new_45_faster_title,
+            MR.strings.whats_new_45_faster,
+        ),
+        Highlight(
+            MaterialSymbols.Rounded.Mobile,
+            Color(0xFF8E8E93),
+            MR.strings.whats_new_45_plain_title,
+            MR.strings.whats_new_45_plain,
+        ),
+        Highlight(
+            MaterialSymbols.Rounded.Schedule,
+            Color(0xFF007AFF),
+            MR.strings.whats_new_45_paged_title,
+            MR.strings.whats_new_45_paged,
+        ),
+        Highlight(
+            MaterialSymbols.Rounded.Share,
+            Color(0xFFAF52DE),
+            MR.strings.whats_new_45_cards_title,
+            MR.strings.whats_new_45_cards,
         ),
     ),
 )

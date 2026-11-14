@@ -33,7 +33,6 @@ import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.ui.more.NewUpdateScreen
 import eu.kanade.tachiyomi.util.lang.toDateTimestampString
 import eu.kanade.tachiyomi.util.system.copyToClipboard
-import eu.kanade.tachiyomi.util.system.isFossBuildType
 import eu.kanade.tachiyomi.util.system.isNightlyBuildType
 import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.util.system.updaterEnabled
@@ -251,16 +250,6 @@ object AboutScreen : Screen() {
 
     fun getVersionName(buildTime: String?): String {
         return when {
-            // Shiori ships debug-signed builds: show the release number the update check uses, e.g. "0.21.3 (43)".
-            BuildConfig.DEBUG -> {
-                "${BuildConfig.VERSION_NAME.substringBefore('-')} (${BuildConfig.VERSION_CODE})".let {
-                    if (buildTime != null) {
-                        "$it ($buildTime)"
-                    } else {
-                        it
-                    }
-                }
-            }
             isNightlyBuildType -> {
                 "Nightly r${BuildConfig.COMMIT_COUNT}".let {
                     if (buildTime != null) {
@@ -270,9 +259,9 @@ object AboutScreen : Screen() {
                     }
                 }
             }
+            // Show the release number the update check uses, e.g. "0.21.3 (43)".
             else -> {
-                val channel = if (isFossBuildType) "FOSS" else "Stable"
-                "$channel v${BuildConfig.VERSION_NAME}".let {
+                "${BuildConfig.VERSION_NAME.substringBefore('-')} (${BuildConfig.VERSION_CODE})".let {
                     if (buildTime != null) {
                         "$it ($buildTime)"
                     } else {

@@ -120,17 +120,31 @@ class CardsViewModel(
     fun share(card: ShioriCard) {
         viewModelScope.launch {
             try {
-                val bytes = png(front(card))
-                val uri = withContext(Dispatchers.IO) {
-                    // Only the last shared image is kept
-                    imageSaver.context.cacheImageDir.deleteRecursively()
-                    imageSaver.save(page(bytes, "${card.cardName} - ${card.serialText}", Location.Cache))
-                }
-                _events.send(Event.Share(uri, "${card.cardName} · ${card.grade.label}", "image/png"))
+                sharePng(png(front(card)), "${card.cardName} - ${card.serialText}", card)
             } catch (e: Exception) {
                 fail(e)
             }
         }
+    }
+
+    /** Share the original panel: the screenshot an AI card was drawn from. */
+    fun shareOriginal(card: ShioriCard, panel: Bitmap) {
+        viewModelScope.launch {
+            try {
+                sharePng(png(panel), "${card.cardName} - ${card.serialText} - original", card)
+            } catch (e: Exception) {
+                fail(e)
+            }
+        }
+    }
+
+    private suspend fun sharePng(bytes: ByteArray, name: String, card: ShioriCard) {
+        val uri = withContext(Dispatchers.IO) {
+            // Only the last shared image is kept
+            imageSaver.context.cacheImageDir.deleteRecursively()
+            imageSaver.save(page(bytes, name, Location.Cache))
+        }
+        _events.send(Event.Share(uri, "${card.cardName} · ${card.grade.label}", "image/png"))
     }
 
     /** Print sheet: front and back at 63 × 88 mm on one PDF page, shared. */

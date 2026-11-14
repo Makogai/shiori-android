@@ -126,6 +126,8 @@ import kotlinx.coroutines.launch
 import logcat.LogPriority
 import mihon.app.di.AppGraph
 import mihon.core.metro.metroGraph
+import mihon.feature.autoscroll.AutoPageInterval
+import mihon.feature.autoscroll.AutoPageTarget
 import mihon.feature.autoscroll.AutoScrollSpeed
 import mihon.feature.autoscroll.AutoScrollTarget
 import mihon.feature.autoscroll.ReaderAutoScroll
@@ -772,7 +774,7 @@ class ReaderActivity : BaseActivity() {
                 val page = state.currentChapter?.pages?.getOrNull(state.currentPage - 1)
                 if (page != null) viewModel.openPageDialog(page) else toast(MR.strings.screenshot_no_page)
             },
-            autoScrolling = autoScrolling.takeIf { viewer is AutoScrollTarget },
+            autoScrolling = autoScrolling.takeIf { viewer is AutoScrollTarget || viewer is AutoPageTarget },
             onToggleAutoScroll = ::toggleAutoScroll,
             onMakeCard = captureViewModel.cardMaker?.let {
                 {
@@ -804,14 +806,28 @@ class ReaderActivity : BaseActivity() {
 
     private fun toggleAutoScroll() {
         if (autoScroll.running.value) return autoScroll.pause()
-        val target = viewer as? AutoScrollTarget ?: return
-        hideMenu()
-        val level = AutoScrollSpeed.forSeries(
-            AutoScrollSpeed.deserialize(readerPreferences.seriesAutoScrollSpeeds.get()),
-            viewModel.state.value.manga?.id,
-            readerPreferences.autoScrollSpeed.get(),
-        )
-        autoScroll.start(target, level) { viewModel.state.value.viewerChapters?.nextChapter != null }
+        val mangaId = viewModel.state.value.manga?.id
+        val moreToCome = { viewModel.state.value.viewerChapters?.nextChapter != null }
+        when (val target = viewer) {
+            is AutoScrollTarget -> {
+                val level = AutoScrollSpeed.forSeries(
+                    AutoScrollSpeed.deserialize(readerPreferences.seriesAutoScrollSpeeds.get()),
+                    mangaId,
+                    readerPreferences.autoScrollSpeed.get(),
+                )
+                hideMenu()
+                autoScroll.start(target, level, moreToCome)
+            }
+            is AutoPageTarget -> {
+                val seconds = AutoPageInterval.forSeries(
+                    AutoPageInterval.deserialize(readerPreferences.seriesAutoPageIntervals.get()),
+                    mangaId,
+                    readerPreferences.autoPageInterval.get(),
+                )
+                hideMenu()
+                autoScroll.startPaged(target, seconds, moreToCome)
+            }
+        }
     }
 
     private fun isLongStrip(): Boolean =

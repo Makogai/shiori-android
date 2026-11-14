@@ -1493,6 +1493,7 @@
     <string name="cards_no_match_title">No cards match</string>
     <string name="cards_no_match_hint">Try fewer filters.</string>
     <string name="cards_save_front">Save front</string>
+    <string name="cards_save_image">Save image</string>
     <string name="cards_save_back">Save back</string>
     <string name="cards_print_sheet">Print sheet</string>
     <string name="cards_print">Print</string>
@@ -1622,6 +1623,14 @@
     <string name="whats_new_44_cards">The album, card pages, Make a card and the reveal now look like the iPhone app.</string>
     <string name="whats_new_44_version_title">Version in About</string>
     <string name="whats_new_44_version">More › About now shows the version number, like 0.21.3 (44).</string>
+    <string name="whats_new_45_faster_title">Faster and smaller</string>
+    <string name="whats_new_45_faster">Shiori is now an optimised build: it starts and scrolls faster and takes less space.</string>
+    <string name="whats_new_45_plain_title">Shiori without social features</string>
+    <string name="whats_new_45_plain">Each release now also carries plain Shiori, without the Arena and Cards, for friends who only want the reader.</string>
+    <string name="whats_new_45_paged_title">Auto-scroll for pages</string>
+    <string name="whats_new_45_paged">The play button now also turns pages on its own in the paged reader, every few seconds, set per series.</string>
+    <string name="whats_new_45_cards_title">Share and save cards</string>
+    <string name="whats_new_45_cards">Share a card\'s original panel, and save the card from the 3-D viewer.</string>
     <string name="pref_remove_after_read_days">Delete some days after reading</string>
     <string name="storage_per_series">Storage per series</string>
     <string name="storage_per_series_summary">Downloaded space used by each series</string>
@@ -1758,6 +1767,10 @@
     <string name="auto_scroll_series_speed">Auto-scroll speed for this series</string>
     <string name="auto_scroll_default_speed">Default auto-scroll speed</string>
     <string name="auto_scroll_use_default">Use the default speed</string>
+    <string name="auto_page_turn">Auto page-turn</string>
+    <string name="auto_page_series_interval">Seconds per page for this series</string>
+    <string name="auto_page_default_interval">Default seconds per page</string>
+    <string name="auto_page_use_default">Use the default interval</string>
     <string name="pref_webtoon_page_gap">Page gap</string>
     <string name="pref_webtoon_wide_side_padding">Side padding in landscape and on tablets</string>
     <string name="pref_webtoon_wide_side_padding_same">Same</string>

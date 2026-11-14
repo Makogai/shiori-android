@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.rememberPagerState
@@ -26,6 +28,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
@@ -75,8 +79,8 @@ import mihon.icons.materialsymbols.rounded.Delete
 import mihon.icons.materialsymbols.rounded.Download
 import mihon.icons.materialsymbols.rounded.Favorite
 import mihon.icons.materialsymbols.rounded.FlipToBack
-import mihon.icons.materialsymbols.rounded.Newspaper
 import mihon.icons.materialsymbols.rounded.Photo
+import mihon.icons.materialsymbols.rounded.Print
 import mihon.icons.materialsymbols.rounded.Save
 import mihon.icons.materialsymbols.rounded.Share
 import mihon.icons.materialsymbols.roundedfilled.Favorite
@@ -118,7 +122,8 @@ class CardDetailScreen(private val cardId: String, private val ids: List<String>
         val snackbarHostState = remember { SnackbarHostState() }
         val flipped = remember { mutableStateMapOf<String, Boolean>() }
         var confirmDelete by remember { mutableStateOf<ShioriCard?>(null) }
-        var original by remember { mutableStateOf<Bitmap?>(null) }
+        // The original panel open full screen, with the card it belongs to
+        var original by remember { mutableStateOf<Pair<ShioriCard, Bitmap>?>(null) }
         // The card open in the 3-D viewer (a tap on the centred card)
         var viewing by remember { mutableStateOf<ShioriCard?>(null) }
         // The list may arrive after the first frame (cold start): go to the tapped card once it does
@@ -205,15 +210,22 @@ class CardDetailScreen(private val cardId: String, private val ids: List<String>
                     onShare = { viewModel.share(current) },
                     onFavorite = { viewModel.toggleFavorite(current) },
                     onDelete = { confirmDelete = current },
-                    onOriginal = { original = it },
+                    onOriginal = { bitmap -> original = bitmap?.let { current to it } },
                 )
             }
         }
 
-        original?.let { OriginalPanel(it) { original = null } }
+        original?.let { (card, bitmap) ->
+            OriginalPanel(bitmap, onShare = { viewModel.shareOriginal(card, bitmap) }) { original = null }
+        }
 
         viewing?.let { card ->
-            CardViewerDialog(card = card, startOnBack = flipped[card.id] == true, onDismiss = { viewing = null })
+            CardViewerDialog(
+                card = card,
+                startOnBack = flipped[card.id] == true,
+                onSave = { viewModel.saveFront(card) },
+                onDismiss = { viewing = null },
+            )
         }
 
         confirmDelete?.let { card ->
@@ -329,7 +341,7 @@ private fun CardActions(
                 }
                 CardBorderedButton(
                     title = stringResource(MR.strings.cards_print),
-                    icon = MaterialSymbols.Rounded.Newspaper,
+                    icon = MaterialSymbols.Rounded.Print,
                     onClick = onPrint,
                     modifier = Modifier.weight(1f),
                 )
@@ -382,29 +394,51 @@ private fun CardActions(
     }
 }
 
-/** The original panel full screen; pinch to zoom, double tap to zoom in or out, tap outside or back to close. */
+/**
+ * The original panel full screen with a Share button; pinch to zoom, double tap to zoom in or out, tap outside or
+ * back to close.
+ */
 @Composable
-private fun OriginalPanel(bitmap: Bitmap, onDismiss: () -> Unit) {
+private fun OriginalPanel(bitmap: Bitmap, onShare: () -> Unit, onDismiss: () -> Unit) {
     var zoom by remember { mutableStateOf(1f) }
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Image(
-            bitmap = bitmap.asImageBitmap(),
-            contentDescription = stringResource(MR.strings.cards_original_panel),
-            contentScale = ContentScale.Fit,
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black)
-                .pointerInput(Unit) {
-                    detectTransformGestures { _, _, scale, _ -> zoom = (zoom * scale).coerceIn(1f, 5f) }
-                }
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onDoubleTap = { zoom = if (zoom > 1f) 1f else 2.5f },
-                        onTap = { if (zoom == 1f) onDismiss() },
-                    )
-                }
-                .graphicsLayer(scaleX = zoom, scaleY = zoom),
-        )
+        Box(Modifier.fillMaxSize()) {
+            Image(
+                bitmap = bitmap.asImageBitmap(),
+                contentDescription = stringResource(MR.strings.cards_original_panel),
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+                    .pointerInput(Unit) {
+                        detectTransformGestures { _, _, scale, _ -> zoom = (zoom * scale).coerceIn(1f, 5f) }
+                    }
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onDoubleTap = { zoom = if (zoom > 1f) 1f else 2.5f },
+                            onTap = { if (zoom == 1f) onDismiss() },
+                        )
+                    }
+                    .graphicsLayer(scaleX = zoom, scaleY = zoom),
+            )
+            IconButton(
+                onClick = onShare,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .safeDrawingPadding()
+                    .padding(16.dp)
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.15f)),
+            ) {
+                Icon(
+                    imageVector = MaterialSymbols.Rounded.Share,
+                    contentDescription = stringResource(MR.strings.action_share),
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+        }
     }
 }
 

@@ -16,6 +16,7 @@ import eu.kanade.tachiyomi.ui.reader.setting.ReaderSettingsViewModel
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
 import eu.kanade.tachiyomi.ui.reader.viewer.webgpu.WebGpuViewerSettings
 import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.StripLayout
+import mihon.feature.autoscroll.AutoPageSettings
 import mihon.feature.autoscroll.AutoScrollSettings
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.CheckboxItem
@@ -141,6 +142,9 @@ private fun ColumnScope.PagerViewerSettings(viewModel: ReaderSettingsViewModel) 
             pref = viewModel.preferences.dualPageRotateToFitInvert,
         )
     }
+
+    HeadingItem(MR.strings.auto_page_turn)
+    AutoPageSettings(viewModel)
 }
 
 @Composable

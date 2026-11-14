@@ -19,7 +19,6 @@ import eu.kanade.presentation.components.TabbedDialog
 import eu.kanade.presentation.components.TabbedDialogPaddings
 import eu.kanade.tachiyomi.ui.library.LibrarySettingsViewModel
 import eu.kanade.tachiyomi.util.system.friendsConfigured
-import eu.kanade.tachiyomi.util.system.isReleaseBuildType
 import mihon.feature.library.LibraryExtrasSettings
 import mihon.feature.shelves.SmartShelvesSettings
 import mihon.icons.materialsymbols.MaterialSymbols
@@ -126,8 +125,7 @@ private fun ColumnScope.FilterPage(
         state = filterStalled,
         onClick = { viewModel.extrasPreferences.filterStalled.getAndSet { it.next() } },
     )
-    // TODO: re-enable when custom intervals are ready for stable
-    if ((!isReleaseBuildType) && LibraryPreferences.MANGA_OUTSIDE_RELEASE_PERIOD in autoUpdateMangaRestrictions) {
+    if (LibraryPreferences.MANGA_OUTSIDE_RELEASE_PERIOD in autoUpdateMangaRestrictions) {
         val filterIntervalCustom by viewModel.libraryPreferences.filterIntervalCustom.collectAsState()
         TriStateItem(
             label = stringResource(MR.strings.action_filter_interval_custom),

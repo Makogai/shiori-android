@@ -40,11 +40,11 @@ object AutoScrollSpeed {
     fun serialize(speeds: Map<Long, Int>): String =
         speeds.entries.joinToString(",") { "${it.key}=${it.value}" }
 
-    fun deserialize(text: String): Map<Long, Int> = text.split(',')
+    fun deserialize(text: String, range: IntRange = levels): Map<Long, Int> = text.split(',')
         .mapNotNull { entry ->
             val (id, level) = entry.split('=', limit = 2).takeIf { it.size == 2 } ?: return@mapNotNull null
             val mangaId = id.toLongOrNull() ?: return@mapNotNull null
-            level.toIntOrNull()?.let { mangaId to clamp(it) }
+            level.toIntOrNull()?.let { mangaId to it.coerceIn(range) }
         }
         .toMap()
 }

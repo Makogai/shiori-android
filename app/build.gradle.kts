@@ -62,7 +62,7 @@ android {
     defaultConfig {
         applicationId = if (shioriSocial) "app.mihon.friends" else "app.shiori"
 
-        versionCode = 44
+        versionCode = 45
         versionName = "0.21.3"
 
         buildConfigField("boolean", "TELEMETRY_INCLUDED", "${Config.includeTelemetry}")
@@ -101,6 +101,19 @@ android {
         }
     }
 
+    // Shiori's release builds are signed with the standard debug key, as its earlier debug builds were, so
+    // installed copies update in place and keep their data.
+    if (!System.getenv("MIHON_GITHUB_RELEASE").toBoolean() && !keystorePropertiesFile.exists()) {
+        signingConfigs {
+            create("shiori") {
+                storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
+                storePassword = "android"
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+            }
+        }
+    }
+
     buildTypes {
         val debug = getByName("debug") {
             isPseudoLocalesEnabled = true
@@ -109,7 +122,7 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
 
-            signingConfig = debug.signingConfig
+            signingConfig = signingConfigs.findByName("shiori") ?: debug.signingConfig
 
             isProfileable = true
 

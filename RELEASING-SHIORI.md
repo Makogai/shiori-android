@@ -1,6 +1,7 @@
 # Releasing Shiori (Android)
 
-There are two builds from the same code:
+There are two builds from the same code. Both are R8-minified `release` builds, signed with the standard Android
+debug key (`~/.android/debug.keystore`) like the debug builds shipped up to 44, so they update those in place:
 
 | Build | Gradle | applicationId | Launcher name | Release asset |
 | --- | --- | --- | --- | --- |
@@ -26,15 +27,14 @@ The release notes (body) are shown in the update dialog as Markdown.
 
 ## Scheme
 
-Publish **one release per version with both APKs** attached, tag `v<versionName>-<versionCode>`. Both builds share
-the versionCode. If only the plain build ever needs a release of its own, tag it `v<versionName>-<versionCode>-plain`
-with only `Shiori-arm64.apk`; Friends skips it because the asset is missing.
+Every release carries **both real APKs**, tag `v<versionName>-<versionCode>`, and both builds share the versionCode:
 
-### Shiori Friends v39
+- `Shiori-Friends-arm64.apk`: Shiori Friends (`app.mihon.friends`),
+- `Shiori-arm64.apk`: plain Shiori (`app.shiori`).
 
-The v39 Friends build looks only at `releases/latest` for `Shiori-arm64.apk`. From v40 on that asset is the plain
-build (`app.shiori`), so v39 would offer plain Shiori, which installs as a separate app instead of updating. v39 was
-never published, so install the v40 `Shiori-Friends-arm64.apk` by hand once; it updates itself from then on.
+Never upload the Friends build under the plain name: `Shiori-arm64.apk` is always the plain build. If only the plain
+build ever needs a release of its own, tag it `v<versionName>-<versionCode>-plain` with only `Shiori-arm64.apk`;
+Friends skips it because its asset is missing.
 
 ## Steps
 

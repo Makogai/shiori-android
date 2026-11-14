@@ -101,6 +101,7 @@ import kotlinx.coroutines.withContext
 import mihon.feature.friends.ui.rememberReducedMotion
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Close
+import mihon.icons.materialsymbols.rounded.Download
 import mihon.icons.materialsymbols.rounded.FlipToBack
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
@@ -112,11 +113,12 @@ import kotlin.math.min
 /**
  * A card full screen as a 3-D object: drag turns it on both axes (it coasts on a fling and settles on the nearest
  * face), double tap flips it, pinch zooms, and at rest the gyroscope sways it a little. System back, the close
- * button or a swipe down from outside the card closes it. Loads the card's front (the on-screen composite with the
- * card number) and back sized for the screen, and releases them when closed.
+ * button or a swipe down from outside the card closes it; the save button puts the front PNG in the gallery. Loads
+ * the card's front (the on-screen composite with the card number) and back sized for the screen, and releases them
+ * when closed.
  */
 @Composable
-fun CardViewerDialog(card: ShioriCard, startOnBack: Boolean, onDismiss: () -> Unit) {
+fun CardViewerDialog(card: ShioriCard, startOnBack: Boolean, onSave: () -> Unit, onDismiss: () -> Unit) {
     val repository = metroViewModel<CardsViewModel>().repository
     val context = LocalContext.current
     val textureWidth = remember(context) {
@@ -149,6 +151,7 @@ fun CardViewerDialog(card: ShioriCard, startOnBack: Boolean, onDismiss: () -> Un
             serial = card.serialText,
             startOnBack = startOnBack,
             onDismiss = onDismiss,
+            onSave = onSave,
         )
     }
 }
@@ -204,6 +207,7 @@ fun CardViewer3D(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     serial: String? = null,
+    onSave: (() -> Unit)? = null,
     restYaw: Float = if (startOnBack) 180f else 0f,
     restPitch: Float = 0f,
 ) {
@@ -294,7 +298,7 @@ fun CardViewer3D(
             )
         }
 
-        // Name, rank and serial, small, at the top; close on the right in a round glass button
+        // Name, rank and serial, small, at the top; save and close on the right in round glass buttons
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -318,6 +322,23 @@ fun CardViewer3D(
                 )
             }
             Spacer(Modifier.width(12.dp))
+            if (onSave != null) {
+                IconButton(
+                    onClick = onSave,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.15f)),
+                ) {
+                    Icon(
+                        imageVector = MaterialSymbols.Rounded.Download,
+                        contentDescription = stringResource(MR.strings.cards_save_image),
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+                Spacer(Modifier.width(10.dp))
+            }
             IconButton(
                 onClick = { state.close() },
                 modifier = Modifier

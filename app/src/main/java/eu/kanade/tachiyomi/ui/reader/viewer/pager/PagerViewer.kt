@@ -33,6 +33,7 @@ import eu.kanade.tachiyomi.ui.reader.viewer.position
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import mihon.app.di.appGraph
+import mihon.feature.autoscroll.AutoPageTarget
 import tachiyomi.core.common.util.system.logcat
 import kotlin.math.min
 
@@ -40,7 +41,7 @@ import kotlin.math.min
  * Implementation of a [Viewer] to display pages with a [ViewPager].
  */
 @Suppress("LeakingThis")
-abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
+abstract class PagerViewer(val activity: ReaderActivity) : Viewer, AutoPageTarget {
 
     val graph by lazy { activity.appGraph }
     val downloadManager by lazy { graph.downloadManager }
@@ -126,6 +127,7 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
             )
             activity.onViewerTap(pos)
         }
+        pager.touchDownListener = { onTouchDown?.invoke() }
         pager.longTapListener = f@{
             if (activity.viewModel.state.value.menuVisible || general.longTapEnabled) {
                 val item = adapter.items.getOrNull(pager.currentItem)
@@ -247,6 +249,15 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
      * Whether pages run right to left, so moving forward goes left.
      */
     protected open val isReversed = false
+
+    override var onTouchDown: (() -> Unit)? = null
+
+    override fun autoTurnPage(): Boolean {
+        val atEnd = if (isReversed) pager.currentItem == 0 else pager.currentItem == adapter.count - 1
+        if (atEnd) return false
+        moveForward()
+        return true
+    }
 
     override fun moveForward() = if (isReversed) moveLeft() else moveRight()
 
