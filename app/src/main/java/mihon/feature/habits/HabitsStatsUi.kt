@@ -44,10 +44,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
+import mihon.feature.recaps.RecapsScreen
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.CalendarMonth
 import tachiyomi.data.habits.FinishedRead
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.GroupedDivider
 import tachiyomi.presentation.core.components.GroupedRow
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.theme.GroupedSection
@@ -93,7 +95,7 @@ class HabitsStatsViewModel(habits: ReadingHabits) : ViewModel() {
 
 private const val HEATMAP_WEEKS = 18
 
-/** Statistics' habits part: the reading calendar, reading time per day and the Year in Review row. */
+/** Statistics' habits part: the reading calendar, reading time per day, Year in Review and the recaps. */
 @Composable
 fun HabitsStatsSection() {
     val viewModel = metroViewModel<HabitsStatsViewModel>()
@@ -121,6 +123,13 @@ fun HabitsStatsSection() {
                     icon = MaterialSymbols.Rounded.CalendarMonth,
                     iconColor = IosColors.Pink,
                     onClick = { navigator.push(YearInReviewScreen()) },
+                )
+                GroupedDivider()
+                GroupedRow(
+                    title = stringResource(MR.strings.recap_title),
+                    icon = MaterialSymbols.Rounded.CalendarMonth,
+                    iconColor = IosColors.Indigo,
+                    onClick = { navigator.push(RecapsScreen()) },
                 )
             }
         }

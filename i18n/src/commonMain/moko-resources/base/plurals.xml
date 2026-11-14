@@ -184,4 +184,16 @@
         <item quantity="one">%d library series</item>
         <item quantity="other">%d library series</item>
     </plurals>
+    <plurals name="recap_chapters_count">
+        <item quantity="one">%d chapter</item>
+        <item quantity="other">%d chapters</item>
+    </plurals>
+    <plurals name="surprise_me_waiting">
+        <item quantity="one">1 chapter waiting</item>
+        <item quantity="other">%d chapters waiting</item>
+    </plurals>
+    <plurals name="surprise_me_stalled">
+        <item quantity="one">You haven\'t read it in 1 day</item>
+        <item quantity="other">You haven\'t read it in %d days</item>
+    </plurals>
 </resources>

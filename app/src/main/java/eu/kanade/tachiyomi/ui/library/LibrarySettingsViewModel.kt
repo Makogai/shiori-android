@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import mihon.feature.friends.data.FriendsPreferences
+import mihon.feature.library.LibraryExtrasPreferences
 import mihon.feature.shelves.SmartShelfPreferences
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.TriState
@@ -32,6 +33,7 @@ class LibrarySettingsViewModel(
     val libraryPreferences: LibraryPreferences,
     val friendsPreferences: FriendsPreferences,
     val shelfPreferences: SmartShelfPreferences,
+    val extrasPreferences: LibraryExtrasPreferences,
     private val setDisplayMode: SetDisplayMode,
     private val setSortModeForCategory: SetSortModeForCategory,
     trackerManager: TrackerManager,

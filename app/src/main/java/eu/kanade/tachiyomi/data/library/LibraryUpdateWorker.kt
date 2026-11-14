@@ -22,8 +22,7 @@ import androidx.work.workDataOf
 import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.notification.Notifications
-import eu.kanade.tachiyomi.source.model.SManga
-import eu.kanade.tachiyomi.source.model.UpdateStrategy
+import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.util.storage.getUriCompat
 import eu.kanade.tachiyomi.util.system.createFileInCacheDir
 import eu.kanade.tachiyomi.util.system.isConnectedToWifi
@@ -51,6 +50,10 @@ import mihon.domain.source.health.SourceOperation
 import mihon.domain.source.interactor.UpdateMangaFromRemote
 import mihon.feature.sourcehealth.SourceHealthMonitor
 import mihon.feature.sourcehealth.SourceHealthPreferences
+import mihon.feature.updatepreview.LibraryUpdateDecision
+import mihon.feature.updatepreview.SkipReason
+import mihon.feature.updatepreview.UpdateRules
+import mihon.feature.updatepreview.isFinished
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.preference.getAndSet
 import tachiyomi.core.common.util.system.logcat
@@ -62,16 +65,14 @@ import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_CHARGING
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_NETWORK_NOT_METERED
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_ONLY_ON_WIFI
-import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_HAS_UNREAD
-import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_NON_COMPLETED
-import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_NON_READ
-import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_OUTSIDE_RELEASE_PERIOD
+import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_TRACKER_FINISHED
 import tachiyomi.domain.manga.interactor.FetchInterval
 import tachiyomi.domain.manga.interactor.GetLibraryManga
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.model.SourceNotInstalledException
 import tachiyomi.domain.source.service.SourceManager
+import tachiyomi.domain.track.interactor.GetTracksPerManga
 import tachiyomi.i18n.MR
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
@@ -110,6 +111,10 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
     @Inject private lateinit var sourceHealthMonitor: SourceHealthMonitor
 
     @Inject private lateinit var sourceHealthPreferences: SourceHealthPreferences
+
+    @Inject private lateinit var trackerManager: TrackerManager
+
+    @Inject private lateinit var getTracksPerManga: GetTracksPerManga
 
     private var mangaToUpdate: List<LibraryManga> = mutableListOf()
 
@@ -180,58 +185,34 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
         val listToUpdate = if (categoryId != -1L) {
             libraryManga.filter { categoryId in it.categories }
         } else {
-            val includedCategories = libraryPreferences.updateCategories.get().map { it.toLong() }
-            val excludedCategories = libraryPreferences.updateCategoriesExclude.get().map { it.toLong() }
-
-            libraryManga.filter {
-                val included = includedCategories.isEmpty() || it.categories.intersect(includedCategories).isNotEmpty()
-                val excluded = it.categories.intersect(excludedCategories).isNotEmpty()
-                included && !excluded
-            }
+            libraryManga
         }
 
         val restrictions = libraryPreferences.autoUpdateMangaRestrictions.get()
+        val rules = UpdateRules(
+            // Updating one category ignores the category settings
+            includedCategories = if (categoryId != -1L) emptySet() else updateCategories(included = true),
+            excludedCategories = if (categoryId != -1L) emptySet() else updateCategories(included = false),
+            restrictions = restrictions,
+            fetchWindowUpperBound = TimeZone.currentSystemDefault().let { timeZone ->
+                fetchInterval.getWindow(Clock.System.now().toLocalDateTime(timeZone).date, timeZone).endInclusive
+            },
+        )
+        val tracks = if (MANGA_TRACKER_FINISHED in restrictions) getTracksPerManga.await() else emptyMap()
         val skippedUpdates = mutableListOf<Pair<Manga, String?>>()
-        val timeZone = TimeZone.currentSystemDefault()
-        val fetchWindowUpperBound = fetchInterval.getWindow(
-            Clock.System.now().toLocalDateTime(timeZone).date,
-            timeZone,
-        ).endInclusive
 
         mangaToUpdate = listToUpdate
             .filter {
-                when {
-                    it.manga.updateStrategy == UpdateStrategy.ONLY_FETCH_ONCE && it.totalChapters > 0L -> {
-                        skippedUpdates.add(
-                            it.manga to context.stringResource(MR.strings.skipped_reason_not_always_update),
-                        )
+                val trackerFinished = trackerManager.isFinished(tracks[it.id].orEmpty())
+                val reason = LibraryUpdateDecision.skipReason(it, rules, trackerFinished)
+                when (reason) {
+                    null -> true
+                    // Left out by the category settings, not skipped
+                    SkipReason.ExcludedCategory, SkipReason.NotIncludedCategory -> false
+                    else -> {
+                        skippedUpdates.add(it.manga to context.stringResource(reason.label))
                         false
                     }
-
-                    MANGA_NON_COMPLETED in restrictions && it.manga.status.toInt() == SManga.COMPLETED -> {
-                        skippedUpdates.add(it.manga to context.stringResource(MR.strings.skipped_reason_completed))
-                        false
-                    }
-
-                    MANGA_HAS_UNREAD in restrictions && it.unreadCount != 0L -> {
-                        skippedUpdates.add(it.manga to context.stringResource(MR.strings.skipped_reason_not_caught_up))
-                        false
-                    }
-
-                    MANGA_NON_READ in restrictions && it.totalChapters > 0L && !it.hasStarted -> {
-                        skippedUpdates.add(it.manga to context.stringResource(MR.strings.skipped_reason_not_started))
-                        false
-                    }
-
-                    MANGA_OUTSIDE_RELEASE_PERIOD in restrictions &&
-                        it.manga.nextUpdate.let { next -> next != null && next > fetchWindowUpperBound } -> {
-                        skippedUpdates.add(
-                            it.manga to context.stringResource(MR.strings.skipped_reason_not_in_release_period),
-                        )
-                        false
-                    }
-
-                    else -> true
                 }
             }
             .sortedBy { it.manga.title }
@@ -248,6 +229,10 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
             }
         }
     }
+
+    private fun updateCategories(included: Boolean): Set<Long> =
+        (if (included) libraryPreferences.updateCategories else libraryPreferences.updateCategoriesExclude).get()
+            .mapTo(mutableSetOf()) { it.toLong() }
 
     /**
      * Method that updates manga in [mangaToUpdate]. It's called in a background thread, so it's safe

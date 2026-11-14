@@ -1,16 +1,18 @@
 package eu.kanade.tachiyomi.data.updater
 
+import tachiyomi.data.release.GitHubAsset
+import tachiyomi.data.release.GithubRelease
+
 /**
  * The Shiori release convention (RELEASING-SHIORI.md): tag `v<versionName>-<versionCode>`, e.g. `v0.21.3-40`,
- * with the APK attached as [ASSET_NAME]. Only the versionCode decides whether a release is newer.
+ * carrying `Shiori-Friends-arm64.apk` and/or `Shiori-arm64.apk`; a release with only the plain APK may add
+ * `-plain` to the tag. Only the versionCode decides whether a release is newer.
  */
 object ShioriRelease {
 
-    const val ASSET_NAME = "Shiori-arm64.apk"
-
     const val PLACEHOLDER_REPO = "OWNER/REPO"
 
-    private val TAG = Regex("""^v.+-(\d+)$""")
+    private val TAG = Regex("""^v.+?-(\d+)(?:-plain)?$""")
 
     fun isConfigured(repo: String): Boolean = repo.isNotBlank() && repo != PLACEHOLDER_REPO
 
@@ -21,4 +23,18 @@ object ShioriRelease {
 
     fun isNewer(tag: String, installedVersionCode: Int): Boolean =
         (versionCode(tag) ?: return false) > installedVersionCode
+
+    /**
+     * The newest published release newer than [installedVersionCode] that carries [assetName], with that asset.
+     * GitHub has a single "latest" release, so both builds scan the release list for their own APK.
+     */
+    fun pick(
+        releases: List<GithubRelease>,
+        assetName: String,
+        installedVersionCode: Int,
+    ): Pair<GithubRelease, GitHubAsset>? = releases
+        .asSequence()
+        .filter { !it.draft && !it.prerelease && isNewer(it.version, installedVersionCode) }
+        .mapNotNull { release -> release.assets.firstOrNull { it.name == assetName }?.let { release to it } }
+        .maxByOrNull { (release, _) -> versionCode(release.version) ?: 0 }
 }

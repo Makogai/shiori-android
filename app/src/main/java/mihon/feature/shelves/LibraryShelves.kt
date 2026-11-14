@@ -82,26 +82,30 @@ class LibraryShelvesViewModel(
     fun addToQueue(manga: List<Manga>) = queue.add(manga)
 }
 
-/** The Up next queue and the smart shelves, under the Library summary. */
+/** The binge queue row; hidden while the queue is empty. */
 @Composable
-fun LibraryShelves(
+fun BingeQueueShelf(
     onOpenManga: (Long) -> Unit,
     onEditQueue: () -> Unit,
 ) {
     val viewModel = metroViewModel<LibraryShelvesViewModel>()
     val queued by viewModel.queued.collectAsStateWithLifecycle()
-    val shelves by viewModel.shelves.collectAsStateWithLifecycle()
-
-    if (queued.isNotEmpty()) {
-        ShelfRow(
-            title = stringResource(MR.strings.binge_queue_title),
-            action = stringResource(MR.strings.action_edit) to onEditQueue,
-        ) {
-            items(queued, key = { it.id }) { manga ->
-                ShelfCard(manga = manga, caption = null, badge = null) { onOpenManga(manga.id) }
-            }
+    if (queued.isEmpty()) return
+    ShelfRow(
+        title = stringResource(MR.strings.binge_queue_title),
+        action = stringResource(MR.strings.action_edit) to onEditQueue,
+    ) {
+        items(queued, key = { it.id }) { manga ->
+            ShelfCard(manga = manga, caption = null, badge = null) { onOpenManga(manga.id) }
         }
     }
+}
+
+/** The enabled smart shelves that have series. */
+@Composable
+fun SmartShelfRows(onOpenManga: (Long) -> Unit) {
+    val viewModel = metroViewModel<LibraryShelvesViewModel>()
+    val shelves by viewModel.shelves.collectAsStateWithLifecycle()
     shelves.forEach { (shelf, items) ->
         ShelfRow(title = stringResource(shelf.titleRes)) {
             items(items, key = { it.id }) { item ->
@@ -134,7 +138,7 @@ private fun shelfCaption(shelf: SmartShelf, item: LibraryManga): String? = when 
 }
 
 @Composable
-private fun ShelfRow(
+fun ShelfRow(
     title: String,
     action: Pair<String, () -> Unit>? = null,
     content: LazyListScope.() -> Unit,

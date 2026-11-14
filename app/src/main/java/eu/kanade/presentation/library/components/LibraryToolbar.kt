@@ -37,6 +37,7 @@ fun LibraryToolbar(
     onClickRefresh: () -> Unit,
     onClickGlobalUpdate: () -> Unit,
     onClickOpenRandomManga: () -> Unit,
+    onClickSurpriseMe: () -> Unit,
     onClickTrackLibrary: () -> Unit,
     searchQuery: String?,
     onSearchQueryChange: (String?) -> Unit,
@@ -59,6 +60,7 @@ fun LibraryToolbar(
         onClickRefresh = onClickRefresh,
         onClickGlobalUpdate = onClickGlobalUpdate,
         onClickOpenRandomManga = onClickOpenRandomManga,
+        onClickSurpriseMe = onClickSurpriseMe,
         onClickTrackLibrary = onClickTrackLibrary,
         scrollBehavior = scrollBehavior,
         leagueAction = leagueAction,
@@ -75,6 +77,7 @@ private fun LibraryRegularToolbar(
     onClickRefresh: () -> Unit,
     onClickGlobalUpdate: () -> Unit,
     onClickOpenRandomManga: () -> Unit,
+    onClickSurpriseMe: () -> Unit,
     onClickTrackLibrary: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior?,
     leagueAction: @Composable () -> Unit,
@@ -123,6 +126,10 @@ private fun LibraryRegularToolbar(
                     AppBar.OverflowAction(
                         title = stringResource(MR.strings.action_open_random_manga),
                         onClick = onClickOpenRandomManga,
+                    ),
+                    AppBar.OverflowAction(
+                        title = stringResource(MR.strings.surprise_me),
+                        onClick = onClickSurpriseMe,
                     ),
                     AppBar.OverflowAction(
                         title = stringResource(MR.strings.track_library_title),

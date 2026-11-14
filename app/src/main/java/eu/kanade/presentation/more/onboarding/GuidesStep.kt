@@ -17,6 +17,7 @@ import eu.kanade.presentation.theme.TachiyomiPreviewTheme
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.theme.separator
 
 internal class GuidesStep(
     private val onRestoreBackup: () -> Unit,
@@ -42,7 +43,7 @@ internal class GuidesStep(
 
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 8.dp),
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                color = MaterialTheme.colorScheme.separator,
             )
 
             Text(stringResource(MR.strings.onboarding_guides_returning_user, stringResource(MR.strings.app_name)))

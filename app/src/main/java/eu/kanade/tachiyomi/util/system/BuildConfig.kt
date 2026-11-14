@@ -11,6 +11,10 @@ val telemetryIncluded: Boolean
 val updaterEnabled: Boolean
     get() = ShioriRelease.isConfigured(BuildConfig.SHIORI_UPDATE_REPO)
 
+/** False in the plain Shiori build, which ships without a Friends server and so hides every social entry point. */
+val friendsConfigured: Boolean
+    get() = BuildConfig.FRIENDS_SUPABASE_URL.startsWith("https://") && BuildConfig.FRIENDS_SUPABASE_KEY.isNotEmpty()
+
 val isDebugBuildType: Boolean
     inline get() = BuildConfig.BUILD_TYPE == "debug"
 

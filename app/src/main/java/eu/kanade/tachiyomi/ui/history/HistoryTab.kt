@@ -32,6 +32,7 @@ import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.ui.stats.StatsScreen
+import eu.kanade.tachiyomi.util.system.friendsConfigured
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -96,7 +97,7 @@ data object HistoryTab : Tab {
                         ReadingStatsCard(
                             stats = stats,
                             onOpenStats = { navigator.push(StatsScreen()) },
-                            onOpenRecaps = { navigator.push(RecapListScreen()) },
+                            onOpenRecaps = { navigator.push(RecapListScreen()) }.takeIf { friendsConfigured },
                         )
                     }
                 }

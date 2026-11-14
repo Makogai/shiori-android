@@ -61,7 +61,8 @@ fun MoreScreen(
     onClickDownloadQueue: () -> Unit,
     onClickCategories: () -> Unit,
     onClickStats: () -> Unit,
-    onClickLeague: () -> Unit,
+    /** Null in the plain Shiori build, which has no Arena. */
+    onClickLeague: (() -> Unit)?,
     onClickSettings: (SettingsScreen.Destination) -> Unit,
     onClickSupport: () -> Unit,
 ) {
@@ -130,13 +131,15 @@ fun MoreScreen(
                         iconColor = IosColors.Pink,
                         onClick = onClickStats,
                     )
-                    GroupedDivider()
-                    GroupedRow(
-                        title = stringResource(MR.strings.friends_arena),
-                        icon = MaterialSymbols.Rounded.EmojiEvents,
-                        iconColor = IosColors.Orange,
-                        onClick = onClickLeague,
-                    )
+                    if (onClickLeague != null) {
+                        GroupedDivider()
+                        GroupedRow(
+                            title = stringResource(MR.strings.friends_arena),
+                            icon = MaterialSymbols.Rounded.EmojiEvents,
+                            iconColor = IosColors.Orange,
+                            onClick = onClickLeague,
+                        )
+                    }
                 }
             }
             item {

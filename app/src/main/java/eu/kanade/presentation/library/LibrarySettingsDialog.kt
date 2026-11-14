@@ -18,11 +18,14 @@ import androidx.compose.ui.platform.LocalConfiguration
 import eu.kanade.presentation.components.TabbedDialog
 import eu.kanade.presentation.components.TabbedDialogPaddings
 import eu.kanade.tachiyomi.ui.library.LibrarySettingsViewModel
+import eu.kanade.tachiyomi.util.system.friendsConfigured
 import eu.kanade.tachiyomi.util.system.isReleaseBuildType
+import mihon.feature.library.LibraryExtrasSettings
 import mihon.feature.shelves.SmartShelvesSettings
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Refresh
 import tachiyomi.core.common.preference.TriState
+import tachiyomi.core.common.preference.getAndSet
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.domain.library.model.LibrarySort
@@ -68,6 +71,7 @@ fun LibrarySettingsDialog(
                 )
                 2 -> DisplayPage(
                     viewModel = viewModel,
+                    onDismissRequest = onDismissRequest,
                 )
             }
         }
@@ -115,6 +119,12 @@ private fun ColumnScope.FilterPage(
         label = stringResource(MR.strings.completed),
         state = filterCompleted,
         onClick = { viewModel.toggleFilter(LibraryPreferences::filterCompleted) },
+    )
+    val filterStalled by viewModel.extrasPreferences.filterStalled.collectAsState()
+    TriStateItem(
+        label = stringResource(MR.strings.library_filter_stalled),
+        state = filterStalled,
+        onClick = { viewModel.extrasPreferences.filterStalled.getAndSet { it.next() } },
     )
     // TODO: re-enable when custom intervals are ready for stable
     if ((!isReleaseBuildType) && LibraryPreferences.MANGA_OUTSIDE_RELEASE_PERIOD in autoUpdateMangaRestrictions) {
@@ -229,6 +239,7 @@ private val displayModes = listOf(
 @Composable
 private fun ColumnScope.DisplayPage(
     viewModel: LibrarySettingsViewModel,
+    onDismissRequest: () -> Unit,
 ) {
     val displayMode by viewModel.libraryPreferences.displayMode.collectAsState()
     SettingsChipRow(MR.strings.action_display_mode) {
@@ -299,7 +310,9 @@ private fun ColumnScope.DisplayPage(
     )
 
     SmartShelvesSettings(viewModel.shelfPreferences)
+    LibraryExtrasSettings(viewModel.extrasPreferences, onDismissRequest)
 
+    if (!friendsConfigured) return
     HeadingItem(MR.strings.friends_league)
     CheckboxItem(
         label = stringResource(MR.strings.friends_pref_library_banner),

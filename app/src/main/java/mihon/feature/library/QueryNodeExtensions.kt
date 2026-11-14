@@ -38,9 +38,10 @@ private fun GeneralQueryNode.matches(item: LibraryItem): Boolean {
         if (field.fieldOnly) return@any false
 
         when (field) {
-            MangaField.TITLE -> manga.title.contains(value, ignoreCase = true)
-            MangaField.AUTHOR -> manga.author?.contains(value, ignoreCase = true) ?: false
-            MangaField.ARTIST -> manga.artist?.contains(value, ignoreCase = true) ?: false
+            MangaField.TITLE -> manga.title.contains(value, ignoreCase = true) ||
+                FuzzySearch.matches(value, manga.title)
+            MangaField.AUTHOR -> manga.author?.let { FuzzySearch.matches(value, it) } ?: false
+            MangaField.ARTIST -> manga.artist?.let { FuzzySearch.matches(value, it) } ?: false
             MangaField.DESCRIPTION -> manga.description?.contains(value, ignoreCase = true) ?: false
             MangaField.GENRE -> manga.genre?.any { it.contains(value, ignoreCase = true) } ?: false
             MangaField.SOURCE -> {

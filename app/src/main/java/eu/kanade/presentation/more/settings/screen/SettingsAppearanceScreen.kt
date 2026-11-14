@@ -21,6 +21,7 @@ import eu.kanade.presentation.more.settings.screen.appearance.AppLanguageScreen
 import eu.kanade.presentation.more.settings.widget.AppThemeModePreferenceWidget
 import eu.kanade.presentation.more.settings.widget.AppThemePreferenceWidget
 import eu.kanade.presentation.util.rememberIs24HourSystem
+import eu.kanade.tachiyomi.util.system.friendsConfigured
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toJavaLocalDateTime
@@ -132,13 +133,21 @@ object SettingsAppearanceScreen : SearchableSettings {
     private fun getFriendsGroup(): Preference.PreferenceGroup {
         val context = LocalContext.current
         val friendsPreferences = remember { context.appGraph.friendsPreferences }
+        val streakCard = Preference.PreferenceItem.SwitchPreference(
+            preference = friendsPreferences.showStreakCard,
+            title = stringResource(MR.strings.friends_pref_streak_card),
+        )
+        // The streak card is local reading data, so the plain build keeps it
+        if (!friendsConfigured) {
+            return Preference.PreferenceGroup(
+                title = stringResource(MR.strings.label_recent_manga),
+                preferenceItems = listOf(streakCard),
+            )
+        }
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.friends_league),
             preferenceItems = listOf(
-                Preference.PreferenceItem.SwitchPreference(
-                    preference = friendsPreferences.showStreakCard,
-                    title = stringResource(MR.strings.friends_pref_streak_card),
-                ),
+                streakCard,
                 Preference.PreferenceItem.SwitchPreference(
                     preference = friendsPreferences.showLibraryBanner,
                     title = stringResource(MR.strings.friends_pref_library_banner),

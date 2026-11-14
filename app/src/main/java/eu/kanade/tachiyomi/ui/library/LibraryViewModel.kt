@@ -49,6 +49,9 @@ import mihon.core.common.utils.mutate
 import mihon.core.metro.AppCoroutineScope
 import mihon.domain.library.model.search.QueryNode
 import mihon.feature.common.utils.seriesKey
+import mihon.feature.library.LibraryExtrasPreferences
+import mihon.feature.library.LibraryInsights
+import mihon.feature.library.TrackBadge
 import mihon.feature.library.matches
 import mihon.feature.ratings.PersonalRatings
 import tachiyomi.core.common.preference.CheckboxState
@@ -77,6 +80,7 @@ import tachiyomi.domain.track.interactor.GetTracksPerManga
 import tachiyomi.domain.track.model.Track
 import tachiyomi.source.local.isLocal
 import kotlin.random.Random
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 
 @Inject
@@ -101,6 +105,7 @@ class LibraryViewModel(
     private val downloadCache: DownloadCache,
     private val trackerManager: TrackerManager,
     private val personalRatings: PersonalRatings,
+    private val extrasPreferences: LibraryExtrasPreferences,
 ) : ViewModel() {
 
     private val subscriberGate = SubscriberGate()
@@ -123,8 +128,10 @@ class LibraryViewModel(
     private val hasActiveFilters = combine(
         getLibraryItemPreferencesFlow(),
         getTrackingFiltersFlow(),
-    ) { prefs, trackFilters ->
+        extrasPreferences.filterStalled.changes(),
+    ) { prefs, trackFilters, filterStalled ->
         listOf(
+            filterStalled,
             prefs.filterDownloaded,
             prefs.filterUnread,
             prefs.filterStarted,
@@ -137,10 +144,15 @@ class LibraryViewModel(
     }
         .distinctUntilChanged()
 
-    // Tracks are only used by tracker filters and the tracker score sort, and loading every track is slow on
-    // large libraries
-    private val tracks = combine(getCategories.subscribe(), getTrackingFiltersFlow()) { categories, trackingFilters ->
-        trackingFilters.values.any { it != TriState.DISABLED } ||
+    // Tracks are only used by tracker filters, tracker badges and the tracker score sort, and loading every
+    // track is slow on large libraries
+    private val tracks = combine(
+        getCategories.subscribe(),
+        getTrackingFiltersFlow(),
+        extrasPreferences.trackerBadges.changes(),
+    ) { categories, trackingFilters, trackerBadges ->
+        trackerBadges ||
+            trackingFilters.values.any { it != TriState.DISABLED } ||
             categories.any { it.sort.type == LibrarySort.Type.TrackerMean }
     }
         .distinctUntilChanged()
@@ -153,11 +165,12 @@ class LibraryViewModel(
         getCategories.subscribe(),
         getFavoritesFlow(),
         combine(tracks, getTrackingFiltersFlow(), ::Pair),
-        getLibraryItemPreferencesFlow(),
-    ) { searchQuery, categories, favorites, (tracksMap, trackingFilters), itemPreferences ->
+        combine(getLibraryItemPreferencesFlow(), getExtrasFlow(), ::Pair),
+    ) { searchQuery, categories, favorites, (tracksMap, trackingFilters), (itemPreferences, extras) ->
         val showSystemCategory = favorites.any { it.libraryManga.categories.contains(0) }
         val filteredFavorites = favorites
             .applyFilters(tracksMap, trackingFilters, itemPreferences)
+            .applyExtras(tracksMap, extras)
             .let { libraryItems ->
                 if (searchQuery.isNullOrEmpty()) {
                     libraryItems
@@ -289,6 +302,28 @@ class LibraryViewModel(
                 filterFnTracking(it)
         }
     }
+
+    private fun List<LibraryItem>.applyExtras(trackMap: Map<Long, List<Track>>, extras: Extras): List<LibraryItem> {
+        val now = Clock.System.now()
+        return mapNotNull { item ->
+            val stalled = LibraryInsights.isStalled(item.libraryManga, extras.stalledDays, now)
+            if (!applyFilter(extras.filterStalled) { stalled }) return@mapNotNull null
+            val trackStatus = trackMap[item.id]
+                ?.takeIf { extras.trackerBadges }
+                ?.let { TrackBadge.summary(it, trackerManager) }
+            if (!stalled && trackStatus == null) return@mapNotNull item
+            item.copy(badges = item.badges.copy(trackStatus = trackStatus, stalled = stalled))
+        }
+    }
+
+    private data class Extras(val stalledDays: Int, val filterStalled: TriState, val trackerBadges: Boolean)
+
+    private fun getExtrasFlow(): Flow<Extras> = combine(
+        extrasPreferences.stalledDays.changes(),
+        extrasPreferences.filterStalled.changes(),
+        extrasPreferences.trackerBadges.changes(),
+        ::Extras,
+    )
 
     private fun List<LibraryItem>.applyGrouping(
         categories: List<Category>,

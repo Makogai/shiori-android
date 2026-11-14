@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 import mihon.app.di.appGraph
 import mihon.feature.sourcehealth.SourceHealthScreen
 import mihon.feature.sourcehealth.SourceHealthWorker
+import mihon.feature.updatepreview.UpdatePreviewScreen
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_CHARGING
@@ -33,6 +34,7 @@ import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_HAS_U
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_NON_COMPLETED
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_NON_READ
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_OUTSIDE_RELEASE_PERIOD
+import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_TRACKER_FINISHED
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MARK_DUPLICATE_CHAPTER_READ_EXISTING
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MARK_DUPLICATE_CHAPTER_READ_NEW
 import tachiyomi.i18n.MR
@@ -116,6 +118,7 @@ object SettingsLibraryScreen : SearchableSettings {
         libraryPreferences: LibraryPreferences,
     ): Preference.PreferenceGroup {
         val context = LocalContext.current
+        val navigator = LocalNavigator.currentOrThrow
 
         val autoUpdateIntervalPref = libraryPreferences.autoUpdateInterval
         val autoUpdateCategoriesPref = libraryPreferences.updateCategories
@@ -202,8 +205,14 @@ object SettingsLibraryScreen : SearchableSettings {
                         MANGA_NON_READ to stringResource(MR.strings.pref_update_only_started),
                         MANGA_NON_COMPLETED to stringResource(MR.strings.pref_update_only_non_completed),
                         MANGA_OUTSIDE_RELEASE_PERIOD to stringResource(MR.strings.pref_update_only_in_release_period),
+                        MANGA_TRACKER_FINISHED to stringResource(MR.strings.update_preview_pref_tracker_finished),
                     ),
                     title = stringResource(MR.strings.pref_library_update_smart_update),
+                ),
+                Preference.PreferenceItem.TextPreference(
+                    title = stringResource(MR.strings.update_preview_title),
+                    subtitle = stringResource(MR.strings.update_preview_pref_summary),
+                    onClick = { navigator.push(UpdatePreviewScreen()) },
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = libraryPreferences.newShowUpdatesCount,

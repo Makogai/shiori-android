@@ -64,9 +64,10 @@ import mihon.feature.friends.ui.CardsToolbarAction
 import mihon.feature.friends.ui.LibraryArenaCard
 import mihon.feature.friends.ui.SuggestionsScreen
 import mihon.feature.habits.TodayPill
+import mihon.feature.library.LibrarySections
+import mihon.feature.library.SurpriseMeScreen
 import mihon.feature.migration.config.MigrationConfigScreen
 import mihon.feature.queue.BingeQueueScreen
-import mihon.feature.shelves.LibraryShelves
 import mihon.feature.shelves.LibraryShelvesViewModel
 import mihon.feature.tracklibrary.TrackLibraryScreen
 import mihon.icons.materialsymbols.MaterialSymbols
@@ -130,6 +131,17 @@ data object LibraryTab : Tab {
             started
         }
 
+        val continueReading: (LibraryManga) -> Unit = {
+            scope.launch {
+                val chapter = viewModel.getNextUnreadChapter(it.manga)
+                if (chapter != null) {
+                    context.startActivity(ReaderActivity.newIntent(context, chapter.mangaId, chapter.id))
+                } else {
+                    snackbarHostState.showSnackbar(context.stringResource(MR.strings.no_next_chapter))
+                }
+            }
+        }
+
         Scaffold(
             topBarScrollBehavior = tabRootScrollBehavior(),
             topBar = { scrollBehavior ->
@@ -164,6 +176,7 @@ data object LibraryTab : Tab {
                             }
                         }
                     },
+                    onClickSurpriseMe = { navigator.push(SurpriseMeScreen()) },
                     onClickTrackLibrary = { navigator.push(TrackLibraryScreen()) },
                     searchQuery = state.searchQuery,
                     onSearchQueryChange = viewModel::search,
@@ -228,19 +241,7 @@ data object LibraryTab : Tab {
                         showPageTabs = state.showCategoryTabs || !state.searchQuery.isNullOrEmpty(),
                         onChangeCurrentPage = viewModel::updateActiveCategoryIndex,
                         onClickManga = { navigator.push(MangaScreen(it)) },
-                        onContinueReadingClicked = { it: LibraryManga ->
-                            scope.launch {
-                                val chapter = viewModel.getNextUnreadChapter(it.manga)
-                                if (chapter != null) {
-                                    context.startActivity(
-                                        ReaderActivity.newIntent(context, chapter.mangaId, chapter.id),
-                                    )
-                                } else {
-                                    snackbarHostState.showSnackbar(context.stringResource(MR.strings.no_next_chapter))
-                                }
-                            }
-                            Unit
-                        }.takeIf { state.showMangaContinueButton },
+                        onContinueReadingClicked = continueReading.takeIf { state.showMangaContinueButton },
                         onToggleSelection = viewModel::toggleSelection,
                         onToggleRangeSelection = { category, manga ->
                             viewModel.toggleRangeSelection(category, manga)
@@ -263,9 +264,13 @@ data object LibraryTab : Tab {
                                         onClick = { navigator.push(ArenaScreen()) },
                                         onOpenSuggestions = { navigator.push(SuggestionsScreen()) },
                                     )
-                                    LibrarySummary(state.libraryData)
-                                    LibraryShelves(
+                                    LibrarySections(
+                                        summary = { LibrarySummary(state.libraryData) },
                                         onOpenManga = { navigator.push(MangaScreen(it)) },
+                                        onContinue = { continueReading(it) },
+                                        onOpenChapter = { mangaId, chapterId ->
+                                            context.startActivity(ReaderActivity.newIntent(context, mangaId, chapterId))
+                                        },
                                         onEditQueue = { navigator.push(BingeQueueScreen()) },
                                     )
                                     if (leagueSummary.showCardsStrip) {

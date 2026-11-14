@@ -36,12 +36,21 @@ val localProperties = Properties().apply {
     if (file.exists()) FileInputStream(file).use { load(it) }
 }
 
-fun friendsProperty(name: String): String =
+// `-Pshiori.social=false` builds plain Shiori: its own app ID, no Friends server and so no social UI.
+// Shiori Friends keeps app.mihon.friends so installed copies keep updating.
+val shioriSocial = providers.gradleProperty("shiori.social").orNull?.toBoolean() ?: true
+
+fun friendsProperty(name: String): String = if (shioriSocial) {
     (providers.gradleProperty(name).orNull ?: localProperties.getProperty(name) ?: "").trim()
+} else {
+    ""
+}
 
 // Without these the build has no Friends server: the Arena card, Cards strip and 🃏 button never show.
 // A worktree has no local.properties of its own, so say so instead of shipping a silent build.
-if (friendsProperty("friends.supabaseUrl").isEmpty() || friendsProperty("friends.supabaseKey").isEmpty()) {
+val friendsMissing =
+    friendsProperty("friends.supabaseUrl").isEmpty() || friendsProperty("friends.supabaseKey").isEmpty()
+if (shioriSocial && friendsMissing) {
     logger.warn(
         "w: Friends League is not configured (friends.supabaseUrl / friends.supabaseKey missing); the Arena and Cards will be hidden in this build",
     )
@@ -51,19 +60,21 @@ android {
     namespace = "eu.kanade.tachiyomi"
 
     defaultConfig {
-        applicationId = "app.mihon.friends"
+        applicationId = if (shioriSocial) "app.mihon.friends" else "app.shiori"
 
-        versionCode = 39
+        versionCode = 40
         versionName = "0.21.3"
 
         buildConfigField("boolean", "TELEMETRY_INCLUDED", "${Config.includeTelemetry}")
         buildConfigField("boolean", "UPDATER_ENABLED", "${Config.enableUpdater}")
-        // GitHub "owner/repo" whose latest release is the Shiori update (RELEASING-SHIORI.md); "OWNER/REPO" turns it off
+        // GitHub "owner/repo" whose releases carry the Shiori updates (RELEASING-SHIORI.md); "OWNER/REPO" turns it off
         buildConfigField("String", "SHIORI_UPDATE_REPO", "\"Makogai/shiori-android\"")
+        val apkAsset = if (shioriSocial) "Shiori-Friends-arm64.apk" else "Shiori-arm64.apk"
+        buildConfigField("String", "SHIORI_APK_ASSET", "\"$apkAsset\"")
         buildConfigField("String", "FRIENDS_SUPABASE_URL", "\"${friendsProperty("friends.supabaseUrl").trimEnd('/')}\"")
         buildConfigField("String", "FRIENDS_SUPABASE_KEY", "\"${friendsProperty("friends.supabaseKey")}\"")
 
-        resValue("string", "launcher_name", "Shiori")
+        resValue("string", "launcher_name", if (shioriSocial) "Shiori Friends" else "Shiori")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -461,6 +472,7 @@ androidComponents {
         ) {
             applicationId.set(variant.applicationId)
             shortcutsFile.set(projectDir.resolve("src/main/shortcuts.xml"))
+            if (!shioriSocial) excludedShortcutIds.add("shiori_cards")
         }
         resSource.addGeneratedSourceDirectory(replaceShortcutsPlaceholderTask) { it.outputDir }
     }

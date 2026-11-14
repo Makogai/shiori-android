@@ -6,6 +6,7 @@ import dev.zacsweers.metro.SingleIn
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.network.await
+import eu.kanade.tachiyomi.util.system.friendsConfigured
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
@@ -61,7 +62,7 @@ class FriendsApi(networkHelper: NetworkHelper) {
     private val baseUrl = BuildConfig.FRIENDS_SUPABASE_URL
     private val key = BuildConfig.FRIENDS_SUPABASE_KEY
 
-    val isConfigured: Boolean = baseUrl.startsWith("https://") && key.isNotEmpty()
+    val isConfigured: Boolean = friendsConfigured
 
     val json = FriendsJson
 

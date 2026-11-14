@@ -13,7 +13,7 @@ import tachiyomi.data.release.GithubRelease
 import tachiyomi.domain.release.interactor.GetApplicationRelease
 import tachiyomi.domain.release.model.Release
 
-/** Checks the Shiori releases repo (never mihonapp's) for a release with a higher versionCode. */
+/** Checks the Shiori releases repo (never mihonapp's) for a release of this build with a higher versionCode. */
 @Inject
 class AppUpdateChecker(
     private val network: NetworkHelper,
@@ -22,18 +22,16 @@ class AppUpdateChecker(
 
     suspend fun checkForUpdate(): GetApplicationRelease.Result {
         if (!ShioriRelease.isConfigured(GITHUB_REPO)) return GetApplicationRelease.Result.NoNewUpdate
-        val release = withContext(Dispatchers.IO) {
+        val releases = withContext(Dispatchers.IO) {
             with(json) {
                 network.client
-                    .newCall(GET("https://api.github.com/repos/$GITHUB_REPO/releases/latest"))
+                    .newCall(GET("https://api.github.com/repos/$GITHUB_REPO/releases?per_page=20"))
                     .awaitSuccess()
-                    .parseAs<GithubRelease>()
+                    .parseAs<List<GithubRelease>>()
             }
         }
-        val apk = release.assets.firstOrNull { it.name == ShioriRelease.ASSET_NAME }
-        if (apk == null || !ShioriRelease.isNewer(release.version, BuildConfig.VERSION_CODE)) {
-            return GetApplicationRelease.Result.NoNewUpdate
-        }
+        val (release, apk) = ShioriRelease.pick(releases, BuildConfig.SHIORI_APK_ASSET, BuildConfig.VERSION_CODE)
+            ?: return GetApplicationRelease.Result.NoNewUpdate
         return GetApplicationRelease.Result.NewUpdate(
             Release(
                 version = release.version,

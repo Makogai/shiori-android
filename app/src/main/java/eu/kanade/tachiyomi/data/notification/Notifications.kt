@@ -7,6 +7,7 @@ import androidx.core.app.NotificationManagerCompat.IMPORTANCE_HIGH
 import androidx.core.app.NotificationManagerCompat.IMPORTANCE_LOW
 import eu.kanade.tachiyomi.util.system.buildNotificationChannel
 import eu.kanade.tachiyomi.util.system.buildNotificationChannelGroup
+import eu.kanade.tachiyomi.util.system.friendsConfigured
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
 
@@ -126,7 +127,7 @@ object Notifications {
         )
 
         notificationManager.createNotificationChannelsCompat(
-            listOf(
+            listOfNotNull(
                 buildNotificationChannel(CHANNEL_COMMON, IMPORTANCE_LOW) {
                     setName(context.stringResource(MR.strings.channel_common))
                 },
@@ -173,7 +174,7 @@ object Notifications {
                 },
                 buildNotificationChannel(CHANNEL_ARENA, IMPORTANCE_DEFAULT) {
                     setName(context.stringResource(MR.strings.friends_arena_notifications))
-                },
+                }.takeIf { friendsConfigured },
                 buildNotificationChannel(CHANNEL_SOURCE_HEALTH, IMPORTANCE_DEFAULT) {
                     setName(context.stringResource(MR.strings.source_health))
                 },

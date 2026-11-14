@@ -155,7 +155,7 @@ class YearInReviewScreen : Screen() {
                 }
                 item {
                     Button(
-                        onClick = { scope.launch { shareCard(context, layer, summary.year) } },
+                        onClick = { scope.launch { shareCard(context, layer, "shiori_year_${summary.year}.png") } },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(stringResource(MR.strings.action_share))
@@ -249,20 +249,20 @@ private fun YearStat(value: String, label: String, modifier: Modifier = Modifier
 }
 
 /** Renders the recorded card to a PNG in the shared image cache and opens the share sheet. */
-private suspend fun shareCard(context: Context, layer: GraphicsLayer, year: Int) {
+internal suspend fun shareCard(context: Context, layer: GraphicsLayer, fileName: String) {
     try {
         // Hardware bitmaps can't be compressed
         val bitmap = layer.toImageBitmap().asAndroidBitmap().copy(Bitmap.Config.ARGB_8888, false)
         val file = withContext(Dispatchers.IO) {
             val dir = context.cacheImageDir.apply { mkdirs() }
-            File(dir, "shiori_year_$year.png").also { file ->
+            File(dir, fileName).also { file ->
                 file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
             }
         }
         context.startActivity(file.getUriCompat(context).toShareIntent(context, type = "image/png"))
     } catch (e: Exception) {
         if (e is CancellationException) throw e
-        context.logcat(LogPriority.ERROR, e) { "Sharing the year card failed" }
+        context.logcat(LogPriority.ERROR, e) { "Sharing a reading card failed" }
         context.toast(context.stringResource(MR.strings.friends_recap_share_failed))
     }
 }
