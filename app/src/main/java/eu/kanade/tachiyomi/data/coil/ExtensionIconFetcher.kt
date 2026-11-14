@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.data.coil
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
 import androidx.core.graphics.drawable.toBitmap
 import coil3.ImageLoader
@@ -13,6 +14,7 @@ import coil3.key.Keyer
 import coil3.request.Options
 import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.extension.util.ExtensionLoader
+import mihon.feature.jssources.JsExtensionManager
 
 /**
  * The icon of an installed extension, drawn at [density].
@@ -62,8 +64,16 @@ class ExtensionIconFetcher(
     class SourceFactory(
         private val context: Context,
         private val extensionManager: Lazy<ExtensionManager>,
+        private val jsExtensionManager: Lazy<JsExtensionManager>,
     ) : Fetcher.Factory<InstalledSourceIcon> {
         override fun create(data: InstalledSourceIcon, options: Options, imageLoader: ImageLoader): Fetcher {
+            // Our JS sources keep the icon the repository published next to their script
+            jsExtensionManager.value.iconFile(data.sourceId)?.let { file ->
+                return Fetcher {
+                    val bitmap = BitmapFactory.decodeFile(file.path) ?: error("Unreadable icon $file")
+                    ImageFetchResult(image = bitmap.asImage(), isSampled = false, dataSource = DataSource.DISK)
+                }
+            }
             return ExtensionIconFetcher(
                 context = context,
                 getPkgName = { extensionManager.value.getExtensionPackage(data.sourceId) },

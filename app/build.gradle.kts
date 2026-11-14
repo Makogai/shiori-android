@@ -62,7 +62,7 @@ android {
     defaultConfig {
         applicationId = if (shioriSocial) "app.mihon.friends" else "app.shiori"
 
-        versionCode = 45
+        versionCode = 46
         versionName = "0.21.3"
 
         buildConfigField("boolean", "TELEMETRY_INCLUDED", "${Config.includeTelemetry}")
@@ -317,6 +317,13 @@ dependencies {
 
     // HTML parser
     implementation(libs.jsoup)
+
+    // QuickJS for our JavaScript sources. quickjs-kt runs the promise jobs async scripts need, which the
+    // app.cash.quickjs binding extensions use does not; repacked so the two native libraries don't collide.
+    // See scripts/repack-quickjs-kt.sh.
+    implementation(files("libs/quickjs-kt-android-1.0.18-qjskt.aar"))
+    testImplementation("io.github.dokar3:quickjs-kt-jvm:1.0.18")
+    implementation(libs.androidx.webkit)
 
     // Disk
     implementation(libs.unifile)

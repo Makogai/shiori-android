@@ -56,6 +56,9 @@ import eu.kanade.tachiyomi.util.system.LocaleHelper
 import eu.kanade.tachiyomi.util.system.copyToClipboard
 import eu.kanade.tachiyomi.util.system.launchRequestPackageInstallsPermission
 import mihon.domain.extension.model.ExtensionStore
+import mihon.feature.jssources.JsExtensionInfo
+import mihon.feature.jssources.JsSourcesSection
+import mihon.feature.jssources.JsSourcesUiState
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Close
 import mihon.icons.materialsymbols.rounded.Download
@@ -93,6 +96,9 @@ fun ExtensionScreen(
     onOpenExtension: (Extension.Loaded) -> Unit,
     onClickUpdateAll: () -> Unit,
     onRefresh: () -> Unit,
+    jsSources: JsSourcesUiState,
+    onInstallJsExtension: (JsExtensionInfo) -> Unit,
+    onUninstallJsExtension: (String) -> Unit,
 ) {
     val navigator = LocalNavigator.currentOrThrow
 
@@ -103,7 +109,7 @@ fun ExtensionScreen(
     ) {
         when {
             state.isLoading -> LoadingScreen(Modifier.padding(contentPadding))
-            state.isEmpty -> {
+            state.isEmpty && jsSources.isEmpty -> {
                 val msg = if (!searchQuery.isNullOrEmpty()) {
                     MR.strings.no_results_found
                 } else {
@@ -134,6 +140,9 @@ fun ExtensionScreen(
                     onTrustExtension = onTrustExtension,
                     onOpenExtension = onOpenExtension,
                     onClickUpdateAll = onClickUpdateAll,
+                    jsSources = jsSources,
+                    onInstallJsExtension = onInstallJsExtension,
+                    onUninstallJsExtension = onUninstallJsExtension,
                 )
             }
         }
@@ -153,6 +162,9 @@ private fun ExtensionContent(
     onTrustExtension: (Extension.NotLoaded) -> Unit,
     onOpenExtension: (Extension.Loaded) -> Unit,
     onClickUpdateAll: () -> Unit,
+    jsSources: JsSourcesUiState,
+    onInstallJsExtension: (JsExtensionInfo) -> Unit,
+    onUninstallJsExtension: (String) -> Unit,
 ) {
     val context = LocalContext.current
     var notLoadedState by remember { mutableStateOf<Extension.NotLoaded?>(null) }
@@ -168,6 +180,17 @@ private fun ExtensionContent(
                     modifier = Modifier.clickable {
                         context.launchRequestPackageInstallsPermission()
                     },
+                )
+            }
+        }
+
+        if (!jsSources.isEmpty) {
+            item(key = "js-sources", contentType = "js-sources") {
+                JsSourcesSection(
+                    state = jsSources,
+                    onInstall = onInstallJsExtension,
+                    onUninstall = onUninstallJsExtension,
+                    modifier = Modifier.animateItem(),
                 )
             }
         }

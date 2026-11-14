@@ -1631,6 +1631,8 @@
     <string name="whats_new_45_paged">The play button now also turns pages on its own in the paged reader, every few seconds, set per series.</string>
     <string name="whats_new_45_cards_title">Share and save cards</string>
     <string name="whats_new_45_cards">Share a card\'s original panel, and save the card from the 3-D viewer.</string>
+    <string name="whats_new_46_js_title">Our own sources</string>
+    <string name="whats_new_46_js">Extensions now has an \"Our sources\" section with the same sources as the iPhone app, Mangasushi and Aster Scans included. Install them from there.</string>
     <string name="pref_remove_after_read_days">Delete some days after reading</string>
     <string name="storage_per_series">Storage per series</string>
     <string name="storage_per_series_summary">Downloaded space used by each series</string>
@@ -1775,5 +1777,9 @@
     <string name="pref_webtoon_wide_side_padding">Side padding in landscape and on tablets</string>
     <string name="pref_webtoon_wide_side_padding_same">Same</string>
     <string name="pref_reader_enhance">Enhance (sharpen and contrast)</string>
->>>>>>> feat/android-reader2
+    <string name="js_sources_header">Our sources (JS)</string>
+    <string name="js_sources_footer">The same JavaScript sources the iOS app runs, so a series keeps its source on both.</string>
+    <string name="js_sources_nsfw">18+</string>
+    <string name="js_sources_not_loaded">Couldn\'t load: %s</string>
+    <string name="js_sources_failed">%1$s: %2$s</string>
 </resources>

@@ -22,3 +22,9 @@
 *.woff binary
 *.pyc binary
 *.swp binary
+
+# Repacked native dependency
+*.aar binary
+
+# Saved site responses for the JS source tests, kept byte for byte
+app/src/test/resources/jssources/** -text

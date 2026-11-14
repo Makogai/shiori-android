@@ -55,6 +55,7 @@ fun extensionsTab(
         ),
         content = { contentPadding, _ ->
             val state by extensionsViewModel.state.collectAsStateWithLifecycle()
+            val jsSources by extensionsViewModel.jsSources.collectAsStateWithLifecycle()
 
             BackHandler(enabled = state.searchQuery != null) {
                 extensionsViewModel.search(null)
@@ -95,6 +96,9 @@ fun extensionsTab(
                 onUninstallExtension = { extensionsViewModel.uninstallExtension(it) },
                 onUpdateExtension = extensionsViewModel::updateExtension,
                 onRefresh = extensionsViewModel::findAvailableExtensions,
+                jsSources = jsSources,
+                onInstallJsExtension = extensionsViewModel::installJsExtension,
+                onUninstallJsExtension = extensionsViewModel::uninstallJsExtension,
             )
 
             privateExtensionToUninstall?.let { extension ->

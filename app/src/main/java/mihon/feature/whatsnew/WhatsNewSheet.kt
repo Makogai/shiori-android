@@ -25,6 +25,7 @@ import mihon.app.di.appGraph
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Book
 import mihon.icons.materialsymbols.rounded.CalendarMonth
+import mihon.icons.materialsymbols.rounded.Code
 import mihon.icons.materialsymbols.rounded.Explore
 import mihon.icons.materialsymbols.rounded.Favorite
 import mihon.icons.materialsymbols.rounded.Info
@@ -142,6 +143,14 @@ private val notesByVersion: List<Pair<Int, List<Highlight>>> = listOf(
             Color(0xFFAF52DE),
             MR.strings.whats_new_45_cards_title,
             MR.strings.whats_new_45_cards,
+        ),
+    ),
+    46 to listOf(
+        Highlight(
+            MaterialSymbols.Rounded.Code,
+            Color(0xFF34C759),
+            MR.strings.whats_new_46_js_title,
+            MR.strings.whats_new_46_js,
         ),
     ),
 )

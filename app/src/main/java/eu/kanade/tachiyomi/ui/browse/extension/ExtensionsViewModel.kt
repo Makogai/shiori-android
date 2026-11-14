@@ -18,6 +18,8 @@ import eu.kanade.tachiyomi.extension.model.Extension
 import eu.kanade.tachiyomi.extension.model.InstallStep
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.util.system.LocaleHelper
+import eu.kanade.tachiyomi.util.system.toast
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -36,6 +38,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import logcat.LogPriority
+import mihon.feature.jssources.JsExtensionInfo
+import mihon.feature.jssources.JsExtensionManager
+import mihon.feature.jssources.JsSourceRow
+import mihon.feature.jssources.JsSourcesUiState
+import tachiyomi.core.common.i18n.stringResource
+import tachiyomi.core.common.util.system.logcat
 import tachiyomi.i18n.MR
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -49,6 +59,7 @@ class ExtensionsViewModel(
     private val extensionManager: ExtensionManager,
     private val getExtensions: GetExtensionsByType,
     private val context: Context,
+    private val jsExtensionManager: JsExtensionManager,
 ) : ViewModel() {
 
     private val currentDownloads = MutableStateFlow<Map<String, InstallStep>>(hashMapOf())
@@ -126,9 +137,73 @@ class ExtensionsViewModel(
     }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5.seconds), State())
 
+    private val jsBusy = MutableStateFlow<Set<String>>(emptySet())
+
+    /** Our JavaScript sources: the repository's index and what is installed, filtered by the search. */
+    val jsSources: StateFlow<JsSourcesUiState> = combine(
+        jsExtensionManager.available,
+        jsExtensionManager.installed,
+        jsExtensionManager.broken,
+        jsBusy,
+        searchQuery,
+    ) { available, installed, broken, busy, query ->
+        val installedMap = installed.orEmpty()
+        val listed = available.map { info ->
+            val current = installedMap[info.pkg]
+            JsSourceRow(
+                info = current?.info ?: info,
+                installed = current != null,
+                hasUpdate = current != null && info.versionCode > current.info.versionCode,
+                icon = current?.icon ?: jsExtensionManager.iconUrl(info),
+                busy = info.pkg in busy,
+                update = info,
+            )
+        }
+        val unlisted = installedMap.values.filter { extension -> available.none { it.pkg == extension.info.pkg } }
+            .map {
+                JsSourceRow(
+                    it.info,
+                    installed = true,
+                    hasUpdate = false,
+                    icon = it.icon,
+                    busy = it.info.pkg in busy,
+                    update = null,
+                )
+            }
+        val matches = { name: String -> query.isNullOrBlank() || name.contains(query.trim(), ignoreCase = true) }
+        JsSourcesUiState(
+            rows = (listed + unlisted).filter { matches(it.info.name) }.sortedBy { it.info.name.lowercase() },
+            broken = broken.values.filter { matches(it.pkg) }.sortedBy { it.pkg },
+        )
+    }
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5.seconds), JsSourcesUiState())
+
     init {
 
         viewModelScope.launch(Dispatchers.IO) { findAvailableExtensions() }
+    }
+
+    fun installJsExtension(info: JsExtensionInfo) = jsWork(info.pkg) { jsExtensionManager.install(info) }
+
+    fun uninstallJsExtension(pkg: String) = jsWork(pkg) { jsExtensionManager.uninstall(pkg) }
+
+    private fun jsWork(pkg: String, work: suspend () -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            jsBusy.update { it + pkg }
+            try {
+                work()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                logcat(LogPriority.ERROR, e) { "JS extension $pkg" }
+                withContext(Dispatchers.Main) {
+                    context.toast(context.stringResource(MR.strings.js_sources_failed, pkg, e.message.orEmpty()))
+                }
+            } finally {
+                jsBusy.update { it - pkg }
+            }
+        }
     }
 
     fun searchQueryPredicate(query: String): (Extension) -> Boolean {
@@ -216,6 +291,13 @@ class ExtensionsViewModel(
             isRefreshing.update { true }
 
             extensionManager.findAvailableExtensions()
+            try {
+                jsExtensionManager.refresh(reload = true)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                logcat(LogPriority.WARN, e) { "Couldn't read the JS extension index" }
+            }
 
             // Fake slower refresh so it doesn't seem like it's not doing anything
             delay(1.seconds)

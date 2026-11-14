@@ -67,6 +67,7 @@ import mihon.feature.cleanup.ReadChapterCleanupWorker
 import mihon.feature.friends.data.FriendsRepository
 import mihon.feature.friends.ui.ArenaAlerts
 import mihon.feature.friends.ui.ArenaAlertsWorker
+import mihon.feature.jssources.JsExtensionManager
 import mihon.feature.sourcehealth.SourceHealthWorker
 import mihon.telemetry.TelemetryConfig
 import org.conscrypt.Conscrypt
@@ -107,6 +108,8 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
     @Inject private lateinit var sourceManager: Lazy<SourceManager>
 
     @Inject private lateinit var extensionManager: Lazy<ExtensionManager>
+
+    @Inject private lateinit var jsExtensionManager: Lazy<JsExtensionManager>
 
     @Inject private lateinit var widgetManager: WidgetManager
 
@@ -244,7 +247,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
                 add(MangaCoverFetcher.MangaCoverFactory(callFactoryLazy, coverCache, sourceManager))
                 add(MangaCoverFetcher.MangaFactory(callFactoryLazy, coverCache, sourceManager))
                 add(ExtensionIconFetcher.ExtensionFactory(context))
-                add(ExtensionIconFetcher.SourceFactory(context, extensionManager))
+                add(ExtensionIconFetcher.SourceFactory(context, extensionManager, jsExtensionManager))
                 // Keyer
                 add(MangaCoverKeyer(coverCache))
                 add(MangaKeyer(coverCache))
