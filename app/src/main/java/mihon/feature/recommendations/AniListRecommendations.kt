@@ -29,8 +29,20 @@ import tachiyomi.domain.track.interactor.GetTracks
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 
+/** [englishTitle] is AniList's English title, kept only when it differs from [title]. */
 @Serializable
-data class Recommendation(val title: String, val cover: String?)
+data class Recommendation(val title: String, val cover: String?, val englishTitle: String? = null)
+
+/**
+ * The title a recommendation shows (`userPreferred`, else romaji, else English) and the English title to show
+ * under it: null when AniList has none or it matches the main title apart from case. Null when untitled.
+ */
+fun recommendationTitles(userPreferred: String?, romaji: String?, english: String?): Pair<String, String?>? {
+    val title = listOf(userPreferred, romaji, english).firstNotNullOfOrNull { it?.trim()?.takeIf(String::isNotEmpty) }
+        ?: return null
+    val subtitle = english?.trim()?.takeIf { it.isNotEmpty() && !it.equals(title, ignoreCase = true) }
+    return title to subtitle
+}
 
 @Serializable
 private data class CachedRecommendations(val fetchedAt: Long, val items: List<Recommendation>)
@@ -50,7 +62,7 @@ class AniListRecommendations(
 ) {
 
     private val cache = preferenceStore.getObjectFromString(
-        key = Preference.appStateKey("anilist_recommendations"),
+        key = Preference.appStateKey("anilist_recommendations_v2"),
         defaultValue = emptyMap<String, CachedRecommendations>(),
         serializer = { json.encodeToString(it) },
         deserializer = {
@@ -98,11 +110,11 @@ class AniListRecommendations(
             val recommended = (node as? JsonObject)?.get("mediaRecommendation") as? JsonObject
                 ?: return@mapNotNull null
             val titles = recommended["title"] as? JsonObject ?: return@mapNotNull null
-            val name = listOf("userPreferred", "english", "romaji")
-                .firstNotNullOfOrNull { titles[it]?.jsonPrimitive?.contentOrNull }
+            fun title(key: String) = titles[key]?.jsonPrimitive?.contentOrNull
+            val (name, english) = recommendationTitles(title("userPreferred"), title("romaji"), title("english"))
                 ?: return@mapNotNull null
             val cover = (recommended["coverImage"] as? JsonObject)?.get("large")?.jsonPrimitive?.contentOrNull
-            Recommendation(name, cover)
+            Recommendation(name, cover, english)
         }
     }
 
@@ -113,7 +125,7 @@ class AniListRecommendations(
             query (${'$'}id: Int, ${'$'}search: String) {
               Media(id: ${'$'}id, search: ${'$'}search, type: MANGA) {
                 recommendations(sort: RATING_DESC, perPage: 15) {
-                  nodes { mediaRecommendation { title { userPreferred english romaji } coverImage { large } } }
+                  nodes { mediaRecommendation { title { userPreferred romaji english } coverImage { large } } }
                 }
               }
             }

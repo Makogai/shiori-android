@@ -34,6 +34,7 @@ import mihon.icons.materialsymbols.rounded.LocalLibrary
 import mihon.icons.materialsymbols.rounded.Mobile
 import mihon.icons.materialsymbols.rounded.Person
 import mihon.icons.materialsymbols.rounded.Photo
+import mihon.icons.materialsymbols.rounded.Public
 import mihon.icons.materialsymbols.rounded.RocketLaunch
 import mihon.icons.materialsymbols.rounded.Schedule
 import mihon.icons.materialsymbols.rounded.Share
@@ -45,9 +46,6 @@ import tachiyomi.presentation.core.components.GroupedSwitchRow
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.theme.GroupedSection
 import tachiyomi.presentation.core.util.collectAsState
-
-/** The release whose features the switches below belong to. */
-private const val SWITCHES_VERSION = 41
 
 private class Highlight(val icon: ImageVector, val color: Color, val title: StringResource, val detail: StringResource)
 
@@ -153,6 +151,20 @@ private val notesByVersion: List<Pair<Int, List<Highlight>>> = listOf(
             MR.strings.whats_new_46_js,
         ),
     ),
+    47 to listOf(
+        Highlight(
+            MaterialSymbols.Rounded.Public,
+            Color(0xFF5856D6),
+            MR.strings.whats_new_47_english_title,
+            MR.strings.whats_new_47_english,
+        ),
+        Highlight(
+            MaterialSymbols.Rounded.Explore,
+            Color(0xFFAF52DE),
+            MR.strings.whats_new_47_more_like_this_title,
+            MR.strings.whats_new_47_more_like_this,
+        ),
+    ),
 )
 
 /** The notes to show: every release after [sinceVersion] (so a skipped update isn't missed), else the latest. */
@@ -200,39 +212,48 @@ fun WhatsNewSheet(sinceVersion: Int = 0, onDismissRequest: () -> Unit) {
                     }
                 }
             }
-            // Switches only for the release that brought them, not on every later update.
-            if (SWITCHES_VERSION in versions) {
+            // Switches only for the releases that brought them, not on every later update.
+            val switches = whatsNewSwitches(versions)
+            if (switches.isNotEmpty()) {
                 GroupedSection(
                     header = stringResource(MR.strings.whats_new_switches),
                     footer = stringResource(MR.strings.whats_new_switches_footer),
                 ) {
-                    PreferenceSwitch(
-                        library.detailsPersonalBox,
-                        MR.strings.pref_details_personal_box,
-                        MaterialSymbols.Rounded.Favorite,
-                        Color(0xFFFF2D55),
-                    )
-                    GroupedDivider()
-                    PreferenceSwitch(
-                        library.detailsMoreLikeThis,
-                        MR.strings.pref_details_more_like_this,
-                        MaterialSymbols.Rounded.Explore,
-                        Color(0xFFAF52DE),
-                    )
-                    GroupedDivider()
-                    PreferenceSwitch(
-                        habits.dailyGoalEnabled,
-                        MR.strings.habits_pref_goal,
-                        MaterialSymbols.Rounded.LocalFireDepartment,
-                        Color(0xFFFF9500),
-                    )
-                    GroupedDivider()
-                    PreferenceSwitch(
-                        habits.chapterToast,
-                        MR.strings.habits_pref_toast,
-                        MaterialSymbols.Rounded.Info,
-                        Color(0xFF007AFF),
-                    )
+                    switches.forEachIndexed { index, switch ->
+                        if (index > 0) GroupedDivider()
+                        when (switch) {
+                            WhatsNewSwitch.PersonalBox -> PreferenceSwitch(
+                                library.detailsPersonalBox,
+                                MR.strings.pref_details_personal_box,
+                                MaterialSymbols.Rounded.Favorite,
+                                Color(0xFFFF2D55),
+                            )
+                            WhatsNewSwitch.MoreLikeThis -> PreferenceSwitch(
+                                library.detailsMoreLikeThis,
+                                MR.strings.pref_details_more_like_this,
+                                MaterialSymbols.Rounded.Explore,
+                                Color(0xFFAF52DE),
+                            )
+                            WhatsNewSwitch.DailyGoal -> PreferenceSwitch(
+                                habits.dailyGoalEnabled,
+                                MR.strings.habits_pref_goal,
+                                MaterialSymbols.Rounded.LocalFireDepartment,
+                                Color(0xFFFF9500),
+                            )
+                            WhatsNewSwitch.ChapterToast -> PreferenceSwitch(
+                                habits.chapterToast,
+                                MR.strings.habits_pref_toast,
+                                MaterialSymbols.Rounded.Info,
+                                Color(0xFF007AFF),
+                            )
+                            WhatsNewSwitch.EnglishTitles -> PreferenceSwitch(
+                                library.detailsMoreLikeThisEnglish,
+                                MR.strings.pref_details_more_like_this_english,
+                                MaterialSymbols.Rounded.Public,
+                                Color(0xFF5856D6),
+                            )
+                        }
+                    }
                 }
             }
             Button(

@@ -265,6 +265,11 @@ object SettingsLibraryScreen : SearchableSettings {
                     title = stringResource(MR.strings.pref_details_more_like_this),
                     subtitle = stringResource(MR.strings.pref_details_more_like_this_summary),
                 ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = libraryPreferences.detailsMoreLikeThisEnglish,
+                    title = stringResource(MR.strings.pref_details_more_like_this_english),
+                    subtitle = stringResource(MR.strings.pref_details_more_like_this_english_summary),
+                ),
             ),
         )
     }

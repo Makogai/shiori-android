@@ -12,14 +12,12 @@ import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
 import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import logcat.LogPriority
 import mihon.feature.common.utils.seriesKey
 import mihon.feature.pagebookmarks.PageBookmark
@@ -28,7 +26,8 @@ import mihon.feature.queue.BingeQueue
 import mihon.feature.ratings.PersonalRatings
 import mihon.feature.ratings.TopList
 import mihon.feature.recommendations.AniListRecommendations
-import mihon.feature.recommendations.Recommendation
+import mihon.feature.recommendations.RecommendationsLoader
+import mihon.feature.recommendations.RecommendationsState
 import mihon.feature.rhythm.ReleaseRhythm
 import mihon.feature.rhythm.ReleaseRhythmLogic
 import tachiyomi.core.common.util.system.logcat
@@ -39,7 +38,7 @@ import tachiyomi.domain.manga.model.Manga
 import tachiyomi.source.local.isLocal
 import kotlin.time.Clock
 
-/** What the manga details page adds under the description: rhythm, score, queue, lists, page bookmarks, more like this. */
+/** What the manga details page adds under the description: more like this, rhythm, score, queue, lists, page bookmarks. */
 @OptIn(ExperimentalCoroutinesApi::class)
 @AssistedInject
 class MangaExtrasViewModel(
@@ -76,6 +75,8 @@ class MangaExtrasViewModel(
 
     val showPersonalBox = libraryPreferences.detailsPersonalBox
     val showMoreLikeThis = libraryPreferences.detailsMoreLikeThis
+    val showEnglishTitles = libraryPreferences.detailsMoreLikeThisEnglish
+    val moreLikeThisExpanded = libraryPreferences.detailsMoreLikeThisExpanded
 
     private val mangaFlow = getManga.subscribe(mangaId)
 
@@ -104,23 +105,20 @@ class MangaExtrasViewModel(
     }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    private val mutableRecommendations = MutableStateFlow<List<Recommendation>>(emptyList())
-    val recommended: StateFlow<List<Recommendation>> = mutableRecommendations
-
-    init {
-        viewModelScope.launch {
-            val manga = mangaFlow.first()
-            if (manga.isLocal()) return@launch
-            showMoreLikeThis.changes().first { it }
-            mutableRecommendations.value = try {
-                recommendations.get(manga)
-            } catch (e: Exception) {
-                if (e is CancellationException) throw e
-                logcat(LogPriority.WARN, e) { "AniList recommendations failed" }
-                emptyList()
-            }
+    /** AniList's recommendations, asked for only once "More like this" is expanded. */
+    private val recommendationsLoader = RecommendationsLoader(viewModelScope) {
+        val manga = mangaFlow.first()
+        try {
+            if (manga.isLocal()) emptyList() else recommendations.get(manga)
+        } catch (e: Exception) {
+            if (e !is CancellationException) logcat(LogPriority.WARN, e) { "AniList recommendations failed" }
+            throw e
         }
     }
+    val recommended: StateFlow<RecommendationsState> = recommendationsLoader.state
+
+    /** Loads "More like this" unless it's loading or loaded; retries after a failure. */
+    fun loadRecommendations() = recommendationsLoader.load()
 
     fun setScore(score: Int?) {
         state.value?.manga?.let { ratings.setScore(it, score) }

@@ -1,0 +1,982 @@
+{
+ "result": "ok",
+ "response": "collection",
+ "data": [
+  {
+   "id": "99e912e1-ca9d-4019-8fe8-349bf814b75e",
+   "type": "manga",
+   "attributes": {
+    "title": {
+     "ja-ro": "Oneesan-ha no Ore ga Naze Chicchai Kimi o Suki ni Natta no ka?"
+    },
+    "altTitles": [
+     {
+      "ja": "お姉さん派の俺がなぜちっちゃい君を好きになったのか？"
+     },
+     {
+      "en": "Why Did I, An Older Women Guy, Fall In Love With The Teeny You?"
+     },
+     {
+      "en": "Why Did I, a Onee-san Enthusiast, Fall for Tiny You?"
+     },
+     {
+      "id": "Kenapa Aku Yang Penyuka Oneesan Bisa Jatuh Cinta Pada Kamu Yang Mungil?"
+     },
+     {
+      "pt-br": "Por que fui me apaixonar por uma garota baixinha se gosto de mulheres mais velhas?"
+     },
+     {
+      "ja-ro": "Oneesan-ha no Ore ga Naze Chicchai Kimi wo Suki ni Natta no ka?"
+     }
+    ],
+    "description": {
+     "en": "During the Spring break after middle school, Tochika Sky rescues a small girl getting crushed on a crowded train. He assumes she's just an elementary schooler, until he enters high school and finds her in his classroom!?\n\nClocking in at just 140 centimeters and fueled by energy drinks, She may be small, but she's an absolute beauty.\n\nHer name is Naruse Chito. Sky considers himself a true-blue lover of tall, older women, so a tiny cutie like Chito should be completely outside his romantic strike zone. However, Chito kicks off a fierce assault with a bold declaration: “I'm gonna take that obsession of yours and turn it completely upside down!”. A romcom tug-of-war over tastes between a guy who loves older women and a teeny girl begins!\n___\n**Compositor:** [Urano Ritsu](https://mangadex.org/author/2163afb8-f542-459e-bcdb-a5e9bb08e8b7)\n**Character Designer:** [Fuji Yama](https://mangadex.org/author/1f6fafca-3a58-4c6b-acb9-0ae6417dca9e)",
+     "ja": "中学卒業後の春休み、満員電車で潰されていた小さな女の子を助けた遠近空。彼が高校に入学すると、小学生かと思っていたその女の子が教室に!?\n\n身長140センチ。エナドリ好き。小さいけれどとびきりの美少女。\n\nそんな少女の名前は成瀬小都。生粋の年上長身お姉さん派を自認する空には、ちっちゃくてカワイイ小都は恋愛対象外のはずが、「君の性癖をねじまげてやる」と小都の猛アタックが始まって――。年上好き男子とちっちゃい女子の性癖綱引きラブコメ、開幕！",
+     "pt-br": "Durante as férias de primavera, após concluir o ensino fundamental, Tochika Sky salva uma garotinha que estava sendo esmagada em um trem lotado. Ele presume que ela seja apenas uma aluna do ensino fundamental, até entrar no ensino médio e encontrá-la em sua própria sala de aula!?\n\nCom apenas 140 centímetros de altura e movida a energéticos, ela pode ser pequena, mas é uma verdadeira beldade.\n\nSeu nome é Naruse Chito. Sky se considera um legítimo apaixonado por mulheres mais velhas e altas, então uma baixinha adorável como Chito deveria estar completamente fora de seu radar romântico. No entanto, Chito parte para um ataque implacável com uma declaração ousada:\n\n— Vou pegar essa sua obsessão e virar tudo de cabeça para baixo!\n\nComeça, então, uma comédia romântica de cabo de guerra entre os gostos de um rapaz apaixonado por mulheres mais velhas e uma garota minúscula!\n\nCompositor: [Urano Ritsu](https://mangadex.org/author/2163afb8-f542-459e-bcdb-a5e9bb08e8b7?utm_source=chatgpt.com)\n\nDesigner de personagens: [Fuji Yama](https://mangadex.org/author/1f6fafca-3a58-4c6b-acb9-0ae6417dca9e?utm_source=chatgpt.com)"
+    },
+    "isLocked": false,
+    "links": {
+     "al": "218668",
+     "ap": "oneesan-ha-no-ore-ga-naze-chicchai-kimi-wo-suki-ni-natta-no-ka",
+     "mu": "eget22a",
+     "nu": "why-did-i-a-onee-san-enthusiast-fall-for-tiny-you",
+     "mal": "197297",
+     "raw": "https://comic-walker.com/detail/KC_021505_S?episodeType=first"
+    },
+    "officialLinks": null,
+    "originalLanguage": "ja",
+    "lastVolume": "",
+    "lastChapter": "",
+    "publicationDemographic": "shounen",
+    "status": "ongoing",
+    "year": 2026,
+    "contentRating": "suggestive",
+    "tags": [
+     {
+      "id": "423e2eae-a7a2-4a8b-ac03-a8351462d71d",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Romance"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "4d32cc48-9f00-4cca-9b5a-a839f0764984",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Comedy"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "caaa44eb-cd40-4177-b930-79d3ef2afe87",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "School Life"
+       },
+       "description": {},
+       "group": "theme",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "e197df38-d0e7-43b5-9b09-2842d0c326dd",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Web Comic"
+       },
+       "description": {},
+       "group": "format",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "e5301a23-ebd9-49dd-a0cb-2add944c7fe9",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Slice of Life"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "f4122d1c-3b44-44d0-9936-ff7502c39ad3",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Adaptation"
+       },
+       "description": {},
+       "group": "format",
+       "version": 1
+      },
+      "relationships": []
+     }
+    ],
+    "state": "published",
+    "chapterNumbersResetOnNewVolume": false,
+    "createdAt": "2026-10-20T13:32:39+00:00",
+    "updatedAt": "2026-11-05T00:26:27+00:00",
+    "version": 19,
+    "availableTranslatedLanguages": [
+     "id",
+     "es-la",
+     "pt-br",
+     "en",
+     "vi"
+    ],
+    "latestUploadedChapter": "85138f62-305b-4c86-9ae4-7521532f6043"
+   },
+   "relationships": [
+    {
+     "id": "b42fea37-dd31-4323-bf96-4f8dd7758737",
+     "type": "author"
+    },
+    {
+     "id": "fdb9de70-6a90-450f-b2b0-19b74c299c1f",
+     "type": "artist"
+    },
+    {
+     "id": "a5ea83b3-4a9b-4d64-9fbe-288e5449ae7c",
+     "type": "cover_art",
+     "attributes": {
+      "description": "",
+      "volume": "0.1",
+      "fileName": "38deac17-3daf-436a-9b3a-08afe572835d.jpg",
+      "locale": "ja",
+      "createdAt": "2026-10-21T23:57:57+00:00",
+      "updatedAt": "2026-10-21T23:57:57+00:00",
+      "version": 1
+     }
+    },
+    {
+     "id": "9583188e-fec5-4141-a2b5-1540e9b779e3",
+     "type": "creator"
+    }
+   ]
+  },
+  {
+   "id": "f4e7f2b9-9baf-488c-a0f9-e0f4d44fb0b3",
+   "type": "manga",
+   "attributes": {
+    "title": {
+     "ja-ro": "Zatsuyougakari to shite Yado de Hatarakihajimeta Renkinjutsushi, Kanbanmusume-tachi to Issho ni Kurasu koto ni natta"
+    },
+    "altTitles": [
+     {
+      "ja": "雑用係として宿で働きはじめた錬金術師、看板娘たちと一緒に暮らすことになった"
+     },
+     {
+      "en": "An Alchemist Who Started Working as a Handyman at an Inn Ends Up Living with the Inn’s Lovely Girls"
+     },
+     {
+      "id": "Alkemis yang Mulai Bekerja sebagai Pekerja Serabutan di Penginapan, Akhirnya Tinggal Bersama Para Gadis Manis Penginapan"
+     },
+     {
+      "es-la": "Un Alquimista Empieza A Trabajar Como Encargado De Mantenimiento En Una Posada Y Acaba Viviendo Con Las Encantadoras Chicas Que Allí Residen."
+     }
+    ],
+    "description": {
+     "en": "In the quiet countryside stands Yadorigi, an old inn with a nostalgic charm.\n\nRoji, a young man who works there as an all-purpose handyman, has a secret no one knows: in his previous life, he was a legendary alchemist.\n\nGrateful to the late benefactor who once took him in, Roji has been secretly using alchemy to help the inn's three beautiful sisters, who are the face of Yadorigi. But one stormy night, disaster strikes—his own dilapidated home is blown away without a trace!\n\nWith nowhere else to go, Roji is at a loss until the three sisters offer him an unexpected solution:\n\n\"If you've got nowhere to stay, why not live here at the inn?!\"\n\nAnd so begins Roji's life under one roof with the three sisters: a caring and dependable eldest sister, a tsundere middle sister who struggles to express her feelings, and a carefree youngest sister.\n___\n- Alt Official Raw: [niconico manga](https://manga.nicovideo.jp/comic/84974?track=keyword_search)",
+     "ja": "片田舎にある、古くてどこか懐かしい宿屋「やどりぎ」。\nそこで雑用係として働く少年・ロジーには、誰にも言えない秘密があった。\n——それは、前世が“伝説の錬金術師”であること。\n亡き恩人への感謝を胸に、看板娘である美人三姉妹を陰ながら錬金術で助けていたロジーだったが、ある嵐の夜、とんでもないハプニングに見舞われる。\nなんと、自分のボロ家が風で跡形もなく吹き飛んでしまったのだ！\n行き場を失い途方に暮れるロジーに、三姉妹が差し伸べた手は……\n「行き場がないなら、ウチ（宿屋）に住めばいいじゃない！」\nひょんなことから始まった、美人三姉妹との「ひとつ屋根の下」生活。\n包容力バツグンの長女、素直になれないツンデレ次女、マイペースな末っ子。\n不器用で愛おしい彼女たちと、無自覚にすごい雑用係の、温かくてワクワクする日々が幕を開ける！",
+     "es-la": "En el tranquilo campo se alza Yadorigi, una antigua posada de encanto nostálgico.\n\nRoji, un joven que trabaja allí como mozo para todo, guarda un secreto que nadie conoce: en su vida anterior fue un legendario alquimista.\n\nAgradecido con el difunto benefactor que una vez lo acogió, Roji ha estado usando la alquimia en secreto para ayudar a las tres hermosas hermanas que son la imagen de Yadorigi. Pero una noche de tormenta ocurre el desastre: ¡su desvencijada casa sale volando sin dejar rastro!\n\nSin ningún otro lugar adonde ir, Roji no sabe qué hacer, hasta que las tres hermanas le ofrecen una solución inesperada:\n\n«Si no tienes dónde quedarte, ¿por qué no vives aquí, en la posada?».\n\nAsí comienza la vida de Roji bajo el mismo techo con las tres hermanas: una hermana mayor atenta y confiable, una hermana mediana tsundere a quien le cuesta expresar sus sentimientos y una hermana menor despreocupada."
+    },
+    "isLocked": false,
+    "links": {
+     "al": "218616",
+     "ap": "zatsuyo-gakari-to-shite-yado-de-hataraki-hajimeta-renkinjutsu-shi-kanbanmusume-tachi-to-issho-ni-kurasu-koto-ni-natta",
+     "mu": "672wr47",
+     "mal": "197180",
+     "raw": "https://comic-walker.com/detail/KC_020042_S/episodes/KC_0200420000200011_E?episodeType=first"
+    },
+    "officialLinks": null,
+    "originalLanguage": "ja",
+    "lastVolume": "",
+    "lastChapter": "",
+    "publicationDemographic": "seinen",
+    "status": "ongoing",
+    "year": 2026,
+    "contentRating": "suggestive",
+    "tags": [
+     {
+      "id": "0bc90acb-ccc1-44ca-a34a-b9f3a73259d0",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Reincarnation"
+       },
+       "description": {},
+       "group": "theme",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "423e2eae-a7a2-4a8b-ac03-a8351462d71d",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Romance"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "4d32cc48-9f00-4cca-9b5a-a839f0764984",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Comedy"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "cdc58593-87dd-415e-bbc0-2ec27bf404cc",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Fantasy"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "e197df38-d0e7-43b5-9b09-2842d0c326dd",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Web Comic"
+       },
+       "description": {},
+       "group": "format",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "e5301a23-ebd9-49dd-a0cb-2add944c7fe9",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Slice of Life"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     }
+    ],
+    "state": "published",
+    "chapterNumbersResetOnNewVolume": false,
+    "createdAt": "2026-10-17T02:09:30+00:00",
+    "updatedAt": "2026-11-03T13:58:00+00:00",
+    "version": 22,
+    "availableTranslatedLanguages": [
+     "en",
+     "pt-br",
+     "uk",
+     "id",
+     "es",
+     "es-la"
+    ],
+    "latestUploadedChapter": "422e8c91-1d3a-4a57-8d91-0288a5ce7c39"
+   },
+   "relationships": [
+    {
+     "id": "a97694a2-c5f9-494c-9305-131ce42f85f3",
+     "type": "author"
+    },
+    {
+     "id": "ca5af2b2-6a6c-49be-b5e8-44aec2270f82",
+     "type": "artist"
+    },
+    {
+     "id": "2ff7aa73-deb5-41a5-8e30-3cf767fc57c8",
+     "type": "cover_art",
+     "attributes": {
+      "description": "",
+      "volume": "0",
+      "fileName": "b77271cc-ccd7-4873-af3a-5cbc384224de.jpg",
+      "locale": "ja",
+      "createdAt": "2026-10-17T02:09:49+00:00",
+      "updatedAt": "2026-10-17T02:09:49+00:00",
+      "version": 1
+     }
+    },
+    {
+     "id": "df5d2b1c-f6b6-4f7a-9f98-3678004ed8e8",
+     "type": "creator"
+    }
+   ]
+  },
+  {
+   "id": "a03552f1-89d3-47df-8292-844ebe5354fe",
+   "type": "manga",
+   "attributes": {
+    "title": {
+     "ja-ro": "Sekai Saikyou no Honoo Mahoutsukai"
+    },
+    "altTitles": [
+     {
+      "en": "The World's Strongest Fire Mage"
+     },
+     {
+      "ja": "世界最強の炎魔法使い"
+     }
+    ],
+    "description": {
+     "en": "Before I knew it, I had become Leonhardt, the fat villainous noble from the game I was obsessed with. But a miserable ending exactly like the game is an absolute no go! \n\nEven for my number one favorite, the tragically ill-fated beautiful heroine Celia — if it's me, I'll love her and protect her to the very end, and I'll definitely see us through to a happy ending together!\n\nThanks to the protection of the Great Fire Spirit Ifrit and my efforts since childhood, both my magic and swordsmanship have powered up! Before long, for some reason, I ended up awakening as an unforeseen \"Strongest Fire User\"!"
+    },
+    "isLocked": false,
+    "links": {
+     "al": "219200",
+     "mu": "pn9bq4e",
+     "nu": "the-worlds-strongest-fire-wizard-i-was-reincarnated-as-a-fat-mobster-who-lost-everything-after-being-defeated-by-the-hero-many-times-but-i-will-become-invincible-to-save-the-heroine-i-love-so-de",
+     "mal": "197645",
+     "raw": "https://firecross.jp/ebook/series/627"
+    },
+    "officialLinks": null,
+    "originalLanguage": "ja",
+    "lastVolume": "",
+    "lastChapter": "",
+    "publicationDemographic": "seinen",
+    "status": "ongoing",
+    "year": 2026,
+    "contentRating": "safe",
+    "tags": [
+     {
+      "id": "0bc90acb-ccc1-44ca-a34a-b9f3a73259d0",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Reincarnation"
+       },
+       "description": {},
+       "group": "theme",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "391b0423-d847-456f-aff0-8b0cfc03066b",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Action"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "423e2eae-a7a2-4a8b-ac03-a8351462d71d",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Romance"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "87cc87cd-a395-47af-b27a-93258283bbc6",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Adventure"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "a1f53773-c69a-4ce5-8cab-fffcd90b1565",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Magic"
+       },
+       "description": {},
+       "group": "theme",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "ace04997-f6bd-436e-b261-779182193d3d",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Isekai"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "cdc58593-87dd-415e-bbc0-2ec27bf404cc",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Fantasy"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "e197df38-d0e7-43b5-9b09-2842d0c326dd",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Web Comic"
+       },
+       "description": {},
+       "group": "format",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "f4122d1c-3b44-44d0-9936-ff7502c39ad3",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Adaptation"
+       },
+       "description": {},
+       "group": "format",
+       "version": 1
+      },
+      "relationships": []
+     }
+    ],
+    "state": "published",
+    "chapterNumbersResetOnNewVolume": false,
+    "createdAt": "2026-10-30T08:42:44+00:00",
+    "updatedAt": "2026-11-09T20:33:39+00:00",
+    "version": 8,
+    "availableTranslatedLanguages": [
+     "pt-br",
+     "id",
+     "en"
+    ],
+    "latestUploadedChapter": "1b93ad33-0815-4cad-b786-d7daaae840e2"
+   },
+   "relationships": [
+    {
+     "id": "7c5939ed-3041-4aff-a84a-b85d8f54d28b",
+     "type": "author"
+    },
+    {
+     "id": "8fdf056b-dc80-41f3-a2fa-6954e30d05e0",
+     "type": "artist"
+    },
+    {
+     "id": "91c6b021-8df4-4a1b-bcef-630d17ea06ce",
+     "type": "cover_art",
+     "attributes": {
+      "description": "",
+      "volume": "1",
+      "fileName": "d8fe406b-0683-4679-8708-1f8e06ab8540.jpg",
+      "locale": "ja",
+      "createdAt": "2026-10-30T08:42:48+00:00",
+      "updatedAt": "2026-10-30T08:42:48+00:00",
+      "version": 1
+     }
+    },
+    {
+     "id": "d4a129e5-b9dd-4d10-b629-fe4e21d9da23",
+     "type": "creator"
+    }
+   ]
+  },
+  {
+   "id": "67e79cef-5367-4977-bbbe-e47925cbc855",
+   "type": "manga",
+   "attributes": {
+    "title": {
+     "ja-ro": "Femme Fatale no Kyuusai"
+    },
+    "altTitles": [
+     {
+      "ja": "ファム・ファタールの救済"
+     },
+     {
+      "en": "Femme fatale's Salvation"
+     }
+    ],
+    "description": {
+     "en": "Haruhisa Tajima is a novelist who has been unable to write anything new for some time due to writer's block.\n\nOne day, he meets a college student named Shino Miyama. She casually makes herself at home in Tajima's house and offers to take care of his daily needs.\n\nUnable to figure out her true intentions, Tajima nevertheless accepts her offer, his curiosity as a novelist outweighing his reservations. Shino acts as though she knows exactly who he is, confidently declaring, \"I want to be of use to you, Sensei.\"\n\nWhat lies hidden in the depths of those jet-black eyes of hers...?\n___\n- Alt Official Raw: [niconico manga](https://manga.nicovideo.jp/comic/85951?track=official_trial_l2)",
+     "ja": "スランプでここしばらく新作が書けていない小説家の田嶋晴久。\nある日、深山志乃と名乗る女子大生と出会う。\n志乃は当然のように田嶋の家に上がり込み、身の回りの世話を買って出る。\n田嶋は、彼女の真意を測りかねながらも小説家としての好奇心が勝り、それを受け入れる。\nまるで自分の素性を知っているかのような立ち居振る舞いをする志乃、「先生の役に立ちたい」と言い切る漆黒の瞳の奥に田嶋が見たものは――。"
+    },
+    "isLocked": false,
+    "links": {
+     "al": "218734",
+     "ap": "femme-fatale-no-kyuusa",
+     "mu": "tqkmfmf",
+     "mal": "197341",
+     "raw": "https://comic-walker.com/detail/KC_020745_S"
+    },
+    "officialLinks": null,
+    "originalLanguage": "ja",
+    "lastVolume": "",
+    "lastChapter": "",
+    "publicationDemographic": "seinen",
+    "status": "ongoing",
+    "year": 2026,
+    "contentRating": "suggestive",
+    "tags": [
+     {
+      "id": "07251805-a27e-4d59-b488-f0bfbec15168",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Thriller"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "3b60b75c-a2d7-4860-ab56-05f391bb889c",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Psychological"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "b9af3a63-f058-46de-a9a0-e0c13906197a",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Drama"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "ee968100-4191-4968-93d3-f82d72be7e46",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Mystery"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     }
+    ],
+    "state": "published",
+    "chapterNumbersResetOnNewVolume": false,
+    "createdAt": "2026-10-22T18:23:18+00:00",
+    "updatedAt": "2026-11-04T02:42:42+00:00",
+    "version": 13,
+    "availableTranslatedLanguages": [
+     "es-la",
+     "id",
+     "pt-br",
+     "en",
+     "vi"
+    ],
+    "latestUploadedChapter": "530cd6e7-88ec-48f9-84c8-2a67f7397f4f"
+   },
+   "relationships": [
+    {
+     "id": "9c80ce77-39fd-4c99-90da-042db323d844",
+     "type": "author"
+    },
+    {
+     "id": "9c80ce77-39fd-4c99-90da-042db323d844",
+     "type": "artist"
+    },
+    {
+     "id": "63279907-046c-4f01-bdde-cae88cccd799",
+     "type": "cover_art",
+     "attributes": {
+      "description": "",
+      "volume": "0",
+      "fileName": "13a34493-06c0-4fc0-8f27-8cd8f9e44fa0.png",
+      "locale": "ja",
+      "createdAt": "2026-10-22T18:23:20+00:00",
+      "updatedAt": "2026-10-22T18:34:11+00:00",
+      "version": 2
+     }
+    },
+    {
+     "id": "df5d2b1c-f6b6-4f7a-9f98-3678004ed8e8",
+     "type": "creator"
+    }
+   ]
+  },
+  {
+   "id": "0813ea1e-5a6c-4148-be7e-25038a0fa90f",
+   "type": "manga",
+   "attributes": {
+    "title": {
+     "ja-ro": "Ren'AI Flag: AI ga Risou no Koibito o Erandekureru Matching Apuri o Tsukattara Isekai no Yuusha to Matching Shita"
+    },
+    "altTitles": [
+     {
+      "ja": "恋ＡＩフラグ　～ＡＩが理想の恋人を選んでくれるマッチングアプリを使ったら異世界の勇者とマッチングした～"
+     },
+     {
+      "en": "Ren AI Flag: When I Used a Matching App Where AI Chooses Your Ideal Lover, I Matched with a Hero from Another World"
+     },
+     {
+      "ja-ro": "Ren AI Flag: AI ga Risou no Koibito o Erandekureru Matching App o Tsukattara Isekai no Yuusha to Matching Shita"
+     },
+     {
+      "ja-ro": "Ren AI Flag: AI ga Risou no Koibito wo Erandekureru Matching App wo Tsukattara Isekai no Yuusha to Matching Shita"
+     },
+     {
+      "ja-ro": "Ren AI Flag: AI ga Risou no Koibito wo Erandekureru Matching Apuri wo Tsukattara Isekai no Yuusha to Matching Shita"
+     },
+     {
+      "vi": "Cờ tình yêu AI:  Khi Tôi Dùng Ứng Dụng Hẹn Hò AI Để Tìm Người Yêu Lý Tưởng, Tôi Lại Ghép Đôi Với Một Dũng Giả Đến Từ Dị Giới"
+     },
+     {
+      "vi": "AI tìm người yêu lý tưởng cho tôi"
+     }
+    ],
+    "description": {
+     "en": "Midou Ryouta, thrilled at the campus life he had longed for, was lamenting that he still couldn’t get a girlfriend at all. When he started using the matching app “Ren AI Flag” that a friend recommended, clinging to it as a last hope, he scored a huge match with Lilia, a beautiful blonde girl! But she was a hero who had come from another world! He was supposed to win her over, but he’s pressured into a relationship with marriage in mind—and on top of that, they end up living together!? The curtain rises on a slightly unusual youth romantic comedy about a male university student who longs for an ordinary romance!",
+     "ja": "憧れのキャンパスライフに胸躍らせていた御堂良太は、一向に彼女が作れず嘆いていた。\n友人に勧められたマッチングアプリ『恋AIフラグ』をすがる思いで始めると、金髪美少女リリアとのマッチングに大成功！\nしかし彼女は異世界から来た勇者だった！\n\n彼女をゲットするはずが、結婚前提のお付き合いを迫られ、しかも同棲することに!?\n普通の恋に憧れる男子大学生のちょっと変わった青春ラブコメ開幕！"
+    },
+    "isLocked": false,
+    "links": {
+     "al": "219257",
+     "mu": "bq9fq41",
+     "mal": "197369",
+     "raw": "https://www.123hon.com/nova/web-comic/renai_flag/"
+    },
+    "officialLinks": null,
+    "originalLanguage": "ja",
+    "lastVolume": "",
+    "lastChapter": "",
+    "publicationDemographic": "seinen",
+    "status": "ongoing",
+    "year": 2026,
+    "contentRating": "suggestive",
+    "tags": [
+     {
+      "id": "423e2eae-a7a2-4a8b-ac03-a8351462d71d",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Romance"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "ace04997-f6bd-436e-b261-779182193d3d",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Isekai"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "cdc58593-87dd-415e-bbc0-2ec27bf404cc",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Fantasy"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "e5301a23-ebd9-49dd-a0cb-2add944c7fe9",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Slice of Life"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "f4122d1c-3b44-44d0-9936-ff7502c39ad3",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Adaptation"
+       },
+       "description": {},
+       "group": "format",
+       "version": 1
+      },
+      "relationships": []
+     }
+    ],
+    "state": "published",
+    "chapterNumbersResetOnNewVolume": false,
+    "createdAt": "2026-10-24T12:16:20+00:00",
+    "updatedAt": "2026-11-06T10:27:04+00:00",
+    "version": 10,
+    "availableTranslatedLanguages": [
+     "es-la",
+     "vi",
+     "id",
+     "en"
+    ],
+    "latestUploadedChapter": "b6a229a8-29f4-4a2b-8e28-b886060b649b"
+   },
+   "relationships": [
+    {
+     "id": "9c07a8ad-79e6-42fa-b166-70ca0a997815",
+     "type": "author"
+    },
+    {
+     "id": "62a1527a-e530-490f-8abf-764ba29658ba",
+     "type": "artist"
+    },
+    {
+     "id": "af28aa3f-cd4a-4be1-bd6c-f1deef0c1128",
+     "type": "cover_art",
+     "attributes": {
+      "description": "",
+      "volume": "0.1",
+      "fileName": "c467d445-3345-4864-9a8a-1800a91ad071.png",
+      "locale": "ja",
+      "createdAt": "2026-10-24T12:16:43+00:00",
+      "updatedAt": "2026-10-24T12:16:43+00:00",
+      "version": 1
+     }
+    },
+    {
+     "id": "fc6e9df7-5c5f-43de-b1d2-949bd953fbd2",
+     "type": "creator"
+    }
+   ]
+  },
+  {
+   "id": "6794951f-5026-4390-ac08-332a72b8dbed",
+   "type": "manga",
+   "attributes": {
+    "title": {
+     "ja-ro": "Tonari no Heya no Dwarf-san"
+    },
+    "altTitles": [
+     {
+      "ja": "隣の部屋のドワーフさん"
+     },
+     {
+      "en": "The Dwarf Next Door"
+     }
+    ],
+    "description": {
+     "en": "Sosuke, a salaryman worn down by his black company job, gets a new neighbor: Alma, a beautiful dwarf from another world! She's always drunk, but she's actually over 100 years old and a master craftswoman. After she gives the overworked Sosuke a magic ring, the two end up drinking together in his room... Somehow they become business partners, and the more they drink, the closer they get...!?",
+     "ja": "ブラック企業で働くサラリーマン・ソウスケの隣室に引っ越してきたのは、異世界からやってきたドワーフの美女・アルマ！いつも酔っぱらっているけど、実は１００才を超える、モノ作りのスペシャリストの彼女。過労気味のソウスケに魔法の指輪をプレゼントしたことをきっかけに、二人は部屋飲みすることに…！ひょんなことからビジネスパートナーになった二人の関係は、飲めば飲むほどに近づいて…！？"
+    },
+    "isLocked": false,
+    "links": {
+     "bl": "20143142",
+     "bw": "series/545460",
+     "mu": "d41n28l",
+     "amz": "https://www.amazon.co.jp/dp/B0FRGBP7TQ",
+     "ebj": "https://ebookjapan.yahoo.co.jp/books/880958",
+     "raw": "https://piccoma.com/web/product/180588?etype=episode"
+    },
+    "officialLinks": null,
+    "originalLanguage": "ja",
+    "lastVolume": "3",
+    "lastChapter": "15",
+    "publicationDemographic": "shounen",
+    "status": "completed",
+    "year": 2025,
+    "contentRating": "safe",
+    "tags": [
+     {
+      "id": "423e2eae-a7a2-4a8b-ac03-a8351462d71d",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Romance"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "4d32cc48-9f00-4cca-9b5a-a839f0764984",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Comedy"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "ace04997-f6bd-436e-b261-779182193d3d",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Isekai"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "cdc58593-87dd-415e-bbc0-2ec27bf404cc",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Fantasy"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "dd1f77c5-dea9-4e2b-97ae-224af09caf99",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Monster Girls"
+       },
+       "description": {},
+       "group": "theme",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "e5301a23-ebd9-49dd-a0cb-2add944c7fe9",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Slice of Life"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     }
+    ],
+    "state": "published",
+    "chapterNumbersResetOnNewVolume": false,
+    "createdAt": "2026-11-01T11:50:42+00:00",
+    "updatedAt": "2026-11-14T16:05:52+00:00",
+    "version": 8,
+    "availableTranslatedLanguages": [
+     "en",
+     "es-la",
+     "vi"
+    ],
+    "latestUploadedChapter": "25219cee-1986-4cf3-925e-ab9c6047f382"
+   },
+   "relationships": [
+    {
+     "id": "3c7755f2-4c9f-430c-a80a-270c64b1d1e1",
+     "type": "author"
+    },
+    {
+     "id": "f235469a-5b6b-4731-8a7e-093323d06747",
+     "type": "artist"
+    },
+    {
+     "id": "b424a968-05e1-4c77-9fd4-4a113f85a8cc",
+     "type": "cover_art",
+     "attributes": {
+      "description": "Volume 3 cover from BookLive",
+      "volume": "3",
+      "fileName": "e6567fc2-170e-42cb-96bd-5b774c79ca1a.jpg",
+      "locale": "ja",
+      "createdAt": "2026-11-04T22:52:57+00:00",
+      "updatedAt": "2026-11-04T22:52:57+00:00",
+      "version": 1
+     }
+    },
+    {
+     "id": "9b6f92b2-e749-4cd1-a259-8df71e12bc14",
+     "type": "creator"
+    }
+   ]
+  }
+ ],
+ "limit": 20,
+ "offset": 0,
+ "total": 128
+}

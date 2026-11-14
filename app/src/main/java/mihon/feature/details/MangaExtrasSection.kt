@@ -1,22 +1,16 @@
 package mihon.feature.details
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -27,12 +21,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
-import eu.kanade.presentation.manga.components.MangaCover
 import mihon.feature.common.utils.seriesKey
 import mihon.feature.ratings.PersonalRatings
 import mihon.feature.rhythm.ReleaseRhythm
@@ -43,6 +34,7 @@ import mihon.icons.materialsymbols.rounded.EmojiEvents
 import mihon.icons.materialsymbols.rounded.Favorite
 import mihon.icons.materialsymbols.rounded.FormatListNumbered
 import mihon.icons.materialsymbols.rounded.Schedule
+import tachiyomi.core.common.preference.toggle
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.GroupedDivider
 import tachiyomi.presentation.core.components.GroupedRow
@@ -50,13 +42,13 @@ import tachiyomi.presentation.core.components.GroupedSwitchRow
 import tachiyomi.presentation.core.components.LabeledCheckbox
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.theme.GroupedSection
-import tachiyomi.presentation.core.theme.GroupedSectionHeader
 import tachiyomi.presentation.core.util.collectAsState
+import tachiyomi.source.local.isLocal
 import java.time.DayOfWeek
 
 /**
- * The details page's own section: how often the series updates, the user's score, Up next and top lists, page
- * bookmarks and AniList's "More like this".
+ * The details page's own section, under the description: AniList's "More like this" first, then how often the
+ * series updates, the user's score, Up next and top lists, and page bookmarks.
  */
 @Composable
 fun MangaExtrasSection(
@@ -70,11 +62,24 @@ fun MangaExtrasSection(
     val recommended by viewModel.recommended.collectAsStateWithLifecycle()
     val showPersonalBox by viewModel.showPersonalBox.collectAsState()
     val showMoreLikeThis by viewModel.showMoreLikeThis.collectAsState()
+    val showEnglishTitles by viewModel.showEnglishTitles.collectAsState()
+    val expanded by viewModel.moreLikeThisExpanded.collectAsState()
     val current = state ?: return
     var showScore by rememberSaveable { mutableStateOf(false) }
     var showLists by rememberSaveable { mutableStateOf(false) }
 
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
+        if (showMoreLikeThis && !current.manga.isLocal()) {
+            MoreLikeThisSection(
+                state = recommended,
+                expanded = expanded,
+                showEnglishTitles = showEnglishTitles,
+                onToggle = { viewModel.moreLikeThisExpanded.toggle() },
+                onLoad = viewModel::loadRecommendations,
+                onSearch = onSearch,
+            )
+        }
+
         if (showPersonalBox) {
             PersonalBox(current, onScore = { showScore = true }, onQueue = viewModel::toggleQueue) { showLists = true }
         }
@@ -100,33 +105,6 @@ fun MangaExtrasSection(
                             }
                         },
                     )
-                }
-            }
-        }
-
-        if (showMoreLikeThis && recommended.isNotEmpty()) {
-            GroupedSectionHeader(stringResource(MR.strings.more_like_this))
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                items(recommended, key = { it.title }) { item ->
-                    Column(
-                        modifier = Modifier
-                            .width(96.dp)
-                            .clickable { onSearch(item.title) },
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        MangaCover.Book(data = item.cover, modifier = Modifier.fillMaxWidth())
-                        Text(
-                            text = item.title,
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 2,
-                            minLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
                 }
             }
         }

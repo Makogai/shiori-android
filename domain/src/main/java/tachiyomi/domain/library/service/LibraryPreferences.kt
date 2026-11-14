@@ -206,6 +206,14 @@ class LibraryPreferences(
 
     val detailsMoreLikeThis: Preference<Boolean> = preferenceStore.getBoolean("details_more_like_this", true)
 
+    /** Also show AniList's English title under each "More like this" title, when it differs. */
+    val detailsMoreLikeThisEnglish: Preference<Boolean> =
+        preferenceStore.getBoolean("details_more_like_this_english", false)
+
+    /** Whether "More like this" is expanded; one choice for every series. */
+    val detailsMoreLikeThisExpanded: Preference<Boolean> =
+        preferenceStore.getBoolean("details_more_like_this_expanded", true)
+
     // region Swipe Actions
 
     val swipeToStartAction: Preference<ChapterSwipeAction> = preferenceStore.getEnum(
