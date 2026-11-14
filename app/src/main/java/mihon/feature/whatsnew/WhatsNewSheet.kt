@@ -41,6 +41,9 @@ import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.theme.GroupedSection
 import tachiyomi.presentation.core.util.collectAsState
 
+/** The release whose features the switches below belong to. */
+private const val SWITCHES_VERSION = 41
+
 private class Highlight(val icon: ImageVector, val color: Color, val title: StringResource, val detail: StringResource)
 
 /** Highlights per versionCode, newest last; add an entry for each release that has news. */
@@ -105,7 +108,7 @@ fun whatsNewVersions(sinceVersion: Int, all: List<Int> = notesByVersion.map { it
 
 /** Whether to show the sheet after an update; a fresh install, which gets onboarding instead, never does. */
 fun shouldShowWhatsNew(seenVersion: Int, currentVersion: Int, onboarded: Boolean): Boolean =
-    onboarded && seenVersion < currentVersion
+    onboarded && seenVersion < currentVersion && notesByVersion.any { it.first > seenVersion }
 
 /** The release's highlights and switches for the settings it introduced, shown once after each update. */
 @Composable
@@ -144,37 +147,40 @@ fun WhatsNewSheet(sinceVersion: Int = 0, onDismissRequest: () -> Unit) {
                     }
                 }
             }
-            GroupedSection(
-                header = stringResource(MR.strings.whats_new_switches),
-                footer = stringResource(MR.strings.whats_new_switches_footer),
-            ) {
-                PreferenceSwitch(
-                    library.detailsPersonalBox,
-                    MR.strings.pref_details_personal_box,
-                    MaterialSymbols.Rounded.Favorite,
-                    Color(0xFFFF2D55),
-                )
-                GroupedDivider()
-                PreferenceSwitch(
-                    library.detailsMoreLikeThis,
-                    MR.strings.pref_details_more_like_this,
-                    MaterialSymbols.Rounded.Explore,
-                    Color(0xFFAF52DE),
-                )
-                GroupedDivider()
-                PreferenceSwitch(
-                    habits.dailyGoalEnabled,
-                    MR.strings.habits_pref_goal,
-                    MaterialSymbols.Rounded.LocalFireDepartment,
-                    Color(0xFFFF9500),
-                )
-                GroupedDivider()
-                PreferenceSwitch(
-                    habits.chapterToast,
-                    MR.strings.habits_pref_toast,
-                    MaterialSymbols.Rounded.Info,
-                    Color(0xFF007AFF),
-                )
+            // Switches only for the release that brought them, not on every later update.
+            if (SWITCHES_VERSION in versions) {
+                GroupedSection(
+                    header = stringResource(MR.strings.whats_new_switches),
+                    footer = stringResource(MR.strings.whats_new_switches_footer),
+                ) {
+                    PreferenceSwitch(
+                        library.detailsPersonalBox,
+                        MR.strings.pref_details_personal_box,
+                        MaterialSymbols.Rounded.Favorite,
+                        Color(0xFFFF2D55),
+                    )
+                    GroupedDivider()
+                    PreferenceSwitch(
+                        library.detailsMoreLikeThis,
+                        MR.strings.pref_details_more_like_this,
+                        MaterialSymbols.Rounded.Explore,
+                        Color(0xFFAF52DE),
+                    )
+                    GroupedDivider()
+                    PreferenceSwitch(
+                        habits.dailyGoalEnabled,
+                        MR.strings.habits_pref_goal,
+                        MaterialSymbols.Rounded.LocalFireDepartment,
+                        Color(0xFFFF9500),
+                    )
+                    GroupedDivider()
+                    PreferenceSwitch(
+                        habits.chapterToast,
+                        MR.strings.habits_pref_toast,
+                        MaterialSymbols.Rounded.Info,
+                        Color(0xFF007AFF),
+                    )
+                }
             }
             Button(
                 onClick = onDismissRequest,
