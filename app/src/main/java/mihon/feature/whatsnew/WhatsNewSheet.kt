@@ -100,6 +100,20 @@ private val notesByVersion: List<Pair<Int, List<Highlight>>> = listOf(
             MR.strings.whats_new_42_menus,
         ),
     ),
+    44 to listOf(
+        Highlight(
+            MaterialSymbols.Rounded.Photo,
+            Color(0xFFAF52DE),
+            MR.strings.whats_new_44_cards_title,
+            MR.strings.whats_new_44_cards,
+        ),
+        Highlight(
+            MaterialSymbols.Rounded.Info,
+            Color(0xFF8E8E93),
+            MR.strings.whats_new_44_version_title,
+            MR.strings.whats_new_44_version,
+        ),
+    ),
 )
 
 /** The notes to show: every release after [sinceVersion] (so a skipped update isn't missed), else the latest. */

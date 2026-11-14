@@ -32,13 +32,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -88,7 +88,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import dev.zacsweers.metrox.viewmodel.metroViewModel
@@ -147,6 +146,7 @@ fun CardViewerDialog(card: ShioriCard, startOnBack: Boolean, onDismiss: () -> Un
             back = faces?.back,
             grade = card.grade,
             name = card.cardName,
+            serial = card.serialText,
             startOnBack = startOnBack,
             onDismiss = onDismiss,
         )
@@ -203,6 +203,7 @@ fun CardViewer3D(
     startOnBack: Boolean,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    serial: String? = null,
     restYaw: Float = if (startOnBack) 180f else 0f,
     restPitch: Float = 0f,
 ) {
@@ -293,13 +294,13 @@ fun CardViewer3D(
             )
         }
 
-        // Name and rank, small, at the top; close on the right
+        // Name, rank and serial, small, at the top; close on the right in a round glass button
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .safeDrawingPadding()
-                .padding(start = 20.dp, end = 4.dp, top = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                .padding(start = 20.dp, end = 20.dp, top = 8.dp),
+            verticalAlignment = Alignment.Top,
         ) {
             Column(Modifier.weight(1f).semantics(mergeDescendants = true) { heading() }) {
                 Text(
@@ -311,18 +312,24 @@ fun CardViewer3D(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text = grade.label,
+                    text = listOfNotNull(grade.label, serial).joinToString(" · "),
                     color = accent,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 0.6.sp,
+                    style = MaterialTheme.typography.labelMedium,
                 )
             }
-            IconButton(onClick = { state.close() }) {
+            Spacer(Modifier.width(12.dp))
+            IconButton(
+                onClick = { state.close() },
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.15f)),
+            ) {
                 Icon(
                     imageVector = MaterialSymbols.Rounded.Close,
                     contentDescription = stringResource(MR.strings.action_close),
                     tint = Color.White,
+                    modifier = Modifier.size(20.dp),
                 )
             }
         }
@@ -335,20 +342,19 @@ fun CardViewer3D(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            TextButton(
+            // iOS's bordered button tinted white
+            CardBorderedButton(
+                title = flipLabel,
+                icon = MaterialSymbols.Rounded.FlipToBack,
                 onClick = { state.flip() },
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.08f)),
-            ) {
-                Icon(MaterialSymbols.Rounded.FlipToBack, contentDescription = null, tint = Color.White)
-                Spacer(Modifier.width(6.dp))
-                Text(flipLabel, color = Color.White, fontWeight = FontWeight.SemiBold)
-            }
+                tint = Color.White.copy(alpha = 0.15f),
+                content = Color.White,
+            )
             Text(
                 text = stringResource(MR.strings.cards_viewer_hint),
-                color = Color.White.copy(alpha = 0.45f),
-                fontSize = 11.sp,
+                color = Color.White.copy(alpha = 0.5f),
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(top = 4.dp),
             )
         }
     }

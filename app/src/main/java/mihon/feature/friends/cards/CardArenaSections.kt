@@ -6,9 +6,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -28,6 +33,11 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.presentation.util.relativeTimeSpanString
 import mihon.feature.friends.ui.ArenaSection
+import mihon.feature.friends.ui.ArenaSectionTitle
+import mihon.feature.friends.ui.SectionTrailing
+import mihon.feature.friends.ui.arenaCard
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.ChevronRight
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
 
@@ -47,38 +57,47 @@ fun ArenaCardsSection() {
         onPauseOrDispose {}
     }
     val mine = album.filter { it.owner == repository.me }
-    ArenaSection(
-        title = stringResource(MR.strings.cards_title),
-        emoji = "🃏",
-        trailing = { PulledToday(pulled[repository.me] ?: 0) },
+    // A compact entry to the hub (CARD_SPEC §16): the whole card opens it, as on iOS
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        // A compact entry to the hub (CARD_SPEC §16)
-        if (album.isEmpty()) {
-            Text(
-                text = stringResource(MR.strings.cards_first_pull),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        } else {
-            CardGradeCounts(mine)
-        }
-        Row(
-            modifier = Modifier.clickable { navigator.push(CardsHubScreen()) },
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ArenaSectionTitle(
+            title = stringResource(MR.strings.cards_title),
+            emoji = "🃏",
+            trailing = { PulledToday(pulled[repository.me] ?: 0) },
+        )
+        Column(
+            modifier = Modifier
+                .clip(RoundedCornerShape(18.dp))
+                .clickable { navigator.push(CardsHubScreen()) }
+                .arenaCard(),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text(
-                text = "🃏 " + stringResource(MR.strings.cards_open_hub),
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.weight(1f),
-            )
-            Text(
-                text = stringResource(MR.strings.cards_album_counts, mine.size, album.size),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(text = "›", style = MaterialTheme.typography.titleMedium)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(text = "🃏", fontSize = 22.sp, modifier = Modifier.clearAndSetSemantics {})
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp), modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(MR.strings.cards_open_hub),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        text = stringResource(MR.strings.cards_album_counts, mine.size, album.size),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Icon(
+                    imageVector = MaterialSymbols.Rounded.ChevronRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+            if (mine.isNotEmpty()) CardGradeCounts(mine)
         }
     }
 }
@@ -144,14 +163,10 @@ fun ProfileCardsSection(userId: String) {
     }
 }
 
+/** "Pulled today 3/10" at the end of a section title. */
 @Composable
 internal fun PulledToday(count: Int) {
-    Text(
-        text = stringResource(MR.strings.cards_pulled_today, count, CardRules.DAILY_LIMIT),
-        style = MaterialTheme.typography.labelSmall,
-        fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
+    SectionTrailing(stringResource(MR.strings.cards_pulled_today, count, CardRules.DAILY_LIMIT))
 }
 
 /** A feed line for a rank C+ pull: "Filip pulled Rank B · The Crimson Swordsman"; tap opens the card. */
@@ -163,7 +178,7 @@ fun CardFeedRow(card: ShioriCard) {
     Row(
         modifier = Modifier.clickable { navigator.push(CardDetailScreen(card.id)) },
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Box(
             modifier = Modifier
@@ -172,7 +187,7 @@ fun CardFeedRow(card: ShioriCard) {
                 .background(accent.copy(alpha = 0.18f)),
             contentAlignment = Alignment.Center,
         ) {
-            Text(text = card.grade.rank, color = accent, fontSize = 16.sp, fontWeight = FontWeight.Black)
+            Text(text = card.grade.rank, color = accent, fontSize = 18.sp, fontWeight = FontWeight.Black)
         }
         Column(modifier = Modifier.weight(1f)) {
             Text(
@@ -195,6 +210,6 @@ fun CardFeedRow(card: ShioriCard) {
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        ShioriCardView(card = card, animated = false, interactive = false, modifier = Modifier.width(28.dp))
+        CardMiniature(card, Modifier.width(28.dp), glow = false)
     }
 }

@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -179,6 +178,7 @@ fun CardMakerDialog(viewModel: CardMakerViewModel) {
     val current = request ?: return
     val busy = started && phase !is CardPullPhase.Revealed && phase !is CardPullPhase.Failed
     val pulledToday = pulled[viewModel.repository.me] ?: 0
+    val accent = MaterialTheme.colorScheme.accentOnBlack
     Dialog(
         onDismissRequest = { if (!busy) viewModel.close() },
         properties = DialogProperties(
@@ -205,7 +205,8 @@ fun CardMakerDialog(viewModel: CardMakerViewModel) {
                 TextButton(onClick = viewModel::close, enabled = !busy) {
                     Text(
                         text = stringResource(if (started) MR.strings.action_close else MR.strings.action_cancel),
-                        color = if (busy) Color.White.copy(alpha = 0.4f) else Color.White,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (busy) Color.White.copy(alpha = 0.4f) else accent,
                     )
                 }
                 Text(
@@ -299,7 +300,8 @@ private fun ColumnScope.CropStage(
                 style = Stroke(width = line),
             )
         }
-        Button(
+        CardProminentButton(
+            title = "✨ " + stringResource(MR.strings.cards_summon),
             onClick = {
                 CardHaptics.press(view)
                 onSummon(
@@ -309,11 +311,10 @@ private fun ColumnScope.CropStage(
             enabled = pulledToday < CardRules.DAILY_LIMIT,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 8.dp)
-                .widthIn(min = 220.dp),
-        ) {
-            Text("✨ " + stringResource(MR.strings.cards_summon))
-        }
+                .padding(start = 24.dp, end = 24.dp, bottom = 8.dp)
+                .widthIn(max = 320.dp)
+                .fillMaxWidth(),
+        )
     }
     CardNameField(
         value = name,
@@ -497,7 +498,7 @@ private fun Reveal(card: ShioriCard, pulledToday: Int, onDone: () -> Unit) {
                     style = MaterialTheme.typography.labelMedium,
                 )
             }
-            Button(onClick = onDone) { Text(stringResource(MR.strings.cards_done)) }
+            CardProminentButton(title = stringResource(MR.strings.cards_done), onClick = onDone)
         }
     }
 }
@@ -515,19 +516,28 @@ private fun PullFailed(phase: CardPullPhase.Failed, onRetry: () -> Unit, onDone:
         Text(
             text = stringResource(if (phase.retry) MR.strings.cards_no_card else MR.strings.cards_out_of_pulls),
             color = Color.White,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.headlineSmall,
         )
         Text(
             text = phase.message,
             color = Color.White.copy(alpha = 0.75f),
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
         )
         if (phase.retry) {
-            Button(onClick = onRetry) { Text(stringResource(MR.strings.cards_try_another_crop)) }
+            CardProminentButton(
+                title = stringResource(MR.strings.cards_try_another_crop),
+                onClick = onRetry,
+                modifier = Modifier.padding(top = 8.dp),
+            )
         }
-        TextButton(onClick = onDone) { Text(stringResource(MR.strings.action_close), color = Color.White) }
+        TextButton(onClick = onDone) {
+            Text(
+                text = stringResource(MR.strings.action_close),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.accentOnBlack,
+            )
+        }
     }
 }
 

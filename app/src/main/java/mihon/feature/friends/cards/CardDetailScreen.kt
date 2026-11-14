@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -22,12 +24,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -46,9 +46,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -64,12 +64,15 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.presentation.components.AppBar
+import eu.kanade.presentation.components.DropdownMenu
+import eu.kanade.presentation.components.MenuIcon
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.util.system.toShareIntent
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.launch
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Delete
+import mihon.icons.materialsymbols.rounded.Download
 import mihon.icons.materialsymbols.rounded.Favorite
 import mihon.icons.materialsymbols.rounded.FlipToBack
 import mihon.icons.materialsymbols.rounded.Newspaper
@@ -82,6 +85,7 @@ import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.EmptyScreen
+import tachiyomi.presentation.core.theme.separator
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -242,17 +246,20 @@ class CardDetailScreen(private val cardId: String, private val ids: List<String>
 private fun CardCaption(text: String) {
     Text(
         text = text,
-        style = MaterialTheme.typography.labelLarge,
+        style = MaterialTheme.typography.labelMedium,
         fontWeight = FontWeight.SemiBold,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier
             .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .padding(horizontal = 14.dp, vertical = 6.dp),
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            .padding(horizontal = 10.dp, vertical = 4.dp),
     )
 }
 
-/** The current card's "Forging…" line, actions and details. */
+/**
+ * The current card's "Forging…" line, actions and details. As on iOS: Flip, Save (front or back) and Print in one
+ * row; Share beside them for others' cards, or Share, Favourite and Delete, titled, in a second row for my own.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CardActions(
@@ -269,6 +276,8 @@ private fun CardActions(
     onOriginal: (Bitmap?) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
+    var saveMenu by remember { mutableStateOf(false) }
+    val share = stringResource(MR.strings.action_share)
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -280,55 +289,94 @@ private fun CardActions(
                 fontWeight = FontWeight.SemiBold,
             )
         }
-        FlowRow(
+        Column(
             modifier = Modifier.padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            ActionButton(MaterialSymbols.Rounded.FlipToBack, stringResource(MR.strings.cards_flip), onFlip)
-            ActionButton(MaterialSymbols.Rounded.Share, stringResource(MR.strings.action_share), onShare)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                CardBorderedButton(
+                    title = stringResource(MR.strings.cards_flip),
+                    icon = MaterialSymbols.Rounded.FlipToBack,
+                    onClick = onFlip,
+                    modifier = Modifier.weight(1f),
+                )
+                Box(Modifier.weight(1f)) {
+                    CardBorderedButton(
+                        title = stringResource(MR.strings.action_save),
+                        icon = MaterialSymbols.Rounded.Download,
+                        onClick = { saveMenu = true },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    DropdownMenu(expanded = saveMenu, onDismissRequest = { saveMenu = false }) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(MR.strings.cards_save_front)) },
+                            leadingIcon = { MenuIcon(MaterialSymbols.Rounded.Photo) },
+                            onClick = {
+                                saveMenu = false
+                                onSaveFront()
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(MR.strings.cards_save_back)) },
+                            leadingIcon = { MenuIcon(MaterialSymbols.Rounded.Save) },
+                            onClick = {
+                                saveMenu = false
+                                onSaveBack()
+                            },
+                        )
+                    }
+                }
+                CardBorderedButton(
+                    title = stringResource(MR.strings.cards_print),
+                    icon = MaterialSymbols.Rounded.Newspaper,
+                    onClick = onPrint,
+                    modifier = Modifier.weight(1f),
+                )
+                if (!own) {
+                    CardBorderedButton(
+                        title = null,
+                        icon = MaterialSymbols.Rounded.Share,
+                        onClick = onShare,
+                        label = share,
+                    )
+                }
+            }
             if (own) {
-                IconButton(onClick = onFavorite) {
-                    Icon(
-                        imageVector = if (card.favorite) {
+                // Wraps on narrow screens, so "Unfavourite" is never cut
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    CardBorderedButton(title = share, icon = MaterialSymbols.Rounded.Share, onClick = onShare)
+                    CardBorderedButton(
+                        title = stringResource(
+                            if (card.favorite) MR.strings.cards_unfavourite else MR.strings.cards_favourite,
+                        ),
+                        icon = if (card.favorite) {
                             MaterialSymbols.RoundedFilled.Favorite
                         } else {
                             MaterialSymbols.Rounded.Favorite
                         },
-                        contentDescription = stringResource(
-                            if (card.favorite) MR.strings.cards_unfavourite else MR.strings.cards_favourite,
-                        ),
-                        tint = if (card.favorite) FAVORITE else MaterialTheme.colorScheme.onSurface,
+                        onClick = onFavorite,
                     )
-                }
-                IconButton(onClick = onDelete) {
-                    Icon(
-                        imageVector = MaterialSymbols.Rounded.Delete,
-                        contentDescription = stringResource(MR.strings.action_delete),
-                        tint = MaterialTheme.colorScheme.error,
+                    CardBorderedButton(
+                        title = stringResource(MR.strings.action_delete),
+                        icon = MaterialSymbols.Rounded.Delete,
+                        onClick = onDelete,
+                        destructive = true,
                     )
                 }
             }
-        }
-        FlowRow(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            ActionButton(MaterialSymbols.Rounded.Save, stringResource(MR.strings.cards_save_front), onSaveFront)
-            ActionButton(MaterialSymbols.Rounded.Save, stringResource(MR.strings.cards_save_back), onSaveBack)
-            ActionButton(MaterialSymbols.Rounded.Newspaper, stringResource(MR.strings.cards_print_sheet), onPrint)
         }
         // The player's screenshot the AI card was drawn from (AI cards redraw the scene).
         if (card.isCardEdit) {
-            OutlinedButton(
+            CardBorderedButton(
+                title = stringResource(MR.strings.cards_original_panel),
+                icon = MaterialSymbols.Rounded.Photo,
                 onClick = { scope.launch { onOriginal(repository.images(card).art) } },
                 modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
-            ) {
-                Icon(imageVector = MaterialSymbols.Rounded.Photo, contentDescription = null)
-                Spacer(Modifier.width(6.dp))
-                Text(stringResource(MR.strings.cards_original_panel), fontWeight = FontWeight.SemiBold)
-            }
+            )
         }
         Details(card, repository)
     }
@@ -357,15 +405,6 @@ private fun OriginalPanel(bitmap: Bitmap, onDismiss: () -> Unit) {
                 }
                 .graphicsLayer(scaleX = zoom, scaleY = zoom),
         )
-    }
-}
-
-@Composable
-private fun ActionButton(icon: ImageVector, label: String, onClick: () -> Unit) {
-    OutlinedButton(onClick = onClick) {
-        Icon(imageVector = icon, contentDescription = null)
-        Spacer(Modifier.width(6.dp))
-        Text(label, fontWeight = FontWeight.SemiBold)
     }
 }
 
@@ -401,7 +440,7 @@ private fun Details(card: ShioriCard, repository: CardRepository) {
                     "${stringResource(MR.strings.cards_stat_drama)} ${card.stats.drama}",
             )
             card.scores?.let { scores ->
-                HorizontalDivider()
+                HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.separator)
                 Text(
                     text = stringResource(MR.strings.cards_judge_scores),
                     style = MaterialTheme.typography.titleSmall,
@@ -439,10 +478,15 @@ private fun DetailRow(title: String, value: String) {
 private fun ScoreBar(title: String, value: Double?) {
     value ?: return
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(text = title, style = MaterialTheme.typography.labelMedium, modifier = Modifier.width(96.dp))
+        Text(text = title, style = MaterialTheme.typography.labelMedium, modifier = Modifier.width(90.dp))
+        // A thin rounded bar, as iOS's ProgressView
         LinearProgressIndicator(
             progress = { (value.coerceIn(0.0, 10.0) / 10).toFloat() },
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).height(4.dp),
+            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            strokeCap = StrokeCap.Round,
+            gapSize = 0.dp,
+            drawStopIndicator = {},
         )
         Text(
             text = String.format(Locale.getDefault(), "%.1f", value),

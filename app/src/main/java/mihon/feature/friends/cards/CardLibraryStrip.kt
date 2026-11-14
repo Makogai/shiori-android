@@ -18,6 +18,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -44,25 +46,34 @@ fun LibraryCardsStrip(
     val recent = remember(album, me) { CardAlbum.recentMine(album, me, LIBRARY_STRIP) }
     if (recent.isEmpty()) return
     val ids = remember(recent) { recent.map { it.id } }
-    Column(modifier = modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+    // As the iOS row: a title-3 header with "See all", then the cards 84 wide
+    Column(modifier = modifier.fillMaxWidth().padding(top = 4.dp)) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp),
         ) {
             Text(
                 text = "🃏 " + stringResource(MR.strings.cards_title),
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { heading() },
             )
-            TextButton(onClick = onSeeAll) { Text(stringResource(MR.strings.friends_see_all)) }
+            TextButton(onClick = onSeeAll) {
+                Text(
+                    text = stringResource(MR.strings.friends_see_all),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
         }
         LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             items(recent, key = { it.id }) { card ->
-                CardThumb(card = card, caption = card.grade.label, modifier = Modifier.width(72.dp)) {
+                CardThumb(card = card, caption = card.grade.label, modifier = Modifier.width(84.dp)) {
                     onOpen(card, ids)
                 }
             }

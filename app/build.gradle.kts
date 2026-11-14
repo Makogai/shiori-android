@@ -62,7 +62,7 @@ android {
     defaultConfig {
         applicationId = if (shioriSocial) "app.mihon.friends" else "app.shiori"
 
-        versionCode = 43
+        versionCode = 44
         versionName = "0.21.3"
 
         buildConfigField("boolean", "TELEMETRY_INCLUDED", "${Config.includeTelemetry}")

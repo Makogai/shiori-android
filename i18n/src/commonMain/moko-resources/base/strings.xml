@@ -1439,7 +1439,6 @@
     <string name="cards_out_of_pulls">Out of pulls</string>
     <string name="cards_try_another_crop">Try another crop</string>
     <string name="cards_done">Done</string>
-    <string name="cards_first_pull">Capture a panel in the reader (screenshot → Make a card) to pull your first card.</string>
     <string name="cards_open_album">Open the album</string>
     <string name="cards_album_counts">%1$d mine · %2$d in the Arena</string>
     <string name="cards_none_yet">No cards yet.</string>
@@ -1492,9 +1491,11 @@
     <string name="cards_empty_title">No cards yet</string>
     <string name="cards_empty_hint">In the reader, tap the camera button → Make a card.</string>
     <string name="cards_no_match_title">No cards match</string>
+    <string name="cards_no_match_hint">Try fewer filters.</string>
     <string name="cards_save_front">Save front</string>
     <string name="cards_save_back">Save back</string>
     <string name="cards_print_sheet">Print sheet</string>
+    <string name="cards_print">Print</string>
     <string name="cards_my_collection">My collection</string>
     <string name="cards_everyones_cards">Everyone\'s cards</string>
     <string name="cards_from_friends">From friends</string>
@@ -1617,6 +1618,10 @@
     <string name="whats_new_42_recaps">History opens your weekly and monthly recaps, with the current week marked as in progress.</string>
     <string name="whats_new_42_menus_title">Icons in menus</string>
     <string name="whats_new_42_menus">Every ⋯ menu now has icons, like the iPhone app.</string>
+    <string name="whats_new_44_cards_title">Shiori Cards, refreshed</string>
+    <string name="whats_new_44_cards">The album, card pages, Make a card and the reveal now look like the iPhone app.</string>
+    <string name="whats_new_44_version_title">Version in About</string>
+    <string name="whats_new_44_version">More › About now shows the version number, like 0.21.3 (44).</string>
     <string name="pref_remove_after_read_days">Delete some days after reading</string>
     <string name="storage_per_series">Storage per series</string>
     <string name="storage_per_series_summary">Downloaded space used by each series</string>

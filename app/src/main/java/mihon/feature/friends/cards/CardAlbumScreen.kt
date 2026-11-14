@@ -2,16 +2,16 @@ package mihon.feature.friends.cards
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -20,19 +20,12 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,10 +35,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -54,12 +55,22 @@ import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.presentation.components.AdaptiveSheet
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.util.Screen
+import mihon.feature.friends.ui.arenaCard
 import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.Check
+import mihon.icons.materialsymbols.rounded.ChevronRight
 import mihon.icons.materialsymbols.rounded.FilterList
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.GroupedDivider
+import tachiyomi.presentation.core.components.GroupedRow
+import tachiyomi.presentation.core.components.SegmentedPicker
 import tachiyomi.presentation.core.components.material.PullRefresh
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.theme.GroupedSection
+import tachiyomi.presentation.core.theme.IosColors
+import tachiyomi.presentation.core.theme.readableAccent
+import tachiyomi.presentation.core.theme.separator
 import tachiyomi.presentation.core.util.collectAsState
 
 /** Adaptive columns between [CardAlbum.GRID_MIN] and [CardAlbum.GRID_MAX] dp wide (CARD_SPEC §13). */
@@ -113,9 +124,9 @@ private fun CardsScaffold(title: String, onBack: () -> Unit, content: @Composabl
 }
 
 /**
- * The album grid. Not [hub]: the header (Mine | Everyone, grade chips, count + menu) stays above the grid and the
- * season headers pin. [hub]: the hub's sections scroll first, then the album header pins and the season headers
- * scroll. The scope is kept per device and shared by both.
+ * The album grid under its header (Mine | Everyone, grade chips, count + filter menu), which stays on top as the iOS
+ * one does; the season headers pin. [hub]: the hub's sections scroll first, above the album. The scope is kept per
+ * device and shared by both.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -152,11 +163,12 @@ private fun CardAlbumBody(hub: Boolean, contentPadding: PaddingValues) {
     val friends = remember(album, me) { CardAlbum.fromFriends(album, me, FRIENDS_STRIP) }
     val friendIds = remember(friends) { friends.map { it.id } }
 
-    val header = @Composable {
+    Column(Modifier.padding(top = contentPadding.calculateTopPadding())) {
         AlbumHeader(
             scope = scope,
             source = source,
             filter = filter,
+            sort = sort,
             shownCount = shown.size,
             onScope = { chosen ->
                 if (chosen != scope) {
@@ -167,10 +179,6 @@ private fun CardAlbumBody(hub: Boolean, contentPadding: PaddingValues) {
             onToggleGrade = { grade -> filter = filter.copy(grades = filter.grades.toggle(grade)) },
             onMenu = { showFilters = true },
         )
-    }
-
-    Column(Modifier.padding(top = contentPadding.calculateTopPadding())) {
-        if (!hub) header()
         PullRefresh(
             refreshing = refreshing,
             enabled = true,
@@ -184,7 +192,7 @@ private fun CardAlbumBody(hub: Boolean, contentPadding: PaddingValues) {
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     end = 16.dp,
-                    top = 8.dp,
+                    top = 12.dp,
                     bottom = contentPadding.calculateBottomPadding() + 24.dp,
                 ),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -203,9 +211,7 @@ private fun CardAlbumBody(hub: Boolean, contentPadding: PaddingValues) {
                         }
                     }
                     item(span = { GridItemSpan(maxLineSpan) }, key = "hub_stats", contentType = "hub") {
-                        CollectionStats(mine, repository) { card ->
-                            navigator.push(CardDetailScreen(card.id))
-                        }
+                        CollectionStats(mine) { card -> navigator.push(CardDetailScreen(card.id)) }
                     }
                     item(span = { GridItemSpan(maxLineSpan) }, key = "hub_title", contentType = "hub") {
                         Text(
@@ -214,11 +220,8 @@ private fun CardAlbumBody(hub: Boolean, contentPadding: PaddingValues) {
                             ),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(top = 8.dp),
+                            modifier = Modifier.padding(top = 2.dp),
                         )
-                    }
-                    stickyHeader(key = "album_header", contentType = "album_header") {
-                        Box(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface)) { header() }
                     }
                 }
                 if (shown.isEmpty()) {
@@ -231,14 +234,7 @@ private fun CardAlbumBody(hub: Boolean, contentPadding: PaddingValues) {
                     }
                 }
                 sections.forEach { section ->
-                    val key = "season_${section.season}"
-                    if (hub) {
-                        item(span = { GridItemSpan(maxLineSpan) }, key = key, contentType = "season") {
-                            SeasonHeader(section)
-                        }
-                    } else {
-                        stickyHeader(key = key, contentType = "season") { SeasonHeader(section) }
-                    }
+                    stickyHeader(key = "season_${section.season}", contentType = "season") { SeasonHeader(section) }
                     items(section.cards, key = { it.id }, contentType = { "card" }) { card ->
                         val caption = if (everyone) {
                             "${ownerName(card.owner)} · ${card.grade.label}"
@@ -273,92 +269,96 @@ private fun CardAlbumBody(hub: Boolean, contentPadding: PaddingValues) {
     }
 }
 
-/** Mine | Everyone, grade-count chips (tap toggles the grade filter), "15 cards" and the filter/sort menu. */
+/**
+ * The bar under the title, as the iOS album's: Mine | Everyone, grade-count chips (tap toggles the grade filter),
+ * "15 cards" and the filter/sort menu, which names the sort.
+ */
 @Composable
 private fun AlbumHeader(
     scope: CardCollectionScope,
     source: List<ShioriCard>,
     filter: CardAlbumFilter,
+    sort: CardAlbumSort,
     shownCount: Int,
     onScope: (CardCollectionScope) -> Unit,
     onToggleGrade: (CardGrade) -> Unit,
     onMenu: () -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(top = 8.dp, bottom = 4.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        SingleChoiceSegmentedButtonRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+    val accent = MaterialTheme.colorScheme.readableAccent(MaterialTheme.colorScheme.background)
+    Column(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)) {
+        Column(
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            CardCollectionScope.entries.forEachIndexed { index, option ->
-                SegmentedButton(
-                    selected = option == scope,
-                    onClick = { onScope(option) },
-                    shape = SegmentedButtonDefaults.itemShape(index, CardCollectionScope.entries.size),
+            SegmentedPicker(
+                options = CardCollectionScope.entries.map { stringResource(it.title) },
+                selectedIndex = scope.ordinal,
+                onSelect = { onScope(CardCollectionScope.entries[it]) },
+            )
+            CardGradeCounts(cards = source, selected = filter.grades, onToggle = onToggleGrade)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = CardAlbum.countText(shownCount),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
+                )
+                val menuLabel = stringResource(MR.strings.cards_filter_sort)
+                Row(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .clickable(onClick = onMenu)
+                        .semantics { contentDescription = menuLabel }
+                        .padding(horizontal = 6.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    Text(stringResource(option.title))
+                    // Filled while a filter is on, as iOS's line.3.horizontal.decrease.circle.fill
+                    Icon(
+                        imageVector = MaterialSymbols.Rounded.FilterList,
+                        contentDescription = null,
+                        tint = if (filter.isActive) MaterialTheme.colorScheme.onPrimary else accent,
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clip(CircleShape)
+                            .background(if (filter.isActive) accent else Color.Transparent)
+                            .border(1.5.dp, accent, CircleShape)
+                            .padding(3.dp),
+                    )
+                    Text(
+                        text = stringResource(sort.title),
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = accent,
+                    )
                 }
             }
         }
-        CardGradeCounts(
-            cards = source,
-            selected = filter.grades,
-            onToggle = onToggleGrade,
-            modifier = Modifier.padding(horizontal = 16.dp),
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, end = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = CardAlbum.countText(shownCount),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.weight(1f),
-            )
-            IconButton(onClick = onMenu) {
-                Icon(
-                    imageVector = MaterialSymbols.Rounded.FilterList,
-                    contentDescription = stringResource(MR.strings.cards_filter_sort),
-                    tint = if (filter.isActive) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    },
-                )
-            }
-        }
+        HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.separator)
     }
 }
 
-/** "Season 2 · 2026" with "12 cards" right-aligned. */
+/** "Season 2 · 2026" with "12 cards" right-aligned, over the grid's background. */
 @Composable
 private fun SeasonHeader(section: CardAlbumSection) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(vertical = 8.dp),
+            .background(MaterialTheme.colorScheme.background.copy(alpha = 0.94f))
+            .padding(horizontal = 4.dp, vertical = 8.dp)
+            .semantics { heading() },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = section.title,
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f),
         )
         Text(
             text = section.countText,
             style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
@@ -370,9 +370,9 @@ private fun AlbumEmpty(loaded: Boolean, filtered: Boolean, onClear: () -> Unit) 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 32.dp, bottom = 16.dp),
+            .padding(start = 16.dp, end = 16.dp, top = 36.dp, bottom = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
         if (!loaded) {
             Text(
@@ -382,53 +382,47 @@ private fun AlbumEmpty(loaded: Boolean, filtered: Boolean, onClear: () -> Unit) 
             )
             return@Column
         }
-        CardBackFan(modifier = Modifier.padding(bottom = 12.dp))
+        CardBackFan()
         Text(
             text = stringResource(if (filtered) MR.strings.cards_no_match_title else MR.strings.cards_empty_title),
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
         )
+        Text(
+            text = stringResource(if (filtered) MR.strings.cards_no_match_hint else MR.strings.cards_empty_hint),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
         if (filtered) {
-            OutlinedButton(onClick = onClear) { Text(stringResource(MR.strings.cards_clear_filters)) }
-        } else {
-            Text(
-                text = stringResource(MR.strings.cards_empty_hint),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 24.dp),
-            )
+            CardBorderedButton(title = stringResource(MR.strings.cards_clear_filters), icon = null, onClick = onClear)
         }
     }
 }
 
-/** The "Make a card" card with "Pulled today n/10". */
+/** The "Make a card" card with "Pulled today n/10" in a capsule beside its title. */
 @Composable
 private fun HubIntro(pulledToday: Int) {
-    Surface(
-        shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        modifier = Modifier.fillMaxWidth(),
+    Row(
+        modifier = Modifier.arenaCard(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        Row(
-            modifier = Modifier.padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(text = "📸", style = MaterialTheme.typography.headlineSmall)
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp), modifier = Modifier.weight(1f)) {
+        Text(text = "🃏", fontSize = 40.sp, modifier = Modifier.clearAndSetSemantics {})
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = stringResource(MR.strings.cards_make_title),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f),
                 )
-                Text(
-                    text = stringResource(MR.strings.cards_make_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                PulledTodayPill(pulledToday)
             }
-            PulledToday(pulledToday)
+            Text(
+                text = stringResource(MR.strings.cards_make_hint),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -440,9 +434,11 @@ private fun FriendsStrip(cards: List<ShioriCard>, repository: CardRepository, on
         Text(
             text = stringResource(MR.strings.cards_from_friends),
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
         )
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
             items(cards, key = { it.id }) { card ->
                 CardThumb(
                     card = card,
@@ -454,15 +450,14 @@ private fun FriendsStrip(cards: List<ShioriCard>, repository: CardRepository, on
     }
 }
 
-/** "12 cards · 5 series" and the rarest card (the grade chips are in the album header just below). */
+/** "Collection" with "12 cards · 5 series", and the rarest card as a row that opens it. */
 @Composable
-private fun CollectionStats(mine: List<ShioriCard>, repository: CardRepository, onOpen: (ShioriCard) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+private fun CollectionStats(mine: List<ShioriCard>, onOpen: (ShioriCard) -> Unit) {
+    Column(modifier = Modifier.arenaCard(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = stringResource(MR.strings.cards_collection),
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f),
             )
             Text(
@@ -472,35 +467,50 @@ private fun CollectionStats(mine: List<ShioriCard>, repository: CardRepository, 
             )
         }
         val rarest = remember(mine) { CardAlbum.rarest(mine) } ?: return@Column
-        Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            CardThumb(card = rarest, caption = rarest.grade.label, modifier = Modifier.width(96.dp)) { onOpen(rarest) }
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onOpen(rarest) },
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            CardMiniature(rarest, Modifier.width(56.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(3.dp), modifier = Modifier.weight(1f)) {
                 Text(
                     text = stringResource(MR.strings.cards_rarest),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Text(text = rarest.cardName, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = rarest.cardName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
                 Text(
                     text = rarest.grade.label,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = repository.accent(rarest.grade),
-                )
-                Text(
-                    text = rarest.seriesLine,
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color(rarest.grade.rankColor),
                 )
             }
+            Icon(
+                imageVector = MaterialSymbols.Rounded.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                modifier = Modifier.size(20.dp),
+            )
         }
     }
 }
 
 private const val FRIENDS_STRIP = 20
 
-@OptIn(ExperimentalLayoutApi::class)
+/**
+ * Sort and filters, as the iOS album's menu: inset-grouped lists of choices, a checkmark on the chosen ones, and
+ * Clear filters while one is on.
+ */
 @Composable
 private fun FilterSheet(
     filter: CardAlbumFilter,
@@ -515,89 +525,77 @@ private fun FilterSheet(
     AdaptiveSheet(onDismissRequest = onDismissRequest) {
         Column(
             modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+                .padding(bottom = 20.dp),
         ) {
-            Heading(MR.strings.cards_sort)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                sorts.forEach { option ->
-                    FilterChip(
-                        selected = sort == option,
-                        onClick = { onSort(option) },
-                        label = { Text(stringResource(option.title)) },
-                    )
-                }
-            }
-            Heading(MR.strings.cards_grade)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                CardGrade.entries.forEach { grade ->
-                    FilterChip(
-                        selected = grade in filter.grades,
-                        onClick = { onFilter(filter.copy(grades = filter.grades.toggle(grade))) },
-                        label = { Text(grade.label) },
-                    )
-                }
-            }
-            Heading(MR.strings.cards_theme)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                CardTheme.entries.forEach { theme ->
-                    FilterChip(
-                        selected = theme in filter.themes,
-                        onClick = { onFilter(filter.copy(themes = filter.themes.toggle(theme))) },
-                        label = { Text(theme.title) },
-                    )
-                }
-            }
-            Heading(MR.strings.cards_series)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(
-                    selected = filter.series == null,
-                    onClick = { onFilter(filter.copy(series = null)) },
-                    label = { Text(stringResource(MR.strings.cards_all_series)) },
-                )
-                series.forEach { (id, title) ->
-                    FilterChip(
-                        selected = filter.series == id,
-                        onClick = { onFilter(filter.copy(series = id)) },
-                        label = { Text(title) },
-                    )
-                }
-            }
+            ChoiceSection(
+                header = stringResource(MR.strings.cards_sort),
+                choices = sorts.map { stringResource(it.title) to (it == sort) },
+                onChoose = { onSort(sorts[it]) },
+            )
+            ChoiceSection(
+                header = stringResource(MR.strings.cards_grade),
+                choices = CardGrade.entries.map { it.label to (it in filter.grades) },
+                onChoose = { onFilter(filter.copy(grades = filter.grades.toggle(CardGrade.entries[it]))) },
+            )
+            ChoiceSection(
+                header = stringResource(MR.strings.cards_theme),
+                choices = CardTheme.entries.map { it.title to (it in filter.themes) },
+                onChoose = { onFilter(filter.copy(themes = filter.themes.toggle(CardTheme.entries[it]))) },
+            )
+            ChoiceSection(
+                header = stringResource(MR.strings.cards_series),
+                choices = listOf(stringResource(MR.strings.cards_all_series) to (filter.series == null)) +
+                    series.map { (id, title) -> title to (filter.series == id) },
+                onChoose = { onFilter(filter.copy(series = if (it == 0) null else series[it - 1].first)) },
+            )
             if (owners != null) {
-                Heading(MR.strings.cards_owner)
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(
-                        selected = filter.owner == null,
-                        onClick = { onFilter(filter.copy(owner = null)) },
-                        label = { Text(stringResource(MR.strings.cards_everyone)) },
-                    )
-                    owners.forEach { (id, name) ->
-                        FilterChip(
-                            selected = filter.owner == id,
-                            onClick = { onFilter(filter.copy(owner = id)) },
-                            label = { Text(name) },
-                        )
-                    }
-                }
+                ChoiceSection(
+                    header = stringResource(MR.strings.cards_owner),
+                    choices = listOf(stringResource(MR.strings.cards_everyone) to (filter.owner == null)) +
+                        owners.map { (id, name) -> name to (filter.owner == id) },
+                    onChoose = { onFilter(filter.copy(owner = if (it == 0) null else owners[it - 1].first)) },
+                )
             }
             if (filter.isActive) {
-                TextButton(onClick = { onFilter(CardAlbumFilter()) }) {
-                    Text(stringResource(MR.strings.cards_clear_filters), color = MaterialTheme.colorScheme.error)
+                GroupedSection(modifier = Modifier.padding(top = 24.dp)) {
+                    GroupedRow(
+                        title = stringResource(MR.strings.cards_clear_filters),
+                        titleColor = IosColors.Red,
+                        chevron = false,
+                        onClick = { onFilter(CardAlbumFilter()) },
+                    )
                 }
             }
         }
     }
 }
 
+/** One inset-grouped list of choices; a checkmark marks each chosen one. */
 @Composable
-private fun Heading(resource: StringResource) {
-    Text(
-        text = stringResource(resource),
-        style = MaterialTheme.typography.titleSmall,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(top = 8.dp),
-    )
+private fun ChoiceSection(header: String, choices: List<Pair<String, Boolean>>, onChoose: (Int) -> Unit) {
+    val accent = MaterialTheme.colorScheme.readableAccent()
+    GroupedSection(header = header) {
+        choices.forEachIndexed { index, (title, chosen) ->
+            if (index > 0) GroupedDivider(startInset = 16.dp)
+            GroupedRow(
+                title = title,
+                chevron = false,
+                trailing = {
+                    if (chosen) {
+                        Icon(
+                            imageVector = MaterialSymbols.Rounded.Check,
+                            contentDescription = stringResource(MR.strings.selected),
+                            tint = accent,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+                },
+                onClick = { onChoose(index) },
+            )
+        }
+    }
 }
 
 private val CardAlbumSort.title: StringResource

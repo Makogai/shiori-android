@@ -251,8 +251,9 @@ object AboutScreen : Screen() {
 
     fun getVersionName(buildTime: String?): String {
         return when {
+            // Shiori ships debug-signed builds: show the release number the update check uses, e.g. "0.21.3 (43)".
             BuildConfig.DEBUG -> {
-                "Debug ${BuildConfig.COMMIT_SHA}".let {
+                "${BuildConfig.VERSION_NAME.substringBefore('-')} (${BuildConfig.VERSION_CODE})".let {
                     if (buildTime != null) {
                         "$it ($buildTime)"
                     } else {

@@ -27,6 +27,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -58,7 +59,6 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -76,7 +76,6 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -648,45 +647,13 @@ fun CardConfetti(trigger: Int, accent: Color, modifier: Modifier = Modifier) {
 }
 
 /**
- * An album thumbnail (CARD_SPEC §13): the 300 × 420 still from the cache (a placeholder in the grade colour until
- * it's rendered), the grade glow, the ✨ Custom mark and ♥ for favourites, then the name and [caption].
+ * An album thumbnail (CARD_SPEC §13): the [CardMiniature] with the ✨ Custom mark and ♥ for favourites, then the
+ * name and [caption].
  */
 @Composable
 fun CardThumb(card: ShioriCard, caption: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    val repository = metroViewModel<CardsViewModel>().repository
-    val (glowAlpha, glowRadius) = CardBackLayout.thumbGlow(card.grade)
-    val glow = Color(card.grade.rankColor)
-    val shape = CardCornerShape
-    val key = repository.thumbnailKey(card)
-    val thumbShine = remember(card.grade) { CardLayerPlan.shine(card.grade).scaled(CardShine.THUMB_STRENGTH) }
-    val thumbnail by produceState(repository.cachedThumbnail(card), key) {
-        if (value == null) value = repository.thumbnail(card)
-    }
-    Column(modifier = modifier.clickable(onClick = onClick), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(CARD_ASPECT)
-                .dropShadow(shape, Shadow(radius = glowRadius.dp, color = glow.copy(alpha = glowAlpha))),
-        ) {
-            thumbnail?.let {
-                Image(
-                    bitmap = it.asImageBitmap(),
-                    contentDescription = card.cardName,
-                    contentScale = ContentScale.FillBounds,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            } ?: Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(shape)
-                    .background(glow.copy(alpha = 0.15f)),
-            )
-            // The grade's light effects, still and a little softer than in the detail view
-            if (thumbnail != null && !thumbShine.isNone) {
-                Canvas(Modifier.fillMaxSize()) { drawCardShine(thumbShine, CardTilt.EXPORT, 0.0) }
-            }
-            if (thumbnail != null) CardNumberOverlay(card, repository, Modifier.fillMaxSize())
+    Column(modifier = modifier.clickable(onClick = onClick), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        CardMiniature(card, Modifier.fillMaxWidth()) {
             if (card.frameImagePath != null) {
                 Text(
                     text = stringResource(MR.strings.cards_custom),
@@ -718,12 +685,12 @@ fun CardThumb(card: ShioriCard, caption: String, modifier: Modifier = Modifier, 
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = 4.dp),
         )
+        // In the rank's colour, as on iOS
         Text(
             text = caption,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = Color(card.grade.rankColor),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
@@ -731,8 +698,53 @@ fun CardThumb(card: ShioriCard, caption: String, modifier: Modifier = Modifier, 
 }
 
 /**
+ * A still card (CARD_SPEC §13): the 300 × 420 still from the cache (a placeholder in the grade colour until it's
+ * rendered) with its shine, card number and, with [glow], the grade glow; [overlay] draws over it.
+ */
+@Composable
+fun CardMiniature(
+    card: ShioriCard,
+    modifier: Modifier = Modifier,
+    glow: Boolean = true,
+    overlay: @Composable BoxScope.() -> Unit = {},
+) {
+    val repository = metroViewModel<CardsViewModel>().repository
+    val key = repository.thumbnailKey(card)
+    val thumbShine = remember(card.grade) { CardLayerPlan.shine(card.grade).scaled(CardShine.THUMB_STRENGTH) }
+    val thumbnail by produceState(repository.cachedThumbnail(card), key) {
+        if (value == null) value = repository.thumbnail(card)
+    }
+    Box(
+        modifier = modifier
+            .aspectRatio(CARD_ASPECT)
+            .then(if (glow) Modifier.cardGlow(card.grade) else Modifier),
+    ) {
+        thumbnail?.let {
+            Image(
+                bitmap = it.asImageBitmap(),
+                contentDescription = card.cardName,
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier.fillMaxSize(),
+            )
+        } ?: Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(CardCornerShape)
+                .background(Color(card.grade.rankColor).copy(alpha = 0.15f)),
+        )
+        // The grade's light effects, still and a little softer than in the detail view
+        if (thumbnail != null && !thumbShine.isNone) {
+            Canvas(Modifier.fillMaxSize()) { drawCardShine(thumbShine, CardTilt.EXPORT, 0.0) }
+        }
+        if (thumbnail != null) CardNumberOverlay(card, repository, Modifier.fillMaxSize())
+        overlay()
+    }
+}
+
+/**
  * How many cards of each grade, as small coloured chips (C → S): the grade colour at 28 % behind a non-zero count,
- * 10 % and half-faded for zero. With [onToggle], tapping a chip toggles that grade; [selected] ones are outlined.
+ * 10 % and half-faded for zero. With [onToggle], tapping a chip toggles that grade; [selected] ones are 60 % and
+ * outlined.
  */
 @Composable
 fun CardGradeCounts(
@@ -750,6 +762,11 @@ fun CardGradeCounts(
         counts.forEach { (grade, count) ->
             val color = repository.accent(grade)
             val chosen = grade in selected
+            val fill = when {
+                chosen -> 0.6f
+                count > 0 -> 0.28f
+                else -> 0.1f
+            }
             Text(
                 text = "${grade.rank} $count",
                 style = MaterialTheme.typography.labelMedium,
@@ -757,8 +774,8 @@ fun CardGradeCounts(
                 modifier = Modifier
                     .graphicsLayer { alpha = if (count > 0 || chosen) 1f else 0.5f }
                     .clip(CircleShape)
-                    .background(color.copy(alpha = if (count > 0) 0.28f else 0.1f))
-                    .then(if (chosen) Modifier.border(2.dp, color, CircleShape) else Modifier)
+                    .background(color.copy(alpha = fill))
+                    .then(if (chosen) Modifier.border(1.5.dp, color, CircleShape) else Modifier)
                     .then(if (onToggle != null) Modifier.clickable { onToggle(grade) } else Modifier)
                     .padding(horizontal = 10.dp, vertical = 5.dp),
             )
