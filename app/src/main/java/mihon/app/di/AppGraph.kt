@@ -45,6 +45,14 @@ import mihon.core.metro.IsDebugBuild
 import mihon.data.cache.ChapterCache
 import mihon.domain.extension.interactor.GetExtensionStoreCountAsFlow
 import mihon.domain.extension.repository.ExtensionStoreRepository
+import mihon.feature.cleanup.ReadChapterCleanup
+import mihon.feature.friends.data.FriendsPreferences
+import mihon.feature.friends.ui.ArenaAlerts
+import mihon.feature.habits.HabitsPreferences
+import mihon.feature.habits.ReadingHabits
+import mihon.feature.sourcehealth.SourceHealthMonitor
+import mihon.feature.sourcehealth.SourceHealthPreferences
+import mihon.feature.tracklibrary.TrackLibraryPreferences
 import nl.adaptivity.xmlutil.serialization.XML
 import tachiyomi.domain.backup.service.BackupPreferences
 import tachiyomi.domain.category.interactor.GetCategories
@@ -93,6 +101,14 @@ interface AppGraph : ViewModelGraph {
     val privacyPreferences: PrivacyPreferences
     val securityPreferences: SecurityPreferences
     val downloadPreferences: DownloadPreferences
+    val friendsPreferences: FriendsPreferences
+    val habitsPreferences: HabitsPreferences
+    val readingHabits: ReadingHabits
+    val trackLibraryPreferences: TrackLibraryPreferences
+    val arenaAlerts: ArenaAlerts
+    val sourceHealthPreferences: SourceHealthPreferences
+    val sourceHealthMonitor: SourceHealthMonitor
+    val readChapterCleanup: ReadChapterCleanup
 
     val crashLogUtil: CrashLogUtil
 

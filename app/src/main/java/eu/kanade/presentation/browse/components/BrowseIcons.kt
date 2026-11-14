@@ -4,6 +4,7 @@ import android.util.DisplayMetrics
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -25,9 +26,11 @@ import mihon.icons.materialsymbols.roundedfilled.Warning
 import tachiyomi.domain.source.model.Source
 import tachiyomi.source.local.isLocal
 
+// Rounded squares, as the iOS app's source icons (corner radius 22% of the size).
 private val defaultModifier = Modifier
     .height(40.dp)
     .aspectRatio(1f)
+    .clip(RoundedCornerShape(percent = 22))
 
 @Composable
 fun SourceIcon(

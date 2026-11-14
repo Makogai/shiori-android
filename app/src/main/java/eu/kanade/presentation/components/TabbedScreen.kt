@@ -20,9 +20,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import dev.icerock.moko.resources.StringResource
 import kotlinx.coroutines.launch
+import tachiyomi.presentation.core.components.SegmentedPicker
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.components.material.TabText
 import tachiyomi.presentation.core.i18n.stringResource
@@ -39,7 +41,8 @@ fun TabbedScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
-        topBar = {
+        topBarScrollBehavior = tabRootScrollBehavior(),
+        topBar = { scrollBehavior ->
             val tab = tabs[state.currentPage]
             val searchEnabled = tab.searchEnabled
 
@@ -49,6 +52,20 @@ fun TabbedScreen(
                 searchQuery = if (searchEnabled) searchQuery else null,
                 onChangeSearchQuery = onChangeSearchQuery,
                 actions = { AppBarActions(tab.actions) },
+                scrollBehavior = scrollBehavior,
+                largeTitle = true,
+                // The iOS segmented control in place of a Material tab row.
+                bottomContent = {
+                    SegmentedPicker(
+                        options = tabs.map { tab ->
+                            val title = stringResource(tab.titleRes)
+                            if (tab.badgeNumber != null && tab.badgeNumber > 0) "$title (${tab.badgeNumber})" else title
+                        },
+                        selectedIndex = state.currentPage,
+                        onSelect = { scope.launch { state.animateScrollToPage(it) } },
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 2.dp, bottom = 8.dp),
+                    )
+                },
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -60,20 +77,6 @@ fun TabbedScreen(
                 end = contentPadding.calculateEndPadding(LocalLayoutDirection.current),
             ),
         ) {
-            PrimaryTabRow(
-                selectedTabIndex = state.currentPage,
-                modifier = Modifier.zIndex(1f),
-            ) {
-                tabs.forEachIndexed { index, tab ->
-                    Tab(
-                        selected = state.currentPage == index,
-                        onClick = { scope.launch { state.animateScrollToPage(index) } },
-                        text = { TabText(text = stringResource(tab.titleRes), badgeCount = tab.badgeNumber) },
-                        unselectedContentColor = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-            }
-
             HorizontalPager(
                 modifier = Modifier.fillMaxSize(),
                 state = state,

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/sc_cards_48dp">
+<background android:drawable="@color/icon_background"/>
+<foreground>
+    <vector
+        android:width="120dp"
+        android:height="120dp"
+        android:viewportWidth="56.0"
+        android:viewportHeight="56.0">
+        <group
+            android:translateX="16"
+            android:translateY="16">
+            <group
+                android:scaleX="0.025"
+                android:scaleY="0.025"
+                android:translateY="24">
+                <path
+                    android:fillColor="@color/accent_blue"
+                    android:pathData="M340-800h400v600H340ZM220-720h80v560h360v80H220Z" />
+            </group>
+        </group>
+    </vector>
+</foreground>
+</adaptive-icon>

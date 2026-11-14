@@ -19,13 +19,21 @@ internal fun LazyLibraryGrid(
     content: LazyGridScope.() -> Unit,
 ) {
     FastScrollLazyVerticalGrid(
-        columns = if (columns == 0) GridCells.Adaptive(128.dp) else GridCells.Fixed(columns),
+        columns = if (columns == 0) GridCells.Adaptive(108.dp) else GridCells.Fixed(columns),
         modifier = modifier,
         contentPadding = contentPadding + PaddingValues(8.dp),
         verticalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridVerticalSpacer),
         horizontalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridHorizontalSpacer),
         content = content,
     )
+}
+
+/** Full-width first item that scrolls away with the grid. */
+internal fun LazyGridScope.headerItem(header: (@Composable () -> Unit)?) {
+    if (header == null) return
+    item(key = "library_header", span = { GridItemSpan(maxLineSpan) }, contentType = { "library_header" }) {
+        header()
+    }
 }
 
 internal fun LazyGridScope.globalSearchItem(

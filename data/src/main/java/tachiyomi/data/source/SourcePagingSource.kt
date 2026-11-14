@@ -8,6 +8,9 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mihon.domain.manga.model.toDomainManga
+import mihon.domain.source.health.SourceHealthRecorder
+import mihon.domain.source.health.SourceOperation
+import mihon.domain.source.health.recording
 import tachiyomi.domain.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.repository.SourcePagingSource
@@ -17,7 +20,8 @@ class SourceSearchPagingSource(
     private val query: String,
     private val filters: FilterList,
     networkToLocalManga: NetworkToLocalManga,
-) : BaseSourcePagingSource(source, networkToLocalManga) {
+    sourceHealth: SourceHealthRecorder,
+) : BaseSourcePagingSource(source, networkToLocalManga, sourceHealth) {
     override suspend fun requestNextPage(source: Source, currentPage: Int): MangasPage {
         return source.getSearchManga(currentPage, query, filters)
     }
@@ -26,7 +30,8 @@ class SourceSearchPagingSource(
 class SourcePopularPagingSource(
     source: suspend () -> Source,
     networkToLocalManga: NetworkToLocalManga,
-) : BaseSourcePagingSource(source, networkToLocalManga) {
+    sourceHealth: SourceHealthRecorder,
+) : BaseSourcePagingSource(source, networkToLocalManga, sourceHealth) {
     override suspend fun requestNextPage(source: Source, currentPage: Int): MangasPage {
         return source.getPopularManga(currentPage)
     }
@@ -35,7 +40,8 @@ class SourcePopularPagingSource(
 class SourceLatestPagingSource(
     source: suspend () -> Source,
     networkToLocalManga: NetworkToLocalManga,
-) : BaseSourcePagingSource(source, networkToLocalManga) {
+    sourceHealth: SourceHealthRecorder,
+) : BaseSourcePagingSource(source, networkToLocalManga, sourceHealth) {
     override suspend fun requestNextPage(source: Source, currentPage: Int): MangasPage {
         return source.getLatestUpdates(currentPage)
     }
@@ -44,6 +50,7 @@ class SourceLatestPagingSource(
 abstract class BaseSourcePagingSource(
     private val source: suspend () -> Source,
     private val networkToLocalManga: NetworkToLocalManga,
+    private val sourceHealth: SourceHealthRecorder,
 ) : SourcePagingSource() {
 
     private val seenManga = hashSetOf<String>()
@@ -56,7 +63,9 @@ abstract class BaseSourcePagingSource(
         return try {
             val source = source()
             val mangasPage = withContext(Dispatchers.IO) {
-                requestNextPage(source, page.toInt())
+                sourceHealth.recording(source.id, SourceOperation.Browse) {
+                    requestNextPage(source, page.toInt())
+                }
                     .takeIf { it.mangas.isNotEmpty() }
                     ?: throw NoResultsException()
             }

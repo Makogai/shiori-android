@@ -2,6 +2,7 @@ package eu.kanade.presentation.theme.colorscheme
 
 import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.graphics.Color
+import tachiyomi.presentation.core.theme.iosGrouped
 
 internal abstract class BaseColorScheme {
 
@@ -19,9 +20,9 @@ internal abstract class BaseColorScheme {
         isAmoled: Boolean,
         overrideDarkSurfaceContainers: Boolean,
     ): ColorScheme {
-        if (!isDark) return lightScheme
+        if (!isDark) return lightScheme.iosGrouped(isDark = false)
 
-        if (!isAmoled) return darkScheme
+        if (!isAmoled) return darkScheme.iosGrouped(isDark = true)
 
         val amoledScheme = darkScheme.copy(
             background = Color.Black,
@@ -30,7 +31,7 @@ internal abstract class BaseColorScheme {
             onSurface = Color.White,
         )
 
-        if (!overrideDarkSurfaceContainers) return amoledScheme
+        if (!overrideDarkSurfaceContainers) return amoledScheme.iosGrouped(isDark = true)
 
         return amoledScheme.copy(
             surfaceVariant = surfaceContainer, // Navigation bar background (ThemePrefWidget)
@@ -40,5 +41,6 @@ internal abstract class BaseColorScheme {
             surfaceContainerHigh = surfaceContainerHigh,
             surfaceContainerHighest = surfaceContainerHighest,
         )
+            .iosGrouped(isDark = true)
     }
 }

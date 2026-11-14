@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
+import eu.kanade.tachiyomi.ui.reader.capture.StripSelection
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
 
@@ -45,6 +46,12 @@ interface Viewer {
      * Moves backward through the pages.
      */
     fun moveBackward()
+
+    /**
+     * The part of the current chapter's pages on screen, by index in the chapter, for a long screenshot. Null when
+     * the viewer can't tell, which starts the screenshot from the current page.
+     */
+    fun visibleSelection(): StripSelection? = null
 }
 
 /**

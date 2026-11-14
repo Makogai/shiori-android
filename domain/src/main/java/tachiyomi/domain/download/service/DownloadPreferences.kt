@@ -28,6 +28,9 @@ class DownloadPreferences(
         false,
     )
 
+    /** Days after reading that a downloaded chapter is deleted; 0 is off. */
+    val removeAfterReadDays: Preference<Int> = preferenceStore.getInt("remove_after_read_days", 0)
+
     val removeBookmarkedChapters: Preference<Boolean> = preferenceStore.getBoolean("pref_remove_bookmarked", false)
 
     val removeExcludeCategories: Preference<Set<String>> = preferenceStore.getStringSet(

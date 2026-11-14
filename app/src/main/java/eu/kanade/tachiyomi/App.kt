@@ -63,6 +63,11 @@ import mihon.core.metro.AppCoroutineScope
 import mihon.core.metro.GraphProvider
 import mihon.core.migration.Migration
 import mihon.core.migration.Migrator
+import mihon.feature.cleanup.ReadChapterCleanupWorker
+import mihon.feature.friends.data.FriendsRepository
+import mihon.feature.friends.ui.ArenaAlerts
+import mihon.feature.friends.ui.ArenaAlertsWorker
+import mihon.feature.sourcehealth.SourceHealthWorker
 import mihon.telemetry.TelemetryConfig
 import org.conscrypt.Conscrypt
 import tachiyomi.core.common.i18n.stringResource
@@ -107,6 +112,10 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
 
     @Inject private lateinit var migrations: Set<Migration>
 
+    @Inject private lateinit var friendsRepository: Lazy<FriendsRepository>
+
+    @Inject private lateinit var arenaAlerts: Lazy<ArenaAlerts>
+
     @Inject @AppCoroutineScope
     private lateinit var scope: CoroutineScope
 
@@ -142,6 +151,8 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         }
 
         setupNotificationChannels()
+        SourceHealthWorker.setupTask(this)
+        ReadChapterCleanupWorker.setupTask(this)
 
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
 
@@ -262,6 +273,10 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
 
     override fun onStart(owner: LifecycleOwner) {
         SecureActivityDelegate.onApplicationStart(this)
+        val friends = friendsRepository.value
+        friends.requestSync(onLoaded = { arenaAlerts.value.check(it) })
+        if (friends.account.value.configured && friends.myId != null) ArenaAlertsWorker.setupTask(this)
+        SourceHealthWorker.runIfDue(this)
     }
 
     override fun onStop(owner: LifecycleOwner) {

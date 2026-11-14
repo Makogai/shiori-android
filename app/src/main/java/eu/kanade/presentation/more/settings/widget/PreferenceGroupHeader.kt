@@ -17,13 +17,13 @@ fun PreferenceGroupHeader(title: String, highlighted: Boolean = false) {
         modifier = Modifier
             .fillMaxWidth()
             .highlightBackground(highlighted)
-            .padding(bottom = 8.dp, top = 14.dp),
+            .padding(bottom = 7.dp, top = 24.dp),
     ) {
         Text(
-            text = title,
-            color = MaterialTheme.colorScheme.secondary,
-            modifier = Modifier.padding(horizontal = PrefsHorizontalPadding),
-            style = MaterialTheme.typography.bodyMedium,
+            text = title.uppercase(),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 32.dp),
+            style = MaterialTheme.typography.bodySmall,
         )
     }
 }

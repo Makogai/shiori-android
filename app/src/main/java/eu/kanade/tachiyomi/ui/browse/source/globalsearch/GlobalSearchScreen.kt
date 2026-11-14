@@ -19,6 +19,8 @@ import tachiyomi.presentation.core.screens.LoadingScreen
 class GlobalSearchScreen(
     val searchQuery: String = "",
     private val extensionFilter: String? = null,
+    /** Shown as the Search tab: no up button, a large title and an always visible field. */
+    private val asTab: Boolean = false,
 ) : Screen() {
 
     @Composable
@@ -55,7 +57,11 @@ class GlobalSearchScreen(
         } else {
             GlobalSearchScreen(
                 state = state,
-                navigateUp = navigator::pop,
+                navigateUp = if (asTab) {
+                    null
+                } else {
+                    { navigator.pop() }
+                },
                 onChangeSearchQuery = viewModel::updateSearchQuery,
                 onSearch = { viewModel.search() },
                 getManga = { viewModel.getManga(it) },

@@ -1,6 +1,42 @@
 <shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
     <shortcut
         android:enabled="true"
+        android:icon="@drawable/sc_play_48dp"
+        android:shortcutDisabledMessage="@string/app_not_available"
+        android:shortcutId="continue_reading"
+        android:shortcutLongLabel="@string/habits_shortcut_continue"
+        android:shortcutShortLabel="@string/habits_shortcut_continue">
+        <intent
+            android:action="app.shiori.CONTINUE_READING"
+            android:targetClass="eu.kanade.tachiyomi.ui.main.MainActivity"
+            android:targetPackage="${applicationId}" />
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/sc_today_48dp"
+        android:shortcutDisabledMessage="@string/app_not_available"
+        android:shortcutId="today"
+        android:shortcutLongLabel="@string/habits_today_title"
+        android:shortcutShortLabel="@string/habits_today_title">
+        <intent
+            android:action="app.shiori.TODAY"
+            android:targetClass="eu.kanade.tachiyomi.ui.main.MainActivity"
+            android:targetPackage="${applicationId}" />
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/sc_cards_48dp"
+        android:shortcutDisabledMessage="@string/app_not_available"
+        android:shortcutId="shiori_cards"
+        android:shortcutLongLabel="@string/habits_shortcut_cards"
+        android:shortcutShortLabel="@string/habits_shortcut_cards">
+        <intent
+            android:action="app.shiori.CARDS"
+            android:targetClass="eu.kanade.tachiyomi.ui.main.MainActivity"
+            android:targetPackage="${applicationId}" />
+    </shortcut>
+    <shortcut
+        android:enabled="true"
         android:icon="@drawable/sc_collections_bookmark_48dp"
         android:shortcutDisabledMessage="@string/app_not_available"
         android:shortcutId="show_library"
@@ -8,42 +44,6 @@
         android:shortcutShortLabel="@string/label_library">
         <intent
             android:action="eu.kanade.tachiyomi.SHOW_LIBRARY"
-            android:targetClass="eu.kanade.tachiyomi.ui.main.MainActivity"
-            android:targetPackage="${applicationId}" />
-    </shortcut>
-    <shortcut
-        android:enabled="true"
-        android:icon="@drawable/sc_new_releases_48dp"
-        android:shortcutDisabledMessage="@string/app_not_available"
-        android:shortcutId="show_recently_updated"
-        android:shortcutLongLabel="@string/label_recent_updates"
-        android:shortcutShortLabel="@string/label_recent_updates">
-        <intent
-            android:action="eu.kanade.tachiyomi.SHOW_RECENTLY_UPDATED"
-            android:targetClass="eu.kanade.tachiyomi.ui.main.MainActivity"
-            android:targetPackage="${applicationId}" />
-    </shortcut>
-    <shortcut
-        android:enabled="true"
-        android:icon="@drawable/sc_history_48dp"
-        android:shortcutDisabledMessage="@string/app_not_available"
-        android:shortcutId="show_recently_read"
-        android:shortcutLongLabel="@string/label_recent_manga"
-        android:shortcutShortLabel="@string/label_recent_manga">
-        <intent
-            android:action="eu.kanade.tachiyomi.SHOW_RECENTLY_READ"
-            android:targetClass="eu.kanade.tachiyomi.ui.main.MainActivity"
-            android:targetPackage="${applicationId}" />
-    </shortcut>
-    <shortcut
-        android:enabled="true"
-        android:icon="@drawable/sc_explore_48dp"
-        android:shortcutDisabledMessage="@string/app_not_available"
-        android:shortcutId="show_catalogues"
-        android:shortcutLongLabel="@string/browse"
-        android:shortcutShortLabel="@string/browse">
-        <intent
-            android:action="eu.kanade.tachiyomi.SHOW_CATALOGUES"
             android:targetClass="eu.kanade.tachiyomi.ui.main.MainActivity"
             android:targetPackage="${applicationId}" />
     </shortcut>

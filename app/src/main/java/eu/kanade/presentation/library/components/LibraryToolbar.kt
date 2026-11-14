@@ -16,9 +16,9 @@ import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.components.SearchToolbar
 import mihon.icons.materialsymbols.MaterialSymbols
-import mihon.icons.materialsymbols.rounded.FilterList
 import mihon.icons.materialsymbols.rounded.FlipToBack
 import mihon.icons.materialsymbols.rounded.SelectAll
+import mihon.icons.materialsymbols.rounded.Tune
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.Pill
 import tachiyomi.presentation.core.i18n.stringResource
@@ -32,19 +32,23 @@ fun LibraryToolbar(
     onClickUnselectAll: () -> Unit,
     onClickSelectAll: () -> Unit,
     onClickInvertSelection: () -> Unit,
+    onClickAddToQueue: () -> Unit,
     onClickFilter: () -> Unit,
     onClickRefresh: () -> Unit,
     onClickGlobalUpdate: () -> Unit,
     onClickOpenRandomManga: () -> Unit,
+    onClickTrackLibrary: () -> Unit,
     searchQuery: String?,
     onSearchQueryChange: (String?) -> Unit,
     scrollBehavior: TopAppBarScrollBehavior?,
+    leagueAction: @Composable () -> Unit = {},
 ) = when {
     selectedCount > 0 -> LibrarySelectionToolbar(
         selectedCount = selectedCount,
         onClickUnselectAll = onClickUnselectAll,
         onClickSelectAll = onClickSelectAll,
         onClickInvertSelection = onClickInvertSelection,
+        onClickAddToQueue = onClickAddToQueue,
     )
     else -> LibraryRegularToolbar(
         title = title,
@@ -55,7 +59,9 @@ fun LibraryToolbar(
         onClickRefresh = onClickRefresh,
         onClickGlobalUpdate = onClickGlobalUpdate,
         onClickOpenRandomManga = onClickOpenRandomManga,
+        onClickTrackLibrary = onClickTrackLibrary,
         scrollBehavior = scrollBehavior,
+        leagueAction = leagueAction,
     )
 }
 
@@ -69,7 +75,9 @@ private fun LibraryRegularToolbar(
     onClickRefresh: () -> Unit,
     onClickGlobalUpdate: () -> Unit,
     onClickOpenRandomManga: () -> Unit,
+    onClickTrackLibrary: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior?,
+    leagueAction: @Composable () -> Unit,
 ) {
     val pillAlpha = if (isSystemInDarkTheme()) 0.12f else 0.08f
     SearchToolbar(
@@ -92,13 +100,15 @@ private fun LibraryRegularToolbar(
         },
         searchQuery = searchQuery,
         onChangeSearchQuery = onSearchQueryChange,
+        placeholderText = stringResource(MR.strings.search_library_hint),
         actions = {
-            val filterTint = if (hasFilters) MaterialTheme.colorScheme.active else LocalContentColor.current
+            leagueAction()
+            val filterTint = if (hasFilters) MaterialTheme.colorScheme.active else null
             AppBarActions(
                 listOf(
                     AppBar.Action(
                         title = stringResource(MR.strings.action_filter),
-                        icon = MaterialSymbols.Rounded.FilterList,
+                        icon = MaterialSymbols.Rounded.Tune,
                         iconTint = filterTint,
                         onClick = onClickFilter,
                     ),
@@ -114,10 +124,15 @@ private fun LibraryRegularToolbar(
                         title = stringResource(MR.strings.action_open_random_manga),
                         onClick = onClickOpenRandomManga,
                     ),
+                    AppBar.OverflowAction(
+                        title = stringResource(MR.strings.track_library_title),
+                        onClick = onClickTrackLibrary,
+                    ),
                 ),
             )
         },
         scrollBehavior = scrollBehavior,
+        largeTitle = true,
     )
 }
 
@@ -127,6 +142,7 @@ private fun LibrarySelectionToolbar(
     onClickUnselectAll: () -> Unit,
     onClickSelectAll: () -> Unit,
     onClickInvertSelection: () -> Unit,
+    onClickAddToQueue: () -> Unit,
 ) {
     AppBar(
         titleContent = { Text(text = "$selectedCount") },
@@ -142,6 +158,10 @@ private fun LibrarySelectionToolbar(
                         title = stringResource(MR.strings.action_select_inverse),
                         icon = MaterialSymbols.Rounded.FlipToBack,
                         onClick = onClickInvertSelection,
+                    ),
+                    AppBar.OverflowAction(
+                        title = stringResource(MR.strings.binge_queue_add),
+                        onClick = onClickAddToQueue,
                     ),
                 ),
             )

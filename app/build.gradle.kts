@@ -31,17 +31,39 @@ if (Config.includeTelemetry) {
 
 val keystorePropertiesFile = layout.settingsDirectory.file("keystore.properties").asFile
 
+val localProperties = Properties().apply {
+    val file = layout.settingsDirectory.file("local.properties").asFile
+    if (file.exists()) FileInputStream(file).use { load(it) }
+}
+
+fun friendsProperty(name: String): String =
+    (providers.gradleProperty(name).orNull ?: localProperties.getProperty(name) ?: "").trim()
+
+// Without these the build has no Friends server: the Arena card, Cards strip and 🃏 button never show.
+// A worktree has no local.properties of its own, so say so instead of shipping a silent build.
+if (friendsProperty("friends.supabaseUrl").isEmpty() || friendsProperty("friends.supabaseKey").isEmpty()) {
+    logger.warn(
+        "w: Friends League is not configured (friends.supabaseUrl / friends.supabaseKey missing); the Arena and Cards will be hidden in this build",
+    )
+}
+
 android {
     namespace = "eu.kanade.tachiyomi"
 
     defaultConfig {
-        applicationId = "app.mihon"
+        applicationId = "app.mihon.friends"
 
         versionCode = 39
         versionName = "0.21.3"
 
         buildConfigField("boolean", "TELEMETRY_INCLUDED", "${Config.includeTelemetry}")
         buildConfigField("boolean", "UPDATER_ENABLED", "${Config.enableUpdater}")
+        // GitHub "owner/repo" whose latest release is the Shiori update (RELEASING-SHIORI.md); "OWNER/REPO" turns it off
+        buildConfigField("String", "SHIORI_UPDATE_REPO", "\"Makogai/shiori-android\"")
+        buildConfigField("String", "FRIENDS_SUPABASE_URL", "\"${friendsProperty("friends.supabaseUrl").trimEnd('/')}\"")
+        buildConfigField("String", "FRIENDS_SUPABASE_KEY", "\"${friendsProperty("friends.supabaseKey")}\"")
+
+        resValue("string", "launcher_name", "Shiori")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -70,7 +92,6 @@ android {
 
     buildTypes {
         val debug = getByName("debug") {
-            applicationIdSuffix = ".dev"
             isPseudoLocalesEnabled = true
         }
         val release = getByName("release") {
@@ -168,6 +189,7 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+        resValues = true
         aidl = true
     }
 

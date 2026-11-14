@@ -1,6 +1,7 @@
 package eu.kanade.presentation.updates
 
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +29,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.components.relativeDateText
@@ -140,6 +143,10 @@ internal fun LazyListScope.updatesUiItems(
     }
 }
 
+/** Row height and read dimming of the iOS Recents rows: a 48 x 68 cover with two lines beside it. */
+private val RecentRowHeight = 84.dp
+private const val READ_ALPHA = 0.45f
+
 @Composable
 private fun UpdatesUiItem(
     update: UpdatesWithRelations,
@@ -155,7 +162,7 @@ private fun UpdatesUiItem(
     modifier: Modifier = Modifier,
 ) {
     val haptic = LocalHapticFeedback.current
-    val textAlpha = if (update.read) DISABLED_ALPHA else 1f
+    val textAlpha = if (update.read) READ_ALPHA else 1f
 
     Row(
         modifier = modifier
@@ -167,27 +174,30 @@ private fun UpdatesUiItem(
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 },
             )
-            .height(56.dp)
+            .height(RecentRowHeight)
             .padding(horizontal = MaterialTheme.padding.medium),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        MangaCover.Square(
+        MangaCover.Book(
             modifier = Modifier
-                .padding(vertical = 6.dp)
+                .padding(vertical = 8.dp)
                 .fillMaxHeight(),
+            shape = RoundedCornerShape(6.dp),
             data = update.coverData,
             onClick = onClickCover,
         )
 
         Column(
             modifier = Modifier
-                .padding(horizontal = MaterialTheme.padding.medium)
+                .padding(horizontal = 12.dp)
                 .weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             Text(
                 text = update.mangaTitle,
                 maxLines = 1,
                 style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
                 color = LocalContentColor.current.copy(alpha = textAlpha),
                 overflow = TextOverflow.Ellipsis,
             )
@@ -217,7 +227,7 @@ private fun UpdatesUiItem(
                 Text(
                     text = update.chapterName,
                     maxLines = 1,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = LocalContentColor.current.copy(alpha = textAlpha),
                     overflow = TextOverflow.Ellipsis,
                     onTextLayout = { textHeight = it.size.height },

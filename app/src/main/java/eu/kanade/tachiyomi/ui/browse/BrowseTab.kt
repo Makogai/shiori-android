@@ -6,6 +6,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cafe.adriel.voyager.navigator.Navigator
@@ -26,6 +27,8 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.roundedfilled.Explore
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
 
@@ -34,13 +37,10 @@ data object BrowseTab : Tab {
     override val options: TabOptions
         @Composable
         get() {
-            val isSelected = LocalTabNavigator.current.current.key == key
-            val enter = AnimatedImageVector.animatedVectorResource(R.drawable.animated_browse_enter)
-            val exit = AnimatedImageVector.animatedVectorResource(R.drawable.animated_browse_exit)
             return TabOptions(
-                index = 3u,
+                index = 2u,
                 title = stringResource(MR.strings.browse),
-                icon = rememberAnimatedVectorPainter(enter, exit, isSelected),
+                icon = rememberVectorPainter(MaterialSymbols.RoundedFilled.Explore),
             )
         }
 

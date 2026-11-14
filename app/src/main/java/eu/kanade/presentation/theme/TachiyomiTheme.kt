@@ -25,6 +25,8 @@ import eu.kanade.presentation.theme.colorscheme.TokyoNightColorScheme
 import eu.kanade.presentation.theme.colorscheme.YinYangColorScheme
 import eu.kanade.presentation.theme.colorscheme.YotsubaColorScheme
 import mihon.app.di.appGraph
+import tachiyomi.presentation.core.theme.IosShapes
+import tachiyomi.presentation.core.theme.iosTypography
 
 @Composable
 fun TachiyomiTheme(
@@ -65,6 +67,8 @@ private fun BaseTachiyomiTheme(
                 isAmoled = isAmoled,
             )
         },
+        typography = IosTypography,
+        shapes = IosShapes,
         content = content,
     )
 }
@@ -103,3 +107,5 @@ private val colorSchemes: Map<AppTheme, BaseColorScheme> = mapOf(
     AppTheme.YINYANG to YinYangColorScheme,
     AppTheme.YOTSUBA to YotsubaColorScheme,
 )
+
+private val IosTypography = iosTypography()

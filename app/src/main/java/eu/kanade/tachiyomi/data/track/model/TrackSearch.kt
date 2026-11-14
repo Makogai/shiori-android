@@ -40,6 +40,9 @@ class TrackSearch : Track {
 
     var cover_url: String = ""
 
+    /** Other titles of the entry (English, romaji, native, synonyms) where the tracker returns them. */
+    var alternative_titles: List<String> = emptyList()
+
     var summary: String = ""
 
     var publishing_status: String = ""

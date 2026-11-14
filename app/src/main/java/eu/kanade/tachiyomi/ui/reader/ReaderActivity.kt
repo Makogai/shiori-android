@@ -8,6 +8,8 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.view.HapticFeedbackConstants
+import android.view.MotionEvent
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -74,17 +76,26 @@ import eu.kanade.presentation.reader.ReaderPageActionsDialog
 import eu.kanade.presentation.reader.ReaderPageIndicator
 import eu.kanade.presentation.reader.ReadingModeSelectDialog
 import eu.kanade.presentation.reader.appbars.ReaderAppBars
+import eu.kanade.presentation.reader.capture.LongCaptureScreen
+import eu.kanade.presentation.reader.capture.StyledShotDialog
 import eu.kanade.presentation.reader.components.ChapterNavigatorType
 import eu.kanade.presentation.reader.settings.ReaderSettingsDialog
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.notification.Notifications
+import eu.kanade.tachiyomi.data.saver.ImageSaver
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.ui.base.activity.BaseActivity
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.reader.ReaderViewModel.SetAsCoverResult.AddToLibraryFirst
 import eu.kanade.tachiyomi.ui.reader.ReaderViewModel.SetAsCoverResult.Error
 import eu.kanade.tachiyomi.ui.reader.ReaderViewModel.SetAsCoverResult.Success
+import eu.kanade.tachiyomi.ui.reader.capture.CaptureOutput
+import eu.kanade.tachiyomi.ui.reader.capture.CapturePages
+import eu.kanade.tachiyomi.ui.reader.capture.ReaderCaptureViewModel
+import eu.kanade.tachiyomi.ui.reader.capture.ScreenshotCardMaker
+import eu.kanade.tachiyomi.ui.reader.capture.ShotInfo
+import eu.kanade.tachiyomi.ui.reader.capture.StripSelection
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
@@ -114,6 +125,18 @@ import kotlinx.coroutines.launch
 import logcat.LogPriority
 import mihon.app.di.AppGraph
 import mihon.core.metro.metroGraph
+import mihon.feature.friends.cards.CardMakerDialog
+import mihon.feature.friends.cards.CardMakerViewModel
+import mihon.feature.friends.cards.CardRepository
+import mihon.feature.friends.cards.CardSeriesContext
+import mihon.feature.friends.data.FriendsRepository
+import mihon.feature.friends.domain.LeagueHashing
+import mihon.feature.habits.HabitsPreferences
+import mihon.feature.habits.ReadingDays
+import mihon.feature.habits.ReadingTimeTracker
+import mihon.feature.readerextras.ReaderExtrasHost
+import mihon.feature.readerextras.ReaderExtrasViewModel
+import mihon.feature.readerextras.readerExtrasActions
 import tachiyomi.core.common.Constants
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.system.logcat
@@ -126,10 +149,13 @@ class ReaderActivity : BaseActivity() {
     private val graph: AppGraph by lazy { metroGraph() }
 
     companion object {
-        fun newIntent(context: Context, mangaId: Long?, chapterId: Long?): Intent {
+        /** [page] opens the chapter at that page index instead of where it was left. */
+        fun newIntent(context: Context, mangaId: Long?, chapterId: Long?, page: Int? = null): Intent {
             return Intent(context, ReaderActivity::class.java).apply {
                 putExtra("manga", mangaId)
                 putExtra("chapter", chapterId)
+                // Read by ReaderViewModel as the page to restore
+                page?.let { putExtra("page_index", it) }
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             }
         }
@@ -139,9 +165,28 @@ class ReaderActivity : BaseActivity() {
 
     @Inject private lateinit var preferences: BasePreferences
 
+    @Inject private lateinit var friendsRepository: FriendsRepository
+
+    @Inject private lateinit var imageSaver: ImageSaver
+
+    @Inject private lateinit var cardRepository: CardRepository
+
+    @Inject private lateinit var readingTimeTracker: ReadingTimeTracker
+
+    @Inject private lateinit var habitsPreferences: HabitsPreferences
+
     val viewModel by viewModels<ReaderViewModel> { graph.viewModelFactory }
     val settingsViewModel by viewModels<ReaderSettingsViewModel> {
         viewModelFactory { initializer { ReaderSettingsViewModel(viewModel, readerPreferences, preferences) } }
+    }
+    val captureViewModel by viewModels<ReaderCaptureViewModel> {
+        viewModelFactory {
+            initializer { ReaderCaptureViewModel(application, viewModel, imageSaver, readerPreferences) }
+        }
+    }
+    private val extrasViewModel by viewModels<ReaderExtrasViewModel> { graph.viewModelFactory }
+    private val cardMakerViewModel by viewModels<CardMakerViewModel> {
+        viewModelFactory { initializer { CardMakerViewModel(cardRepository) } }
     }
     private var assistUrl: String? = null
 
@@ -187,6 +232,12 @@ class ReaderActivity : BaseActivity() {
         windowInsetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 
         super.onCreate(savedInstanceState)
+
+        if (cardRepository.isAvailable) {
+            captureViewModel.cardMaker = ScreenshotCardMaker { bitmap, info ->
+                cardContext(info)?.let { cardMakerViewModel.open(bitmap, it) }
+            }
+        }
 
         setComposeContent {
             val state by viewModel.state.collectAsState()
@@ -261,7 +312,23 @@ class ReaderActivity : BaseActivity() {
                 ReaderNavigationOverlay(state = navigationOverlayState)
 
                 AppBars(state = state)
+
+                CaptureScreens()
             }
+
+            ReaderExtrasHost(
+                viewModel = extrasViewModel,
+                state = state,
+                onClose = ::finish,
+                onOpenOffer = { offer ->
+                    if (offer.chapter != null) {
+                        startActivity(newIntent(this, offer.manga.id, offer.chapter.id))
+                    } else {
+                        openMangaScreen(offer.manga.id)
+                    }
+                    finish()
+                },
+            )
 
             if (state.isLoadingAdjacentChapter) {
                 AlertDialog(
@@ -280,7 +347,7 @@ class ReaderActivity : BaseActivity() {
             }
 
             val onDismissRequest = viewModel::closeDialog
-            when (state.dialog) {
+            when (val dialog = state.dialog) {
                 is ReaderViewModel.Dialog.Settings -> {
                     ReaderSettingsDialog(
                         onDismissRequest = onDismissRequest,
@@ -312,11 +379,22 @@ class ReaderActivity : BaseActivity() {
                     )
                 }
                 is ReaderViewModel.Dialog.PageActions -> {
+                    val page = dialog.page
+                    val isLongStrip = isLongStrip()
                     ReaderPageActionsDialog(
                         onDismissRequest = onDismissRequest,
                         onSetAsCover = viewModel::setAsCover,
                         onShare = viewModel::shareImage,
                         onSave = viewModel::saveImage,
+                        isLongStrip = isLongStrip,
+                        onStyledScreenshot = { captureViewModel.styleVisible(page, null, isLongStrip) },
+                        onLongScreenshot = { captureViewModel.startLongCapture(page, null, isLongStrip) },
+                        onMakeCard = captureViewModel.cardMaker?.let { maker ->
+                            {
+                                val pages = CapturePages(listOf(page))
+                                captureViewModel.stitchThen(pages, StripSelection.whole(0), maker::onMakeCard)
+                            }
+                        },
                     )
                 }
                 null -> {}
@@ -371,6 +449,7 @@ class ReaderActivity : BaseActivity() {
                     }
                     ReaderViewModel.Event.PageChanged -> {
                         displayRefreshHost.flash()
+                        readingTimeTracker.onActive()
                     }
                     is ReaderViewModel.Event.SetOrientation -> {
                         setOrientation(event.orientation)
@@ -386,6 +465,20 @@ class ReaderActivity : BaseActivity() {
                     }
                     is ReaderViewModel.Event.SetCoverResult -> {
                         onSetAsCoverResult(event.result)
+                    }
+                    is ReaderViewModel.Event.ChapterFinished -> {
+                        onChapterFinished(event.today, event.goal)
+                    }
+                }
+            }
+            .launchIn(lifecycleScope)
+
+        captureViewModel.events
+            .onEach { event ->
+                when (event) {
+                    is ReaderCaptureViewModel.Event.Toast -> toast(event.resource)
+                    is ReaderCaptureViewModel.Event.Share -> {
+                        startActivity(event.uri.toShareIntent(applicationContext, message = event.text))
                     }
                 }
             }
@@ -404,6 +497,8 @@ class ReaderActivity : BaseActivity() {
 
     override fun onPause() {
         viewModel.saveHistory()
+        readingTimeTracker.onPause()
+        if (isFinishing) friendsRepository.requestSync(FriendsRepository.READER_SYNC_DELAY)
         super.onPause()
     }
 
@@ -414,7 +509,43 @@ class ReaderActivity : BaseActivity() {
     override fun onResume() {
         super.onResume()
         viewModel.restartReadTimer()
+        readingTimeTracker.onActive()
         setMenuVisibility(viewModel.state.value.menuVisible)
+    }
+
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        readingTimeTracker.onActive()
+        return super.dispatchTouchEvent(ev)
+    }
+
+    override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
+        readingTimeTracker.onActive()
+        return super.dispatchKeyEvent(event)
+    }
+
+    /** "Chapter 7 today · 3 left to goal", with a success haptic when it reaches the goal. */
+    private fun onChapterFinished(today: Int, goal: Int?) {
+        val left = ReadingDays.goalLeft(today, goal)
+        if (goal != null && today == goal) {
+            window.decorView.performHapticFeedback(
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    HapticFeedbackConstants.CONFIRM
+                } else {
+                    HapticFeedbackConstants.LONG_PRESS
+                },
+            )
+        }
+        if (!habitsPreferences.chapterToast.get()) return
+        val text = listOfNotNull(
+            stringResource(MR.strings.habits_toast_today, today),
+            when (left) {
+                null -> null
+                0 -> stringResource(MR.strings.habits_toast_goal_done)
+                else -> stringResource(MR.strings.habits_toast_left, left)
+            },
+        )
+            .joinToString(" · ")
+        toast(text)
     }
 
     /**
@@ -566,6 +697,7 @@ class ReaderActivity : BaseActivity() {
             onOpenInWebView = ::openChapterInWebView.takeIf { isHttpSource },
             onOpenInBrowser = ::openChapterInBrowser.takeIf { isHttpSource },
             onShare = ::shareChapter.takeIf { isHttpSource },
+            extraActions = readerExtrasActions(extrasViewModel, state),
 
             chapterNavigatorType = if (!verticalNavigator) {
                 if (readingMode == ReadingMode.RIGHT_TO_LEFT) {
@@ -610,7 +742,95 @@ class ReaderActivity : BaseActivity() {
                 menuToggleToast = toast(if (enabled) MR.strings.on else MR.strings.off)
             },
             onClickSettings = viewModel::openSettingsDialog,
+            onLongScreenshot = {
+                hideMenu()
+                captureViewModel.startLongCapture(null, viewer?.visibleSelection(), isLongStrip())
+            },
+            onStyledScreenshot = {
+                hideMenu()
+                captureViewModel.styleVisible(null, viewer?.visibleSelection(), isLongStrip())
+            },
+            onPageAsIs = {
+                val page = state.currentChapter?.pages?.getOrNull(state.currentPage - 1)
+                if (page != null) viewModel.openPageDialog(page) else toast(MR.strings.screenshot_no_page)
+            },
+            onMakeCard = captureViewModel.cardMaker?.let {
+                {
+                    hideMenu()
+                    captureViewModel.makeCardVisible(null, viewer?.visibleSelection(), isLongStrip())
+                }
+            },
         )
+    }
+
+    /** The series a screenshot came from, as the card judge gets it. */
+    private fun cardContext(info: ShotInfo): CardSeriesContext? {
+        val manga = viewModel.manga ?: return null
+        val state = viewModel.state.value
+        val chapters = state.viewerChapters
+            ?.let { listOfNotNull(it.currChapter, it.prevChapter, it.nextChapter) }
+            .orEmpty()
+            .map { it.chapter }
+        val chapter = chapters.firstOrNull { it.id == info.chapterId } ?: state.currentChapter?.chapter
+        return CardSeriesContext(
+            seriesTitle = manga.title,
+            sourceName = info.source.ifEmpty { state.source?.name.orEmpty() },
+            chapterName = chapter?.name ?: info.chapter,
+            chapterNumber = chapter?.takeIf { it.isRecognizedNumber }?.chapterNumber,
+            genres = CardSeriesContext.genres(manga.genre),
+            seriesKey = LeagueHashing.seriesKey(manga.source, manga.url),
+        )
+    }
+
+    private fun isLongStrip(): Boolean =
+        ReadingMode.fromPreference(viewModel.getMangaReadingMode()).type is ReadingMode.ViewerType.Webtoon
+
+    /**
+     * The screenshot screens over the reader: the long screenshot, the styled one over it, and progress while pages
+     * are being stitched.
+     */
+    @Composable
+    private fun CaptureScreens() {
+        val capture by captureViewModel.state.collectAsState()
+        val cardMaker = captureViewModel.cardMaker
+        capture.longCapture?.let { request ->
+            LongCaptureScreen(
+                request = request,
+                working = capture.working,
+                canMakeCard = cardMaker != null,
+                onClose = captureViewModel::closeLongCapture,
+                onOutput = { pages, selection, output ->
+                    captureViewModel.stitchThen(pages, selection) { bitmap, info ->
+                        when (output) {
+                            CaptureOutput.SHARE -> captureViewModel.share(bitmap, info)
+                            CaptureOutput.SAVE -> captureViewModel.save(bitmap, info)
+                            CaptureOutput.STYLE -> captureViewModel.style(bitmap, info)
+                            CaptureOutput.CARD -> cardMaker?.onMakeCard(bitmap, info)
+                        }
+                    }
+                },
+            )
+        }
+        capture.styled?.let { request ->
+            val layout by captureViewModel.shotLayout.collectAsState()
+            StyledShotDialog(
+                request = request,
+                layout = layout,
+                onLayoutChange = captureViewModel.shotLayout::set,
+                loadCover = captureViewModel::cover,
+                render = captureViewModel::render,
+                onDismissRequest = captureViewModel::closeStyled,
+                onSave = { captureViewModel.save(it, request.info) },
+                onShare = { captureViewModel.share(it, request.info) },
+                onMakeCard = cardMaker?.let { maker -> { bitmap -> maker.onMakeCard(bitmap, request.info) } },
+            )
+        }
+        CardMakerDialog(cardMakerViewModel)
+        if (capture.working && capture.longCapture == null) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
     }
 
     /**
@@ -648,15 +868,17 @@ class ReaderActivity : BaseActivity() {
     }
 
     private fun openMangaScreen() {
-        viewModel.manga?.id?.let { id ->
-            startActivity(
-                Intent(this, MainActivity::class.java).apply {
-                    action = Constants.SHORTCUT_MANGA
-                    putExtra(Constants.MANGA_EXTRA, id)
-                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                },
-            )
-        }
+        viewModel.manga?.id?.let(::openMangaScreen)
+    }
+
+    private fun openMangaScreen(id: Long) {
+        startActivity(
+            Intent(this, MainActivity::class.java).apply {
+                action = Constants.SHORTCUT_MANGA
+                putExtra(Constants.MANGA_EXTRA, id)
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            },
+        )
     }
 
     private fun openChapterInWebView() {

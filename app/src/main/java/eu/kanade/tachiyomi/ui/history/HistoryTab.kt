@@ -4,11 +4,15 @@ import android.content.Context
 import androidx.compose.animation.graphics.res.animatedVectorResource
 import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
 import androidx.compose.animation.graphics.vector.AnimatedImageVector
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
@@ -27,14 +31,24 @@ import eu.kanade.tachiyomi.ui.category.CategoryScreen
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
+import eu.kanade.tachiyomi.ui.stats.StatsScreen
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
+import mihon.feature.friends.ui.ReadingStatsCard
+import mihon.feature.friends.ui.ReadingStreakViewModel
+import mihon.feature.friends.ui.RecapListScreen
+import mihon.feature.habits.TodayPill
 import mihon.feature.migration.dialog.MigrateMangaDialog
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.QueryStats
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.GroupedRow
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.theme.GroupedSection
+import tachiyomi.presentation.core.theme.IosColors
 
 data object HistoryTab : Tab {
 
@@ -64,6 +78,8 @@ data object HistoryTab : Tab {
         val context = LocalContext.current
         val viewModel = metroViewModel<HistoryViewModel>()
         val state by viewModel.state.collectAsStateWithLifecycle()
+        val streakViewModel = metroViewModel<ReadingStreakViewModel>()
+        val streak by streakViewModel.stats.collectAsStateWithLifecycle()
 
         HistoryScreen(
             state = state,
@@ -73,6 +89,18 @@ data object HistoryTab : Tab {
             onClickResume = viewModel::getNextChapterForManga,
             onDialogChange = viewModel::setDialog,
             onClickFavorite = viewModel::addFavorite,
+            header = {
+                Column {
+                    TodayPill()
+                    streak?.let { stats ->
+                        ReadingStatsCard(
+                            stats = stats,
+                            onOpenStats = { navigator.push(StatsScreen()) },
+                            onOpenRecaps = { navigator.push(RecapListScreen()) },
+                        )
+                    }
+                }
+            },
         )
 
         val onDismissRequest = { viewModel.setDialog(null) }

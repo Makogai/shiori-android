@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import mihon.icons.materialsymbols.MaterialSymbols
-import mihon.icons.materialsymbols.automirroredrounded.ArrowForward
+import mihon.icons.materialsymbols.rounded.ChevronRight
 import mihon.icons.materialsymbols.roundedfilled.Error
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.padding
@@ -47,15 +47,23 @@ fun GlobalSearchResultItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column {
+            Column(modifier = Modifier.padding(vertical = 6.dp)) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                 )
-                Text(text = subtitle)
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
             IconButton(onClick = onClick) {
-                Icon(imageVector = MaterialSymbols.AutoMirroredRounded.ArrowForward, contentDescription = null)
+                Icon(
+                    imageVector = MaterialSymbols.Rounded.ChevronRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
         content()

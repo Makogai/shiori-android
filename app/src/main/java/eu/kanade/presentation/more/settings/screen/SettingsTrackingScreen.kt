@@ -20,7 +20,9 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedSecureTextField
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +41,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.domain.track.model.AutoTrackState
 import eu.kanade.presentation.more.settings.Preference
@@ -57,6 +61,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import mihon.app.di.appGraph
+import mihon.feature.tracklibrary.TrackLibraryScreen
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.Help
 import mihon.icons.materialsymbols.rounded.Close
@@ -89,6 +94,30 @@ object SettingsTrackingScreen : SearchableSettings {
         val trackPreferences = remember { context.appGraph.trackPreferences }
         val trackerManager = remember { context.appGraph.trackerManager }
         val sourceManager = remember { context.appGraph.sourceManager }
+
+        val navigator = LocalNavigator.currentOrThrow
+        val trackLibraryPreferences = remember { context.appGraph.trackLibraryPreferences }
+        var offer by remember { mutableStateOf<Tracker?>(null) }
+        LaunchedEffect(Unit) {
+            var before: Set<Long>? = null
+            trackerManager.loggedInTrackersFlow().collect { trackers ->
+                val now = trackers.filterNot { it is EnhancedTracker }.map { it.id }.toSet()
+                val loggedIn = before?.let { now - it }.orEmpty()
+                before = now
+                loggedIn.firstOrNull { trackLibraryPreferences.takeOffer(it) }
+                    ?.let { offer = trackerManager.get(it) }
+            }
+        }
+        offer?.let { tracker ->
+            LinkLibraryOfferDialog(
+                tracker = tracker,
+                onConfirm = {
+                    offer = null
+                    navigator.push(TrackLibraryScreen(tracker.id))
+                },
+                onDismissRequest = { offer = null },
+            )
+        }
 
         var dialog by remember { mutableStateOf<Any?>(null) }
         dialog?.run {
@@ -126,6 +155,11 @@ object SettingsTrackingScreen : SearchableSettings {
         }
 
         return listOf(
+            Preference.PreferenceItem.TextPreference(
+                title = stringResource(MR.strings.track_library_title),
+                subtitle = stringResource(MR.strings.track_library_summary),
+                onClick = { navigator.push(TrackLibraryScreen()) },
+            ),
             Preference.PreferenceItem.SwitchPreference(
                 preference = trackPreferences.autoUpdateTrack,
                 title = stringResource(MR.strings.pref_auto_update_manga_sync),
@@ -319,6 +353,29 @@ object SettingsTrackingScreen : SearchableSettings {
             withContext(Dispatchers.Main) { context.toast(e.message.toString()) }
             false
         }
+    }
+
+    @Composable
+    private fun LinkLibraryOfferDialog(
+        tracker: Tracker,
+        onConfirm: () -> Unit,
+        onDismissRequest: () -> Unit,
+    ) {
+        AlertDialog(
+            onDismissRequest = onDismissRequest,
+            title = { Text(text = stringResource(MR.strings.track_library_offer_title, tracker.name)) },
+            text = { Text(text = stringResource(MR.strings.track_library_offer_text, tracker.name)) },
+            confirmButton = {
+                TextButton(onClick = onConfirm) {
+                    Text(text = stringResource(MR.strings.track_library_offer_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismissRequest) {
+                    Text(text = stringResource(MR.strings.track_library_offer_later))
+                }
+            },
+        )
     }
 
     @Composable

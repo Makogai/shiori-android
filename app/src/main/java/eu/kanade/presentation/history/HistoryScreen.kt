@@ -19,14 +19,17 @@ import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.components.AppBarTitle
 import eu.kanade.presentation.components.SearchToolbar
 import eu.kanade.presentation.components.relativeDateText
+import eu.kanade.presentation.components.tabRootScrollBehavior
 import eu.kanade.presentation.history.components.HistoryItem
 import eu.kanade.presentation.theme.TachiyomiPreviewTheme
 import eu.kanade.presentation.util.rememberIs24HourSystem
 import eu.kanade.tachiyomi.ui.history.HistoryViewModel
+import eu.kanade.tachiyomi.ui.recents.LocalRecentsHeader
 import kotlinx.datetime.LocalDate
 import mihon.app.di.appGraph
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.DeleteSweep
+import mihon.icons.materialsymbols.rounded.Schedule
 import tachiyomi.domain.history.model.HistoryWithRelations
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.FastScrollLazyColumn
@@ -46,13 +49,19 @@ fun HistoryScreen(
     onClickResume: (mangaId: Long, chapterId: Long) -> Unit,
     onClickFavorite: (mangaId: Long) -> Unit,
     onDialogChange: (HistoryViewModel.Dialog?) -> Unit,
+    header: (@Composable () -> Unit)? = null,
 ) {
+    val recentsHeader = LocalRecentsHeader.current
     Scaffold(
+        topBarScrollBehavior = tabRootScrollBehavior(),
         topBar = { scrollBehavior ->
             SearchToolbar(
-                titleContent = { AppBarTitle(stringResource(MR.strings.history)) },
+                titleContent = { AppBarTitle(recentsHeader?.title ?: stringResource(MR.strings.history)) },
+                largeTitle = true,
+                bottomContent = recentsHeader?.picker,
                 searchQuery = state.searchQuery,
                 onChangeSearchQuery = onSearchQueryChange,
+                placeholderText = stringResource(MR.strings.search_recents_hint),
                 actions = {
                     AppBarActions(
                         listOf(
@@ -83,6 +92,9 @@ fun HistoryScreen(
                 EmptyScreen(
                     stringRes = msg,
                     modifier = Modifier.padding(contentPadding),
+                    icon = MaterialSymbols.Rounded.Schedule,
+                    description = stringResource(MR.strings.empty_recents_description)
+                        .takeIf { state.searchQuery.isNullOrEmpty() },
                 )
             } else {
                 HistoryScreenContent(
@@ -92,6 +104,7 @@ fun HistoryScreen(
                     onClickResume = { history -> onClickResume(history.mangaId, history.chapterId) },
                     onClickDelete = { item -> onDialogChange(HistoryViewModel.Dialog.Delete(item)) },
                     onClickFavorite = { history -> onClickFavorite(history.mangaId) },
+                    header = header.takeIf { state.searchQuery.isNullOrEmpty() },
                 )
             }
         }
@@ -106,6 +119,7 @@ private fun HistoryScreenContent(
     onClickResume: (HistoryWithRelations) -> Unit,
     onClickDelete: (HistoryWithRelations) -> Unit,
     onClickFavorite: (HistoryWithRelations) -> Unit,
+    header: (@Composable () -> Unit)?,
 ) {
     val context = LocalContext.current
     val locale = LocalLocale.current
@@ -118,6 +132,9 @@ private fun HistoryScreenContent(
     FastScrollLazyColumn(
         contentPadding = contentPadding,
     ) {
+        if (header != null) {
+            item(key = "history-header", contentType = "header-card") { header() }
+        }
         items(
             items = history,
             key = { "history-${it.hashCode()}" },

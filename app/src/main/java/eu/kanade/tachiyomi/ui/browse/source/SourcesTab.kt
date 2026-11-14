@@ -3,6 +3,8 @@ package eu.kanade.tachiyomi.ui.browse.source
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -16,10 +18,14 @@ import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreen
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import mihon.app.di.appGraph
+import mihon.feature.sourcehealth.SourceHealthScreen
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.FilterList
+import mihon.icons.materialsymbols.rounded.Stethoscope
 import mihon.icons.materialsymbols.rounded.TravelExplore
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
@@ -27,6 +33,9 @@ fun Screen.sourcesTab(): TabContent {
     val navigator = LocalNavigator.currentOrThrow
     val viewModel = metroViewModel<SourcesViewModel>()
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val healthProblems by remember { context.appGraph.sourceHealthMonitor.problemCount() }
+        .collectAsStateWithLifecycle(0)
 
     return TabContent(
         titleRes = MR.strings.label_sources,
@@ -40,6 +49,16 @@ fun Screen.sourcesTab(): TabContent {
                 title = stringResource(MR.strings.action_filter),
                 icon = MaterialSymbols.Rounded.FilterList,
                 onClick = { navigator.push(SourcesFilterScreen()) },
+            ),
+            AppBar.Action(
+                title = if (healthProblems > 0) {
+                    pluralStringResource(MR.plurals.source_health_failing, healthProblems, healthProblems)
+                } else {
+                    stringResource(MR.strings.source_health)
+                },
+                icon = MaterialSymbols.Rounded.Stethoscope,
+                onClick = { navigator.push(SourceHealthScreen()) },
+                badge = healthProblems > 0,
             ),
         ),
         content = { contentPadding, snackbarHostState ->

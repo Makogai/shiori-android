@@ -47,7 +47,10 @@ import mihon.app.di.AppGraph
 import mihon.app.di.appGraph
 import mihon.core.metro.metroGraph
 import mihon.domain.chapter.interactor.FilterChaptersForDownload
+import mihon.domain.source.health.SourceOperation
 import mihon.domain.source.interactor.UpdateMangaFromRemote
+import mihon.feature.sourcehealth.SourceHealthMonitor
+import mihon.feature.sourcehealth.SourceHealthPreferences
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.preference.getAndSet
 import tachiyomi.core.common.util.system.logcat
@@ -104,6 +107,10 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
 
     @Inject private lateinit var notifier: LibraryUpdateNotifier
 
+    @Inject private lateinit var sourceHealthMonitor: SourceHealthMonitor
+
+    @Inject private lateinit var sourceHealthPreferences: SourceHealthPreferences
+
     private var mangaToUpdate: List<LibraryManga> = mutableListOf()
 
     override suspend fun doWork(): Result {
@@ -132,7 +139,9 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
 
         return withContext(Dispatchers.IO) {
             try {
+                val healthBefore = sourceHealthMonitor.snapshot()
                 updateChapterList()
+                if (sourceHealthPreferences.dailyCheck.get()) sourceHealthMonitor.alertChanges(healthBefore)
                 Result.success()
             } catch (e: Exception) {
                 if (e is CancellationException) {
@@ -358,6 +367,7 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
             fetchDetails = libraryPreferences.autoUpdateMetadata.get(),
             fetchChapters = true,
             fetchWindow = fetchWindow,
+            operation = SourceOperation.LibraryUpdate,
         )
             .getOrThrow()
 

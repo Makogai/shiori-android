@@ -3,19 +3,23 @@ package eu.kanade.presentation.library.components
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import eu.kanade.presentation.theme.TachiyomiPreviewTheme
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Folder
 import tachiyomi.presentation.core.components.Badge
 
+/** The iOS app's dark glass badge for downloads and local / language marks. */
+private val NeutralBadgeColor = Color.Black.copy(alpha = 0.62f)
+
 @Composable
 internal fun DownloadsBadge(count: Int) {
     if (count > 0) {
         Badge(
             text = "$count",
-            color = MaterialTheme.colorScheme.tertiary,
-            textColor = MaterialTheme.colorScheme.onTertiary,
+            color = NeutralBadgeColor,
+            textColor = Color.White,
         )
     }
 }
@@ -35,14 +39,14 @@ internal fun LanguageBadge(
     if (isLocal) {
         Badge(
             imageVector = MaterialSymbols.Rounded.Folder,
-            color = MaterialTheme.colorScheme.tertiary,
-            iconColor = MaterialTheme.colorScheme.onTertiary,
+            color = NeutralBadgeColor,
+            iconColor = Color.White,
         )
     } else if (sourceLanguage.isNotEmpty()) {
         Badge(
             text = sourceLanguage.uppercase(),
-            color = MaterialTheme.colorScheme.tertiary,
-            textColor = MaterialTheme.colorScheme.onTertiary,
+            color = NeutralBadgeColor,
+            textColor = Color.White,
         )
     }
 }

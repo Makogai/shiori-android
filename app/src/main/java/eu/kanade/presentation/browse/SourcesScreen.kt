@@ -1,11 +1,14 @@
 package eu.kanade.presentation.browse
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -14,13 +17,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.browse.components.BaseSourceItem
 import eu.kanade.tachiyomi.ui.browse.source.SourcesViewModel
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceViewModel.Listing
 import eu.kanade.tachiyomi.util.system.LocaleHelper
+import mihon.feature.sourcehealth.SourceHealthDot
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Keep
 import mihon.icons.materialsymbols.roundedfilled.Keep
@@ -34,7 +42,10 @@ import tachiyomi.presentation.core.components.material.topSmallPaddingValues
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.EmptyScreen
 import tachiyomi.presentation.core.screens.LoadingScreen
+import tachiyomi.presentation.core.theme.GroupedSectionHeader
+import tachiyomi.presentation.core.theme.groupedRow
 import tachiyomi.presentation.core.theme.header
+import tachiyomi.presentation.core.theme.readableAccent
 import tachiyomi.presentation.core.util.plus
 import tachiyomi.source.local.isLocal
 
@@ -53,24 +64,35 @@ fun SourcesScreen(
             modifier = Modifier.padding(contentPadding),
         )
         else -> {
+            // Position of each source in its language section, so sections render as iOS grouped cards.
+            val positions = remember(state.items) {
+                val result = HashMap<Int, Pair<Int, Int>>()
+                var start = 0
+                state.items.forEachIndexed { index, model ->
+                    if (model is SourceUiModel.Header) start = index + 1
+                    val end = state.items.indexOfFirst(start) { it is SourceUiModel.Header }
+                    if (model is SourceUiModel.Item) result[index] = (index - start) to (end - start)
+                }
+                result
+            }
             ScrollbarLazyColumn(
                 contentPadding = contentPadding + topSmallPaddingValues,
             ) {
-                items(
+                itemsIndexed(
                     items = state.items,
-                    contentType = {
+                    contentType = { _, it ->
                         when (it) {
                             is SourceUiModel.Header -> "header"
                             is SourceUiModel.Item -> "item"
                         }
                     },
-                    key = {
+                    key = { _, it ->
                         when (it) {
                             is SourceUiModel.Header -> it.hashCode()
                             is SourceUiModel.Item -> "source-${it.source.key()}"
                         }
                     },
-                ) { model ->
+                ) { index, model ->
                     when (model) {
                         is SourceUiModel.Header -> {
                             SourceHeader(
@@ -79,7 +101,12 @@ fun SourcesScreen(
                             )
                         }
                         is SourceUiModel.Item -> SourceItem(
-                            modifier = Modifier.animateItem(),
+                            modifier = Modifier
+                                .animateItem()
+                                .let { modifier ->
+                                    val (position, count) = positions[index] ?: (0 to 1)
+                                    modifier.groupedRow(position, count)
+                                },
                             source = model.source,
                             onClickItem = onClickItem,
                             onLongClickItem = onLongClickItem,
@@ -98,11 +125,9 @@ private fun SourceHeader(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    Text(
-        text = LocaleHelper.getSourceDisplayName(language, context),
-        modifier = modifier
-            .padding(horizontal = MaterialTheme.padding.medium, vertical = MaterialTheme.padding.small),
-        style = MaterialTheme.typography.header,
+    GroupedSectionHeader(
+        title = LocaleHelper.getSourceDisplayName(language, context),
+        modifier = modifier,
     )
 }
 
@@ -120,15 +145,20 @@ private fun SourceItem(
         onClickItem = { onClickItem(source, Listing.Popular) },
         onLongClickItem = { onLongClickItem(source) },
         action = {
+            SourceHealthDot(source.id)
             if (source.supportsLatest) {
-                TextButton(onClick = { onClickItem(source, Listing.Latest) }) {
-                    Text(
-                        text = stringResource(MR.strings.latest),
-                        style = LocalTextStyle.current.copy(
-                            color = MaterialTheme.colorScheme.primary,
-                        ),
-                    )
-                }
+                // The iOS "Latest" pill.
+                Text(
+                    text = stringResource(MR.strings.latest),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.readableAccent(),
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.14f))
+                        .clickable(role = Role.Button) { onClickItem(source, Listing.Latest) }
+                        .padding(horizontal = 10.dp, vertical = 4.dp),
+                )
             }
             SourcePinButton(
                 isPinned = Pin.Pinned in source.pin,
@@ -201,4 +231,9 @@ fun SourceOptionsDialog(
 sealed interface SourceUiModel {
     data class Item(val source: Source) : SourceUiModel
     data class Header(val language: String) : SourceUiModel
+}
+
+private inline fun <T> List<T>.indexOfFirst(from: Int, predicate: (T) -> Boolean): Int {
+    for (i in from until size) if (predicate(this[i])) return i
+    return size
 }

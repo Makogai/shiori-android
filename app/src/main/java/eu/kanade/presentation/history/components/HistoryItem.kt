@@ -1,11 +1,13 @@
 package eu.kanade.presentation.history.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,7 +36,7 @@ import tachiyomi.presentation.core.i18n.stringResource
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-private val HistoryItemHeight = 96.dp
+private val HistoryItemHeight = 84.dp
 
 @Composable
 fun HistoryItem(
@@ -55,19 +57,21 @@ fun HistoryItem(
     ) {
         MangaCover.Book(
             modifier = Modifier.fillMaxHeight(),
+            shape = RoundedCornerShape(6.dp),
             data = history.coverData,
             onClick = onClickCover,
         )
         Column(
             modifier = Modifier
                 .weight(1f)
-                .padding(start = MaterialTheme.padding.medium, end = MaterialTheme.padding.small),
+                .padding(start = 12.dp, end = MaterialTheme.padding.small),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             val textStyle = MaterialTheme.typography.bodyMedium
             Text(
                 text = history.title,
                 fontWeight = FontWeight.SemiBold,
-                maxLines = 2,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = textStyle,
             )
@@ -84,8 +88,8 @@ fun HistoryItem(
                 } else {
                     readAt
                 },
-                modifier = Modifier.padding(top = 4.dp),
-                style = textStyle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
@@ -94,7 +98,7 @@ fun HistoryItem(
                 Icon(
                     imageVector = MaterialSymbols.Rounded.Favorite,
                     contentDescription = stringResource(MR.strings.add_to_library),
-                    tint = MaterialTheme.colorScheme.onSurface,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -103,7 +107,7 @@ fun HistoryItem(
             Icon(
                 imageVector = MaterialSymbols.Rounded.Delete,
                 contentDescription = stringResource(MR.strings.action_delete),
-                tint = MaterialTheme.colorScheme.onSurface,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

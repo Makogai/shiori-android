@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -35,7 +36,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import mihon.feature.friends.ui.ArenaScreen
 import mihon.feature.support.SupportUsScreen
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.roundedfilled.Settings
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
 
@@ -44,19 +48,12 @@ data object MoreTab : Tab {
     override val options: TabOptions
         @Composable
         get() {
-            val isSelected = LocalTabNavigator.current.current.key == key
-            val enter = AnimatedImageVector.animatedVectorResource(R.drawable.animated_more_enter)
-            val exit = AnimatedImageVector.animatedVectorResource(R.drawable.animated_more_exit)
             return TabOptions(
                 index = 4u,
-                title = stringResource(MR.strings.label_more),
-                icon = rememberAnimatedVectorPainter(enter, exit, isSelected),
+                title = stringResource(MR.strings.label_settings),
+                icon = rememberVectorPainter(MaterialSymbols.RoundedFilled.Settings),
             )
         }
-
-    override suspend fun onReselect(navigator: Navigator) {
-        navigator.push(SettingsScreen())
-    }
 
     @Composable
     override fun Content() {
@@ -72,10 +69,9 @@ data object MoreTab : Tab {
             onClickDownloadQueue = { navigator.push(DownloadQueueScreen) },
             onClickCategories = { navigator.push(CategoryScreen()) },
             onClickStats = { navigator.push(StatsScreen()) },
-            onClickDataAndStorage = { navigator.push(SettingsScreen(SettingsScreen.Destination.DataAndStorage)) },
-            onClickSettings = { navigator.push(SettingsScreen()) },
+            onClickLeague = { navigator.push(ArenaScreen()) },
+            onClickSettings = { navigator.push(SettingsScreen(it)) },
             onClickSupport = { navigator.push(SupportUsScreen()) },
-            onClickAbout = { navigator.push(SettingsScreen(SettingsScreen.Destination.About)) },
         )
     }
 }

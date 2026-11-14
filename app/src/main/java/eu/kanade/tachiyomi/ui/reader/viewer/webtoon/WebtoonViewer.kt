@@ -16,6 +16,8 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.WebtoonLayoutManager
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
+import eu.kanade.tachiyomi.ui.reader.capture.StripAnchor
+import eu.kanade.tachiyomi.ui.reader.capture.StripSelection
 import eu.kanade.tachiyomi.ui.reader.model.ChapterTransition
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
@@ -231,6 +233,26 @@ class WebtoonViewer(val activity: ReaderActivity, val isContinuous: Boolean = tr
         } else {
             logcat { "Page $page not found in adapter" }
         }
+    }
+
+    override fun visibleSelection(): StripSelection? {
+        val chapter = activity.viewModel.state.value.currentChapter ?: return null
+        val height = recycler.height
+        var top: StripAnchor? = null
+        var bottom: StripAnchor? = null
+        for (i in 0..<recycler.childCount) {
+            val child = recycler.getChildAt(i)
+            val page = adapter.items.getOrNull(recycler.getChildAdapterPosition(child)) as? ReaderPage ?: continue
+            if (page.chapter != chapter || child.height <= 0) continue
+            val visibleTop = max(child.top, 0)
+            val visibleBottom = min(child.bottom, height)
+            if (visibleBottom <= visibleTop) continue
+            val from = StripAnchor(page.index, (visibleTop - child.top).toFloat() / child.height)
+            val to = StripAnchor(page.index, (visibleBottom - child.top).toFloat() / child.height)
+            top = top?.let { minOf(it, from) } ?: from
+            bottom = bottom?.let { maxOf(it, to) } ?: to
+        }
+        return if (top != null && bottom != null) StripSelection(top, bottom) else null
     }
 
     private fun onScrolled(pos: Int? = null) {

@@ -13,6 +13,7 @@ import kotlinx.coroutines.withContext
 import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.chapter.interactor.GetChaptersByMangaId
+import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.history.interactor.GetHistory
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.track.interactor.UpsertTrack
@@ -40,13 +41,7 @@ class AddTracks(
         // TODO: merge into [SyncChapterProgressWithTrack]?
         // Update chapter progress if newer chapters marked read locally
         if (hasReadChapters) {
-            val latestLocalReadChapterNumber = allChapters
-                .sortedBy { it.chapterNumber }
-                .takeWhile { it.read }
-                .lastOrNull()
-                ?.chapterNumber ?: -1.0
-
-            if (latestLocalReadChapterNumber > track.lastChapterRead) {
+            localProgressAhead(allChapters, track.lastChapterRead)?.let { latestLocalReadChapterNumber ->
                 track = track.copy(
                     lastChapterRead = latestLocalReadChapterNumber,
                 )
@@ -96,4 +91,17 @@ class AddTracks(
                 }
             }
     }
+}
+
+/**
+ * The last chapter of the unbroken read run from the first chapter, when it's ahead of [trackerProgress]; null
+ * otherwise, so binding never lowers a tracker's progress.
+ */
+internal fun localProgressAhead(chapters: List<Chapter>, trackerProgress: Double): Double? {
+    return chapters
+        .sortedBy { it.chapterNumber }
+        .takeWhile { it.read }
+        .lastOrNull()
+        ?.chapterNumber
+        ?.takeIf { it > trackerProgress }
 }

@@ -45,6 +45,8 @@ object SettingsAppearanceScreen : SearchableSettings {
         return listOf(
             getThemeGroup(uiPreferences = uiPreferences),
             getDisplayGroup(uiPreferences = uiPreferences),
+            getFriendsGroup(),
+            getHabitsGroup(),
         )
     }
 
@@ -93,6 +95,73 @@ object SettingsAppearanceScreen : SearchableSettings {
                         (context as? Activity)?.let { ActivityCompat.recreate(it) }
                         true
                     },
+                ),
+            ),
+        )
+    }
+
+    @Composable
+    private fun getHabitsGroup(): Preference.PreferenceGroup {
+        val context = LocalContext.current
+        val habitsPreferences = remember { context.appGraph.habitsPreferences }
+        val goalEnabled by habitsPreferences.dailyGoalEnabled.collectAsState()
+        return Preference.PreferenceGroup(
+            title = stringResource(MR.strings.habits_pref_group),
+            preferenceItems = listOf(
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = habitsPreferences.dailyGoalEnabled,
+                    title = stringResource(MR.strings.habits_pref_goal),
+                    subtitle = stringResource(MR.strings.habits_pref_goal_summary),
+                ),
+                Preference.PreferenceItem.SliderPreference(
+                    preference = habitsPreferences.dailyGoal,
+                    title = stringResource(MR.strings.habits_pref_goal_count),
+                    valueRange = 1..30,
+                    visible = goalEnabled,
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = habitsPreferences.chapterToast,
+                    title = stringResource(MR.strings.habits_pref_toast),
+                    subtitle = stringResource(MR.strings.habits_pref_toast_summary),
+                ),
+            ),
+        )
+    }
+
+    @Composable
+    private fun getFriendsGroup(): Preference.PreferenceGroup {
+        val context = LocalContext.current
+        val friendsPreferences = remember { context.appGraph.friendsPreferences }
+        return Preference.PreferenceGroup(
+            title = stringResource(MR.strings.friends_league),
+            preferenceItems = listOf(
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = friendsPreferences.showStreakCard,
+                    title = stringResource(MR.strings.friends_pref_streak_card),
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = friendsPreferences.showLibraryBanner,
+                    title = stringResource(MR.strings.friends_pref_library_banner),
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = friendsPreferences.showCardsButton,
+                    title = stringResource(MR.strings.friends_pref_cards_button),
+                    subtitle = stringResource(MR.strings.friends_pref_cards_button_summary),
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = friendsPreferences.showLibraryCards,
+                    title = stringResource(MR.strings.friends_pref_library_cards),
+                    subtitle = stringResource(MR.strings.friends_pref_library_cards_summary),
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = friendsPreferences.overtakeAlerts,
+                    title = stringResource(MR.strings.friends_pref_overtake_alerts),
+                    subtitle = stringResource(MR.strings.friends_pref_overtake_alerts_summary),
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = friendsPreferences.socialAlerts,
+                    title = stringResource(MR.strings.friends_pref_social_alerts),
+                    subtitle = stringResource(MR.strings.friends_pref_social_alerts_summary),
                 ),
             ),
         )

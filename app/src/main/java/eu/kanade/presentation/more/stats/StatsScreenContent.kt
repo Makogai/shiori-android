@@ -32,11 +32,13 @@ import kotlin.time.toDuration
 fun StatsScreenContent(
     state: StatsScreenState.Success,
     paddingValues: PaddingValues,
+    header: (@Composable () -> Unit)? = null,
 ) {
     LazyColumn(
         contentPadding = paddingValues,
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
     ) {
+        if (header != null) item { header() }
         item {
             OverviewSection(state.overview)
         }

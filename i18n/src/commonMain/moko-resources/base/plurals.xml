@@ -114,4 +114,74 @@
         <item quantity="one">%1$d update failed</item>
         <item quantity="other">%1$d updates failed</item>
     </plurals>
+
+    <!-- Friends League -->
+    <plurals name="friends_leading_by">
+        <item quantity="one">Leading by %d chapter</item>
+        <item quantity="other">Leading by %d chapters</item>
+    </plurals>
+    <plurals name="friends_behind_by">
+        <item quantity="one">Behind by %d chapter</item>
+        <item quantity="other">Behind by %d chapters</item>
+    </plurals>
+    <plurals name="friends_chapter_word">
+        <item quantity="one">chapter</item>
+        <item quantity="other">chapters</item>
+    </plurals>
+    <plurals name="friends_chapters">
+        <item quantity="one">%d chapter</item>
+        <item quantity="other">%d chapters</item>
+    </plurals>
+    <plurals name="friends_series">
+        <item quantity="one">%d series</item>
+        <item quantity="other">%d series</item>
+    </plurals>
+    <plurals name="friends_members">
+        <item quantity="one">%d member</item>
+        <item quantity="other">%d members</item>
+    </plurals>
+    <plurals name="friends_tug_lead">
+        <item quantity="one">You lead by %d today 🔥</item>
+        <item quantity="other">You lead by %d today 🔥</item>
+    </plurals>
+    <plurals name="friends_tug_behind">
+        <item quantity="one">%2$s is ahead by %1$d — catch up!</item>
+        <item quantity="other">%2$s is ahead by %1$d — catch up!</item>
+    </plurals>
+    <plurals name="friends_days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <plurals name="friends_suggested_to_friends">
+        <item quantity="one">Suggested to %d friend</item>
+        <item quantity="other">Suggested to %d friends</item>
+    </plurals>
+    <plurals name="friends_new_suggestions">
+        <item quantity="one">📬 %d new suggestion</item>
+        <item quantity="other">📬 %d new suggestions</item>
+    </plurals>
+    <plurals name="pref_remove_after_read_days_value">
+        <item quantity="one">%d day after reading</item>
+        <item quantity="other">%d days after reading</item>
+    </plurals>
+    <plurals name="storage_chapters">
+        <item quantity="one">%d chapter</item>
+        <item quantity="other">%d chapters</item>
+    </plurals>
+    <plurals name="top_list_count">
+        <item quantity="one">%d series</item>
+        <item quantity="other">%d series</item>
+    </plurals>
+    <plurals name="source_health_alert_body">
+        <item quantity="one">%d series affected. Tap to check.</item>
+        <item quantity="other">%d series affected. Tap to check.</item>
+    </plurals>
+    <plurals name="source_health_failing">
+        <item quantity="one">Source health, %d failing</item>
+        <item quantity="other">Source health, %d failing</item>
+    </plurals>
+    <plurals name="source_health_library_series">
+        <item quantity="one">%d library series</item>
+        <item quantity="other">%d library series</item>
+    </plurals>
 </resources>

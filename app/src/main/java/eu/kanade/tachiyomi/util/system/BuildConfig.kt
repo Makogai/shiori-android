@@ -3,12 +3,13 @@
 package eu.kanade.tachiyomi.util.system
 
 import eu.kanade.tachiyomi.BuildConfig
+import eu.kanade.tachiyomi.data.updater.ShioriRelease
 
 val telemetryIncluded: Boolean
     inline get() = BuildConfig.TELEMETRY_INCLUDED
 
 val updaterEnabled: Boolean
-    inline get() = BuildConfig.UPDATER_ENABLED
+    get() = ShioriRelease.isConfigured(BuildConfig.SHIORI_UPDATE_REPO)
 
 val isDebugBuildType: Boolean
     inline get() = BuildConfig.BUILD_TYPE == "debug"

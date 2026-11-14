@@ -12,6 +12,9 @@ import eu.kanade.tachiyomi.source.model.SManga
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import logcat.LogPriority
+import mihon.domain.source.health.SourceHealthRecorder
+import mihon.domain.source.health.SourceOperation
+import mihon.domain.source.health.recording
 import mihon.domain.source.models.RemoteMangaUpdate
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.chapter.model.Chapter
@@ -34,6 +37,7 @@ class UpdateMangaFromRemote(
     private val coverCache: CoverCache,
     private val libraryPreferences: LibraryPreferences,
     private val downloadManager: DownloadManager,
+    private val sourceHealth: SourceHealthRecorder,
 ) {
     suspend operator fun invoke(
         manga: Manga,
@@ -41,6 +45,7 @@ class UpdateMangaFromRemote(
         fetchChapters: Boolean = false,
         manualFetch: Boolean = false,
         fetchWindow: ClosedRange<Instant>? = null,
+        operation: SourceOperation = SourceOperation.Details,
     ): Result<RemoteMangaUpdate> {
         val source = sourceManager.getOrStub(manga.source)
         return invoke(
@@ -49,6 +54,7 @@ class UpdateMangaFromRemote(
             fetchDetails = fetchDetails,
             fetchChapters = fetchChapters,
             manualFetch = manualFetch,
+            operation = operation,
         )
     }
 
@@ -59,16 +65,19 @@ class UpdateMangaFromRemote(
         fetchChapters: Boolean = false,
         manualFetch: Boolean = false,
         fetchWindow: ClosedRange<Instant>? = null,
+        operation: SourceOperation = SourceOperation.Details,
     ): Result<RemoteMangaUpdate> = withContext(Dispatchers.IO) {
         try {
             val chapters = chapterRepository.getChapterByMangaId(manga.id)
                 .sortedBy { it.sourceOrder }
-            val update = source.getMangaUpdate(
-                manga = manga.toSManga(),
-                chapters = chapters.map(Chapter::toSChapter),
-                fetchDetails = fetchDetails,
-                fetchChapters = fetchChapters,
-            )
+            val update = sourceHealth.recording(source.id, operation) {
+                source.getMangaUpdate(
+                    manga = manga.toSManga(),
+                    chapters = chapters.map(Chapter::toSChapter),
+                    fetchDetails = fetchDetails,
+                    fetchChapters = fetchChapters,
+                )
+            }
             awaitUpdateFromSource(manga, update.manga, manualFetch)
             val newChapters = syncChaptersWithSource.await(
                 rawSourceChapters = update.chapters,

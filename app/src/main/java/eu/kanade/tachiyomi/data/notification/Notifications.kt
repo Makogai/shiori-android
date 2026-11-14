@@ -73,6 +73,16 @@ object Notifications {
     const val ID_UPDATES_TO_EXTS = -401
     const val ID_EXTENSION_INSTALLER = -402
 
+    /**
+     * Notification channel used for Reading Arena alerts (Mihon Friends: overtakes, reactions and comments).
+     */
+    const val CHANNEL_ARENA = "friends_arena_channel"
+
+    /**
+     * Notification channel used for sources that start failing or need a Cloudflare check.
+     */
+    const val CHANNEL_SOURCE_HEALTH = "source_health_channel"
+
     private val deprecatedChannels = listOf(
         "downloader_channel",
         "downloader_complete_channel",
@@ -160,6 +170,12 @@ object Notifications {
                 buildNotificationChannel(CHANNEL_EXTENSIONS_UPDATE, IMPORTANCE_DEFAULT) {
                     setGroup(GROUP_APK_UPDATES)
                     setName(context.stringResource(MR.strings.channel_ext_updates))
+                },
+                buildNotificationChannel(CHANNEL_ARENA, IMPORTANCE_DEFAULT) {
+                    setName(context.stringResource(MR.strings.friends_arena_notifications))
+                },
+                buildNotificationChannel(CHANNEL_SOURCE_HEALTH, IMPORTANCE_DEFAULT) {
+                    setName(context.stringResource(MR.strings.source_health))
                 },
             ),
         )

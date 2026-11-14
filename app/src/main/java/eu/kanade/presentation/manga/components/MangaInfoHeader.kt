@@ -7,6 +7,8 @@ import androidx.compose.animation.graphics.res.animatedVectorResource
 import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
 import androidx.compose.animation.graphics.vector.AnimatedImageVector
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +25,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.DropdownMenuItem
@@ -46,17 +50,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
@@ -104,6 +113,8 @@ import tachiyomi.presentation.core.components.material.TextButton
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.theme.card
+import tachiyomi.presentation.core.theme.readableAccent
 import tachiyomi.presentation.core.util.clickableNoIndication
 import tachiyomi.presentation.core.util.secondaryItemAlpha
 import kotlin.math.roundToInt
@@ -124,10 +135,9 @@ fun MangaInfoBox(
 ) {
     Box(modifier = modifier) {
         // Backdrop
-        val backdropGradientColors = listOf(
-            Color.Transparent,
-            MaterialTheme.colorScheme.background,
-        )
+        // The iOS details backdrop: the cover blurred, fading into the background.
+        val background = MaterialTheme.colorScheme.background
+        val dark = background.luminance() < 0.5f
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(manga)
@@ -140,11 +150,15 @@ fun MangaInfoBox(
                 .drawWithContent {
                     drawContent()
                     drawRect(
-                        brush = Brush.verticalGradient(colors = backdropGradientColors),
+                        brush = Brush.verticalGradient(
+                            0f to background.copy(alpha = 0.15f),
+                            0.55f to background.copy(alpha = 0.35f),
+                            1f to background,
+                        ),
                     )
                 }
-                .blur(4.dp)
-                .alpha(0.2f),
+                .blur(18.dp)
+                .alpha(if (dark) 0.45f else 0.4f),
         )
 
         // Manga & source info
@@ -188,7 +202,7 @@ fun MangaActionRow(
     onEditCategory: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
-    val defaultActionButtonColor = MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ALPHA)
+    val defaultActionButtonColor = MaterialTheme.colorScheme.readableAccent()
 
     // TODO: show something better when using custom interval
     val nextUpdateDays = remember(nextUpdate) {
@@ -200,7 +214,10 @@ fun MangaActionRow(
         }
     }
 
-    Row(modifier = modifier.padding(start = 16.dp, top = 8.dp, end = 16.dp)) {
+    Row(
+        modifier = modifier.padding(start = 16.dp, top = 14.dp, end = 16.dp, bottom = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         MangaActionButton(
             title = if (favorite) {
                 stringResource(MR.strings.in_library)
@@ -208,7 +225,8 @@ fun MangaActionRow(
                 stringResource(MR.strings.add_to_library)
             },
             icon = if (favorite) MaterialSymbols.RoundedFilled.Favorite else MaterialSymbols.Rounded.Favorite,
-            color = if (favorite) MaterialTheme.colorScheme.primary else defaultActionButtonColor,
+            color = defaultActionButtonColor,
+            filled = favorite,
             onClick = onAddToLibraryClicked,
             onLongClick = onEditCategory,
         )
@@ -223,7 +241,8 @@ fun MangaActionRow(
                 )
             },
             icon = MaterialSymbols.Rounded.HourglassEmpty,
-            color = if (isUserIntervalMode) MaterialTheme.colorScheme.primary else defaultActionButtonColor,
+            color = defaultActionButtonColor,
+            filled = isUserIntervalMode,
             onClick = { onEditIntervalClicked?.invoke() },
         )
         MangaActionButton(
@@ -233,7 +252,8 @@ fun MangaActionRow(
                 pluralStringResource(MR.plurals.num_trackers, count = trackingCount, trackingCount)
             },
             icon = if (trackingCount == 0) MaterialSymbols.Rounded.Sync else MaterialSymbols.Rounded.Check,
-            color = if (trackingCount == 0) defaultActionButtonColor else MaterialTheme.colorScheme.primary,
+            color = defaultActionButtonColor,
+            filled = trackingCount > 0,
             onClick = onTrackingClicked,
         )
         if (onWebViewClicked != null) {
@@ -403,8 +423,9 @@ private fun MangaAndSourceTitlesSmall(
     ) {
         MangaCover.Book(
             modifier = Modifier
-                .sizeIn(maxWidth = 100.dp)
-                .align(Alignment.Top),
+                .sizeIn(maxWidth = 118.dp)
+                .align(Alignment.Top)
+                .shadow(8.dp, RoundedCornerShape(8.dp)),
             data = ImageRequest.Builder(LocalContext.current)
                 .data(manga)
                 .crossfade(true)
@@ -444,7 +465,9 @@ private fun ColumnScope.MangaContentInfo(
     val context = LocalContext.current
     Text(
         text = title.ifBlank { stringResource(MR.strings.unknown_title) },
-        style = MaterialTheme.typography.titleLarge,
+        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+        maxLines = 4,
+        overflow = TextOverflow.Ellipsis,
         modifier = Modifier.clickableNoIndication(
             onLongClick = {
                 if (title.isNotBlank()) {
@@ -716,15 +739,20 @@ private fun TagsChip(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
-        SuggestionChip(
-            modifier = modifier,
-            onClick = onClick,
-            label = { Text(text = text, style = MaterialTheme.typography.bodySmall) },
-        )
-    }
+    // iOS genre capsules: accent text on a faint accent fill.
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.readableAccent(MaterialTheme.colorScheme.background),
+        modifier = modifier
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 5.dp),
+    )
 }
 
+/** An iOS details action tile: icon over a caption on a rounded card, filled with the accent when on. */
 @Composable
 private fun RowScope.MangaActionButton(
     title: String,
@@ -732,26 +760,33 @@ private fun RowScope.MangaActionButton(
     color: Color,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
+    filled: Boolean = false,
 ) {
-    TextButton(
-        onClick = onClick,
-        modifier = Modifier.weight(1f),
-        onLongClick = onLongClick,
+    val shape = RoundedCornerShape(12.dp)
+    val content = if (filled) MaterialTheme.colorScheme.onPrimary else color
+    Column(
+        modifier = Modifier
+            .weight(1f)
+            .clip(shape)
+            .background(if (filled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.card)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick, role = Role.Button)
+            .padding(horizontal = 4.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = color,
-                modifier = Modifier.size(20.dp),
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = title,
-                color = color,
-                fontSize = 12.sp,
-                textAlign = TextAlign.Center,
-            )
-        }
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = content,
+            modifier = Modifier.size(24.dp),
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = title,
+            color = content,
+            style = MaterialTheme.typography.labelSmall,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }

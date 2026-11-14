@@ -21,12 +21,14 @@ internal fun LibraryCompactGrid(
     onClickContinueReading: ((LibraryManga) -> Unit)?,
     searchQuery: String?,
     onGlobalSearchClicked: () -> Unit,
+    header: (@Composable () -> Unit)? = null,
 ) {
     LazyLibraryGrid(
         modifier = Modifier.fillMaxSize(),
         columns = columns,
         contentPadding = contentPadding,
     ) {
+        headerItem(header)
         globalSearchItem(searchQuery, onGlobalSearchClicked)
 
         items(

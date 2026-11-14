@@ -22,6 +22,8 @@ import eu.kanade.tachiyomi.data.library.LibraryUpdateWorker
 import eu.kanade.tachiyomi.ui.category.CategoryScreen
 import kotlinx.coroutines.launch
 import mihon.app.di.appGraph
+import mihon.feature.sourcehealth.SourceHealthScreen
+import mihon.feature.sourcehealth.SourceHealthWorker
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_CHARGING
@@ -54,6 +56,7 @@ object SettingsLibraryScreen : SearchableSettings {
         return listOf(
             getCategoriesGroup(LocalNavigator.currentOrThrow, allCategories, libraryPreferences),
             getGlobalUpdateGroup(allCategories, libraryPreferences),
+            getSourceHealthGroup(LocalNavigator.currentOrThrow),
             getBehaviorGroup(libraryPreferences),
         )
     }
@@ -173,6 +176,7 @@ object SettingsLibraryScreen : SearchableSettings {
                         // Post to event looper to allow the preference to be updated.
                         ContextCompat.getMainExecutor(context).execute {
                             LibraryUpdateWorker.setupTask(context)
+                            SourceHealthWorker.setupTask(context)
                         }
                         true
                     },
@@ -204,6 +208,33 @@ object SettingsLibraryScreen : SearchableSettings {
                 Preference.PreferenceItem.SwitchPreference(
                     preference = libraryPreferences.newShowUpdatesCount,
                     title = stringResource(MR.strings.pref_library_update_show_tab_badge),
+                ),
+            ),
+        )
+    }
+
+    @Composable
+    private fun getSourceHealthGroup(navigator: Navigator): Preference.PreferenceGroup {
+        val context = LocalContext.current
+        val preferences = remember { context.appGraph.sourceHealthPreferences }
+        return Preference.PreferenceGroup(
+            title = stringResource(MR.strings.source_health),
+            preferenceItems = listOf(
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = preferences.dailyCheck,
+                    title = stringResource(MR.strings.pref_source_health_daily_check),
+                    subtitle = stringResource(MR.strings.pref_source_health_daily_check_summary),
+                    onValueChanged = {
+                        // Post to event looper to allow the preference to be updated.
+                        ContextCompat.getMainExecutor(context).execute {
+                            SourceHealthWorker.setupTask(context)
+                        }
+                        true
+                    },
+                ),
+                Preference.PreferenceItem.TextPreference(
+                    title = stringResource(MR.strings.source_health),
+                    onClick = { navigator.push(SourceHealthScreen()) },
                 ),
             ),
         )

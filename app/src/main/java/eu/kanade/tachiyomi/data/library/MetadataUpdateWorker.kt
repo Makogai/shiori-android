@@ -25,6 +25,7 @@ import kotlinx.coroutines.withContext
 import logcat.LogPriority
 import mihon.app.di.AppGraph
 import mihon.core.metro.metroGraph
+import mihon.domain.source.health.SourceOperation
 import mihon.domain.source.interactor.UpdateMangaFromRemote
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.library.model.LibraryManga
@@ -123,6 +124,7 @@ class MetadataUpdateWorker(context: Context, workerParams: WorkerParameters) :
                                             source = source,
                                             manga = manga,
                                             fetchDetails = true,
+                                            operation = SourceOperation.LibraryUpdate,
                                         ).getOrThrow()
                                     } catch (e: Throwable) {
                                         // Ignore errors and continue

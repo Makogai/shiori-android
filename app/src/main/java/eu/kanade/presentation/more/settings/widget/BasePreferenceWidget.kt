@@ -76,8 +76,7 @@ internal fun BasePreferenceWidget(
                     text = title,
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 2,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontSize = TitleFontSize,
+                    style = MaterialTheme.typography.bodyLarge,
                 )
             }
             subcomponent?.invoke(this)
@@ -127,6 +126,5 @@ internal fun Modifier.highlightBackground(highlighted: Boolean): Modifier {
 
 internal val TrailingWidgetBuffer = 16.dp
 internal val PrefsHorizontalPadding = 16.dp
-internal val PrefsVerticalPadding = 16.dp
-internal val TitleFontSize = 16.sp
+internal val PrefsVerticalPadding = 12.dp
 internal val DisabledAlpha = 0.38f

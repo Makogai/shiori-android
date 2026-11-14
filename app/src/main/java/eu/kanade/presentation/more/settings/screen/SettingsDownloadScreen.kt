@@ -10,10 +10,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.util.fastMap
+import androidx.core.content.ContextCompat
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.category.visualName
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.widget.TriStateListDialog
 import mihon.app.di.appGraph
+import mihon.feature.cleanup.ReadChapterCleanupLogic
+import mihon.feature.cleanup.ReadChapterCleanupWorker
+import mihon.feature.cleanup.StorageScreen
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.i18n.MR
@@ -71,6 +77,8 @@ object SettingsDownloadScreen : SearchableSettings {
         downloadPreferences: DownloadPreferences,
         categories: List<Category>,
     ): Preference.PreferenceGroup {
+        val context = LocalContext.current
+        val navigator = LocalNavigator.currentOrThrow
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.pref_category_delete_chapters),
             preferenceItems = listOf(
@@ -90,6 +98,22 @@ object SettingsDownloadScreen : SearchableSettings {
                     ),
                     title = stringResource(MR.strings.pref_remove_after_read),
                 ),
+                Preference.PreferenceItem.ListPreference(
+                    preference = downloadPreferences.removeAfterReadDays,
+                    entries = ReadChapterCleanupLogic.CHOICES.associateWith { days ->
+                        if (days == 0) {
+                            stringResource(MR.strings.disabled)
+                        } else {
+                            pluralStringResource(MR.plurals.pref_remove_after_read_days_value, days, days)
+                        }
+                    },
+                    title = stringResource(MR.strings.pref_remove_after_read_days),
+                    onValueChanged = {
+                        // Post to event looper to allow the preference to be updated.
+                        ContextCompat.getMainExecutor(context).execute { ReadChapterCleanupWorker.setupTask(context) }
+                        true
+                    },
+                ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = downloadPreferences.removeBookmarkedChapters,
                     title = stringResource(MR.strings.pref_remove_bookmarked_chapters),
@@ -97,6 +121,11 @@ object SettingsDownloadScreen : SearchableSettings {
                 getExcludedCategoriesPreference(
                     downloadPreferences = downloadPreferences,
                     categories = { categories },
+                ),
+                Preference.PreferenceItem.TextPreference(
+                    title = stringResource(MR.strings.storage_per_series),
+                    subtitle = stringResource(MR.strings.storage_per_series_summary),
+                    onClick = { navigator.push(StorageScreen()) },
                 ),
             ),
         )

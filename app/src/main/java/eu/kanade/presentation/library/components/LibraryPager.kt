@@ -42,6 +42,7 @@ fun LibraryPager(
     onClickManga: (Category, LibraryManga) -> Unit,
     onLongClickManga: (Category, LibraryManga) -> Unit,
     onClickContinueReading: ((LibraryManga) -> Unit)?,
+    header: (@Composable () -> Unit)? = null,
 ) {
     HorizontalPager(
         modifier = Modifier.fillMaxSize(),
@@ -61,6 +62,7 @@ fun LibraryPager(
                 hasActiveFilters = hasActiveFilters,
                 contentPadding = contentPadding,
                 onGlobalSearchClicked = onGlobalSearchClicked,
+                header = header,
             )
             return@HorizontalPager
         }
@@ -89,6 +91,7 @@ fun LibraryPager(
                     onClickContinueReading = onClickContinueReading,
                     searchQuery = searchQuery,
                     onGlobalSearchClicked = onGlobalSearchClicked,
+                    header = header,
                 )
             }
             LibraryDisplayMode.CompactGrid, LibraryDisplayMode.CoverOnlyGrid -> {
@@ -103,6 +106,7 @@ fun LibraryPager(
                     onClickContinueReading = onClickContinueReading,
                     searchQuery = searchQuery,
                     onGlobalSearchClicked = onGlobalSearchClicked,
+                    header = header,
                 )
             }
             LibraryDisplayMode.ComfortableGrid -> {
@@ -116,6 +120,7 @@ fun LibraryPager(
                     onClickContinueReading = onClickContinueReading,
                     searchQuery = searchQuery,
                     onGlobalSearchClicked = onGlobalSearchClicked,
+                    header = header,
                 )
             }
         }
@@ -128,6 +133,7 @@ private fun LibraryPagerEmptyScreen(
     hasActiveFilters: Boolean,
     contentPadding: PaddingValues,
     onGlobalSearchClicked: () -> Unit,
+    header: (@Composable () -> Unit)?,
 ) {
     val msg = when {
         !searchQuery.isNullOrEmpty() -> MR.strings.no_results_found
@@ -141,6 +147,7 @@ private fun LibraryPagerEmptyScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
+        header?.invoke()
         if (!searchQuery.isNullOrEmpty()) {
             GlobalSearchItem(
                 modifier = Modifier

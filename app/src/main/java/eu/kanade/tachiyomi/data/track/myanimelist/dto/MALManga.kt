@@ -7,6 +7,8 @@ import kotlinx.serialization.Serializable
 data class MALManga(
     val id: Long,
     val title: String,
+    @SerialName("alternative_titles")
+    val alternativeTitles: MALAlternativeTitles? = null,
     val synopsis: String = "",
     @SerialName("num_chapters")
     val numChapters: Long,
@@ -41,4 +43,11 @@ data class MALAuthor(
 @Serializable
 data class MALMangaCovers(
     val large: String = "",
+)
+
+@Serializable
+data class MALAlternativeTitles(
+    val synonyms: List<String> = emptyList(),
+    val en: String? = null,
+    val ja: String? = null,
 )

@@ -6,6 +6,7 @@ import dev.icerock.moko.resources.StringResource
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
+import eu.kanade.tachiyomi.ui.reader.capture.ShotLayout
 import eu.kanade.tachiyomi.ui.reader.viewer.webgpu.WebGpuShader
 import eu.kanade.tachiyomi.ui.reader.viewer.webgpu.WebGpuShaders
 import tachiyomi.core.common.preference.Preference
@@ -106,6 +107,8 @@ class ReaderPreferences(
     )
 
     val folderPerManga: Preference<Boolean> = preferenceStore.getBoolean("create_folder_per_manga", false)
+
+    val screenshotLayout: Preference<ShotLayout> = preferenceStore.getEnum("reader_shot_layout", ShotLayout.FOOTER)
 
     val skipRead: Preference<Boolean> = preferenceStore.getBoolean("skip_read", false)
 

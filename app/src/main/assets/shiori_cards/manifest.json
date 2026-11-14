@@ -1,0 +1,490 @@
+{
+  "back" : "back/card_back.png",
+  "canvas" : {
+    "cornerRadius" : 36,
+    "height" : 2100,
+    "width" : 1500
+  },
+  "effects" : {
+    "aura_glow" : {
+      "animation" : "pulse",
+      "blend" : "screen",
+      "file" : "effects/aura_glow.png",
+      "frames" : [
+
+      ],
+      "layer" : "over",
+      "opacity" : 0.8,
+      "tile" : false,
+      "tintWithAccent" : true
+    },
+    "ember_particles" : {
+      "animation" : "rise",
+      "blend" : "screen",
+      "file" : "effects/ember_particles.png",
+      "frames" : [
+
+      ],
+      "layer" : "art",
+      "opacity" : 0.9,
+      "tile" : false,
+      "tintWithAccent" : false
+    },
+    "foil_noise" : {
+      "animation" : "tilt",
+      "blend" : "overlay",
+      "file" : "effects/foil_noise.png",
+      "layer" : "frame",
+      "opacity" : 0.4,
+      "tile" : true,
+      "tintWithAccent" : false
+    },
+    "frost_crystals" : {
+      "animation" : "none",
+      "blend" : "screen",
+      "file" : "effects/frost_crystals.png",
+      "frames" : [
+
+      ],
+      "layer" : "frame",
+      "opacity" : 0.85,
+      "tile" : false,
+      "tintWithAccent" : false
+    },
+    "glitch_scan" : {
+      "animation" : "jitter",
+      "blend" : "screen",
+      "file" : "effects/glitch_scan.png",
+      "frames" : [
+
+      ],
+      "layer" : "art",
+      "opacity" : 0.3,
+      "tile" : false,
+      "tintWithAccent" : false
+    },
+    "halftone_pop" : {
+      "animation" : "none",
+      "blend" : "multiply",
+      "file" : "effects/halftone_pop.png",
+      "frames" : [
+
+      ],
+      "layer" : "art",
+      "opacity" : 0.5,
+      "tile" : false,
+      "tintWithAccent" : false
+    },
+    "hearts_float" : {
+      "animation" : "rise",
+      "blend" : "normal",
+      "file" : "effects/hearts_float.png",
+      "frames" : [
+
+      ],
+      "layer" : "art",
+      "opacity" : 0.85,
+      "tile" : false,
+      "tintWithAccent" : false
+    },
+    "holo_rainbow" : {
+      "animation" : "tilt",
+      "blend" : "screen",
+      "file" : "effects/holo_rainbow.png",
+      "layer" : "over",
+      "opacity" : 0.4,
+      "tile" : true,
+      "tintWithAccent" : false
+    },
+    "ink_splash" : {
+      "animation" : "none",
+      "blend" : "multiply",
+      "file" : "effects/ink_splash.png",
+      "frames" : [
+
+      ],
+      "layer" : "under",
+      "opacity" : 0.8,
+      "tile" : false,
+      "tintWithAccent" : false
+    },
+    "light_rays" : {
+      "animation" : "rotate",
+      "blend" : "screen",
+      "file" : "effects/light_rays.png",
+      "frames" : [
+
+      ],
+      "layer" : "art",
+      "opacity" : 0.5,
+      "tile" : false,
+      "tintWithAccent" : false
+    },
+    "lightning_arcs" : {
+      "animation" : "flicker",
+      "blend" : "screen",
+      "file" : "effects/lightning_arcs.png",
+      "frames" : [
+
+      ],
+      "layer" : "art",
+      "opacity" : 0.85,
+      "tile" : false,
+      "tintWithAccent" : false
+    },
+    "sakura_petals" : {
+      "animation" : "fall",
+      "blend" : "normal",
+      "file" : "effects/sakura_petals.png",
+      "frames" : [
+
+      ],
+      "layer" : "art",
+      "opacity" : 0.9,
+      "tile" : false,
+      "tintWithAccent" : false
+    },
+    "shadow_smoke" : {
+      "animation" : "drift",
+      "blend" : "multiply",
+      "file" : "effects/shadow_smoke.png",
+      "frames" : [
+
+      ],
+      "layer" : "art",
+      "opacity" : 0.7,
+      "tile" : false,
+      "tintWithAccent" : false
+    },
+    "sparkle_burst" : {
+      "animation" : "twinkle",
+      "blend" : "screen",
+      "file" : "effects/sparkle_burst.png",
+      "frames" : [
+
+      ],
+      "layer" : "over",
+      "opacity" : 0.9,
+      "tile" : false,
+      "tintWithAccent" : false
+    },
+    "speed_lines" : {
+      "animation" : "none",
+      "blend" : "normal",
+      "file" : "effects/speed_lines.png",
+      "frames" : [
+
+      ],
+      "layer" : "art",
+      "opacity" : 0.6,
+      "tile" : false,
+      "tintWithAccent" : false
+    },
+    "star_dust" : {
+      "animation" : "drift",
+      "blend" : "screen",
+      "file" : "effects/star_dust.png",
+      "frames" : [
+
+      ],
+      "layer" : "over",
+      "opacity" : 0.8,
+      "tile" : false,
+      "tintWithAccent" : false
+    }
+  },
+  "fonts" : {
+
+  },
+  "grades" : {
+    "C" : {
+      "accent" : "#9CA3AF",
+      "badge" : "badges/C.png",
+      "bannerScrim" : {
+        "color" : "#0F0E17",
+        "opacity" : 0.78
+      },
+      "base" : "base/C.png",
+      "frame" : "frames/C.png",
+      "glow" : "back/glow_C.png",
+      "text" : {
+        "body" : "#E5E7EB",
+        "muted" : "#9CA3AF",
+        "name" : "#FFFFFF"
+      },
+      "wordmark" : "brand/wordmark.png",
+      "wordmarkTint" : "#D1D5DB"
+    },
+    "E" : {
+      "accent" : "#C026D3",
+      "badge" : "badges/E.png",
+      "bannerScrim" : {
+        "color" : "#0F0E17",
+        "opacity" : 0.8
+      },
+      "base" : "base/E.png",
+      "frame" : "frames/E.png",
+      "glow" : "back/glow_E.png",
+      "text" : {
+        "body" : "#F5E8FF",
+        "muted" : "#C9A8E8",
+        "name" : "#FFFFFF"
+      },
+      "wordmark" : "brand/wordmark_gold.png",
+      "wordmarkTint" : "#F5C542"
+    },
+    "L" : {
+      "accent" : "#F5C542",
+      "badge" : "badges/L.png",
+      "bannerScrim" : {
+        "color" : "#0F0E17",
+        "opacity" : 0.8
+      },
+      "base" : "base/L.png",
+      "frame" : "frames/L.png",
+      "glow" : "back/glow_L.png",
+      "text" : {
+        "body" : "#FDF0D0",
+        "muted" : "#D9B877",
+        "name" : "#FFF8E1"
+      },
+      "wordmark" : "brand/wordmark_gold.png",
+      "wordmarkTint" : "#F5C542"
+    },
+    "M" : {
+      "accent" : "#8B5CF6",
+      "badge" : "badges/M.png",
+      "bannerScrim" : {
+        "color" : "#07070C",
+        "opacity" : 0.82
+      },
+      "base" : "base/M.png",
+      "frame" : "frames/M.png",
+      "glow" : "back/glow_M.png",
+      "text" : {
+        "body" : "#E4E4F0",
+        "muted" : "#A5A5C0",
+        "name" : "#F0FFFC"
+      },
+      "wordmark" : "brand/wordmark_gold.png",
+      "wordmarkTint" : "#F5C542"
+    },
+    "R" : {
+      "accent" : "#60A5FA",
+      "badge" : "badges/R.png",
+      "bannerScrim" : {
+        "color" : "#0F0E17",
+        "opacity" : 0.78
+      },
+      "base" : "base/R.png",
+      "frame" : "frames/R.png",
+      "glow" : "back/glow_R.png",
+      "text" : {
+        "body" : "#E0EAFF",
+        "muted" : "#93B4E8",
+        "name" : "#FFFFFF"
+      },
+      "wordmark" : "brand/wordmark.png",
+      "wordmarkTint" : "#DBEAFE"
+    },
+    "S" : {
+      "accent" : "#F9A8D4",
+      "badge" : "badges/S.png",
+      "bannerScrim" : {
+        "color" : "#0B0A26",
+        "opacity" : 0.74
+      },
+      "base" : "base/S.png",
+      "frame" : "frames/S.png",
+      "glow" : "back/glow_S.png",
+      "text" : {
+        "body" : "#EEF0FF",
+        "muted" : "#C7C9F0",
+        "name" : "#FFFFFF"
+      },
+      "wordmark" : "brand/wordmark_gold.png",
+      "wordmarkTint" : "#F5C542"
+    },
+    "U" : {
+      "accent" : "#2DD4BF",
+      "badge" : "badges/U.png",
+      "bannerScrim" : {
+        "color" : "#0F0E17",
+        "opacity" : 0.78
+      },
+      "base" : "base/U.png",
+      "frame" : "frames/U.png",
+      "glow" : "back/glow_U.png",
+      "text" : {
+        "body" : "#E6FFFA",
+        "muted" : "#99D5CC",
+        "name" : "#FFFFFF"
+      },
+      "wordmark" : "brand/wordmark.png",
+      "wordmarkTint" : "#CCFBF1"
+    }
+  },
+  "masks" : {
+    "art" : "masks/art_window.png",
+    "card" : "masks/card_shape.png"
+  },
+  "regions" : {
+    "art" : {
+      "cornerRadius" : 12,
+      "h" : 2028,
+      "w" : 1428,
+      "x" : 36,
+      "y" : 36
+    },
+    "badge" : {
+      "cx" : 1372,
+      "cy" : 128,
+      "size" : 150
+    },
+    "banner" : {
+      "h" : 274,
+      "w" : 1428,
+      "x" : 36,
+      "y" : 1790
+    },
+    "emblem" : {
+      "cx" : 120,
+      "cy" : 120,
+      "size" : 96
+    }
+  },
+  "style" : "modern-fullart",
+  "themes" : {
+    "action" : {
+      "accent" : "#F97316",
+      "emblem" : "themes/action/emblem.png",
+      "ornament" : "themes/action/ornament.png",
+      "preferredEffects" : [
+        "ember_particles",
+        "speed_lines",
+        "lightning_arcs"
+      ]
+    },
+    "comedy" : {
+      "accent" : "#FACC15",
+      "emblem" : "themes/comedy/emblem.png",
+      "ornament" : "themes/comedy/ornament.png",
+      "preferredEffects" : [
+        "halftone_pop",
+        "hearts_float",
+        "sparkle_burst"
+      ]
+    },
+    "drama" : {
+      "accent" : "#9F1239",
+      "emblem" : "themes/drama/emblem.png",
+      "ornament" : "themes/drama/ornament.png",
+      "preferredEffects" : [
+        "light_rays",
+        "ink_splash",
+        "sparkle_burst"
+      ]
+    },
+    "fantasy" : {
+      "accent" : "#10B981",
+      "emblem" : "themes/fantasy/emblem.png",
+      "ornament" : "themes/fantasy/ornament.png",
+      "preferredEffects" : [
+        "light_rays",
+        "star_dust",
+        "frost_crystals"
+      ]
+    },
+    "horror" : {
+      "accent" : "#B91C1C",
+      "emblem" : "themes/horror/emblem.png",
+      "ornament" : "themes/horror/ornament.png",
+      "preferredEffects" : [
+        "shadow_smoke",
+        "frost_crystals",
+        "sparkle_burst"
+      ]
+    },
+    "isekai" : {
+      "accent" : "#2563EB",
+      "emblem" : "themes/isekai/emblem.png",
+      "ornament" : "themes/isekai/ornament.png",
+      "preferredEffects" : [
+        "glitch_scan",
+        "light_rays",
+        "sparkle_burst"
+      ]
+    },
+    "martial_arts" : {
+      "accent" : "#059669",
+      "emblem" : "themes/martial_arts/emblem.png",
+      "ornament" : "themes/martial_arts/ornament.png",
+      "preferredEffects" : [
+        "ink_splash",
+        "ember_particles",
+        "sparkle_burst"
+      ]
+    },
+    "mystery" : {
+      "accent" : "#6366F1",
+      "emblem" : "themes/mystery/emblem.png",
+      "ornament" : "themes/mystery/ornament.png",
+      "preferredEffects" : [
+        "shadow_smoke",
+        "sparkle_burst",
+        "aura_glow"
+      ]
+    },
+    "neutral" : {
+      "accent" : "#9CA3AF",
+      "emblem" : "themes/neutral/emblem.png",
+      "ornament" : "themes/neutral/ornament.png",
+      "preferredEffects" : [
+        "sparkle_burst",
+        "aura_glow",
+        "light_rays"
+      ]
+    },
+    "romance" : {
+      "accent" : "#F472B6",
+      "emblem" : "themes/romance/emblem.png",
+      "ornament" : "themes/romance/ornament.png",
+      "preferredEffects" : [
+        "sakura_petals",
+        "hearts_float",
+        "sparkle_burst"
+      ]
+    },
+    "scifi" : {
+      "accent" : "#22D3EE",
+      "emblem" : "themes/scifi/emblem.png",
+      "ornament" : "themes/scifi/ornament.png",
+      "preferredEffects" : [
+        "glitch_scan",
+        "lightning_arcs",
+        "sparkle_burst"
+      ]
+    },
+    "slice_of_life" : {
+      "accent" : "#A3E635",
+      "emblem" : "themes/slice_of_life/emblem.png",
+      "ornament" : "themes/slice_of_life/ornament.png",
+      "preferredEffects" : [
+        "sakura_petals",
+        "sparkle_burst",
+        "light_rays"
+      ]
+    },
+    "sports" : {
+      "accent" : "#3B82F6",
+      "emblem" : "themes/sports/emblem.png",
+      "ornament" : "themes/sports/ornament.png",
+      "preferredEffects" : [
+        "speed_lines",
+        "sparkle_burst",
+        "aura_glow"
+      ]
+    }
+  },
+  "version" : 1
+}

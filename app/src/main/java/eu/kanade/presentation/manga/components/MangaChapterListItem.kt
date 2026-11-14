@@ -24,6 +24,9 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.kanade.tachiyomi.data.download.model.Download
@@ -43,6 +46,7 @@ import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.DISABLED_ALPHA
 import tachiyomi.presentation.core.components.material.SECONDARY_ALPHA
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.theme.card
 import tachiyomi.presentation.core.util.selectedBackground
 
 @Composable
@@ -87,7 +91,7 @@ fun MangaChapterListItem(
         startActions = listOfNotNull(start),
         endActions = listOfNotNull(end),
         swipeThreshold = swipeActionThreshold,
-        backgroundUntilSwipeThreshold = MaterialTheme.colorScheme.surfaceContainerLowest,
+        backgroundUntilSwipeThreshold = MaterialTheme.colorScheme.card,
     ) {
         Row(
             modifier = modifier
@@ -96,27 +100,18 @@ fun MangaChapterListItem(
                     onClick = onClick,
                     onLongClick = onLongClick,
                 )
-                .padding(start = 16.dp, top = 12.dp, end = 8.dp, bottom = 12.dp),
+                .padding(start = 16.dp, top = 10.dp, end = 8.dp, bottom = 10.dp),
         ) {
+            val unreadDescription = stringResource(MR.strings.unread)
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(3.dp),
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     var textHeight by remember { mutableIntStateOf(0) }
-                    if (!read) {
-                        Icon(
-                            imageVector = MaterialSymbols.RoundedFilled.Circle,
-                            contentDescription = stringResource(MR.strings.unread),
-                            modifier = Modifier
-                                .height(8.dp)
-                                .padding(end = 4.dp),
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                    }
                     if (bookmark) {
                         Icon(
                             imageVector = MaterialSymbols.RoundedFilled.Bookmark,
@@ -128,11 +123,16 @@ fun MangaChapterListItem(
                     }
                     Text(
                         text = title,
+                        // iOS: unread chapters semibold, read ones regular and secondary.
                         style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = if (read) FontWeight.Normal else FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         onTextLayout = { textHeight = it.size.height },
-                        color = LocalContentColor.current.copy(alpha = if (read) DISABLED_ALPHA else 1f),
+                        color = if (read) MaterialTheme.colorScheme.onSurfaceVariant else LocalContentColor.current,
+                        modifier = Modifier.semantics {
+                            if (!read) stateDescription = unreadDescription
+                        },
                     )
                 }
 

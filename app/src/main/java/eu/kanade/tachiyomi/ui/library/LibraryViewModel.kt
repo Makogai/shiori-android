@@ -48,7 +48,9 @@ import kotlinx.coroutines.withContext
 import mihon.core.common.utils.mutate
 import mihon.core.metro.AppCoroutineScope
 import mihon.domain.library.model.search.QueryNode
+import mihon.feature.common.utils.seriesKey
 import mihon.feature.library.matches
+import mihon.feature.ratings.PersonalRatings
 import tachiyomi.core.common.preference.CheckboxState
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.core.common.util.lang.SubscriberGate
@@ -98,6 +100,7 @@ class LibraryViewModel(
     private val downloadManager: DownloadManager,
     private val downloadCache: DownloadCache,
     private val trackerManager: TrackerManager,
+    private val personalRatings: PersonalRatings,
 ) : ViewModel() {
 
     private val subscriberGate = SubscriberGate()
@@ -174,12 +177,12 @@ class LibraryViewModel(
         )
     }
         .distinctUntilChanged()
-        .map { data ->
+        .combine(personalRatings.scores.changes()) { data, scores ->
             Library(
                 data = data,
                 groupedFavorites = data.favorites
                     .applyGrouping(data.categories, data.showSystemCategory)
-                    .applySort(data.favoritesById, data.tracksMap, data.loggedInTrackerIds),
+                    .applySort(data.favoritesById, data.tracksMap, data.loggedInTrackerIds, scores),
             )
         }
         .flowOn(Dispatchers.Default)
@@ -305,6 +308,7 @@ class LibraryViewModel(
         favoritesById: Map<Long, LibraryItem>,
         trackMap: Map<Long, List<Track>>,
         loggedInTrackerIds: Set<Long>,
+        scores: Map<String, Int>,
     ): Map<Category, List</* LibraryItem */ Long>> {
         // The collator already ignores case, and lowercasing on every comparison is slow on large libraries
         val sortAlphabetically: (LibraryItem, LibraryItem) -> Int = { manga1, manga2 ->
@@ -358,6 +362,12 @@ class LibraryViewModel(
                 LibrarySort.Type.TrackerMean -> {
                     val item1Score = trackerScores[manga1.id] ?: defaultTrackerScoreSortValue
                     val item2Score = trackerScores[manga2.id] ?: defaultTrackerScoreSortValue
+                    item1Score.compareTo(item2Score)
+                }
+                LibrarySort.Type.MyScore -> {
+                    // Unscored series sort below every score
+                    val item1Score = scores[manga1.libraryManga.manga.seriesKey] ?: 0
+                    val item2Score = scores[manga2.libraryManga.manga.seriesKey] ?: 0
                     item1Score.compareTo(item2Score)
                 }
                 LibrarySort.Type.Random -> {

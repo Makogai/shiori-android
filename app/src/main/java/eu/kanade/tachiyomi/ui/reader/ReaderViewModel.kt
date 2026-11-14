@@ -76,6 +76,8 @@ import kotlinx.coroutines.withContext
 import logcat.LogPriority
 import mihon.core.metro.AppCoroutineScope
 import mihon.data.cache.ChapterCache
+import mihon.domain.source.health.SourceHealthRecorder
+import mihon.feature.habits.ReadingHabits
 import tachiyomi.core.common.preference.toggle
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.chapter.interactor.GetChaptersByMangaId
@@ -126,7 +128,9 @@ class ReaderViewModel(
     private val updateManga: UpdateManga,
     private val coverCache: CoverCache,
     private val chapterCache: ChapterCache,
+    private val sourceHealth: SourceHealthRecorder,
     private val downloadCache: DownloadCache,
+    private val readingHabits: ReadingHabits,
 ) : ViewModel() {
 
     @AssistedFactory
@@ -360,6 +364,7 @@ class ReaderViewModel(
                     ::canLoadAhead,
                     manga,
                     source,
+                    sourceHealth,
                 )
 
                 chapterList = loadChapterList()
@@ -651,6 +656,7 @@ class ReaderViewModel(
 
         if (incognitoMode || page.status is Page.State.Error) return
 
+        val finished = !readerChapter.chapter.read && readerChapter.pages?.lastIndex == pageIndex
         val read = readerChapter.chapter.read || readerChapter.pages?.lastIndex == pageIndex
         // A page change in another chapter would replace that chapter's pending save
         if (pendingProgressChapter != readerChapter) saveChapterProgress()
@@ -659,7 +665,7 @@ class ReaderViewModel(
 
         if (readerChapter.pages?.lastIndex == pageIndex) {
             pendingProgressChapter = null
-            writeChapterProgress(readerChapter, onComplete = true)
+            writeChapterProgress(readerChapter, onComplete = true, finished = finished)
         } else {
             pendingProgressChapter = readerChapter
             pendingProgressSave = viewModelScope.launch {
@@ -681,7 +687,7 @@ class ReaderViewModel(
     /**
      * Writes the progress of [readerChapter] on the app scope, so it's saved even when the reader is closing.
      */
-    private fun writeChapterProgress(readerChapter: ReaderChapter, onComplete: Boolean) {
+    private fun writeChapterProgress(readerChapter: ReaderChapter, onComplete: Boolean, finished: Boolean = false) {
         // Immediate and through the mutex, which is fair, so the writes land in the order they were made
         appScope.launch(Dispatchers.Main.immediate) {
             progressWrites.withLock {
@@ -694,8 +700,18 @@ class ReaderViewModel(
                         lastPageRead = chapter.lastPageRead
                     },
                 )
+                if (finished) onChapterFinished(chapter.id)
             }
         }
+    }
+
+    /**
+     * Stamps the history with the moment the chapter was finished, so it counts for today right away, and tells
+     * the reader how many chapters today makes.
+     */
+    private suspend fun onChapterFinished(chapterId: Long) {
+        upsertHistory.await(HistoryUpdate(chapterId, Clock.System.now(), 0))
+        eventChannel.trySend(Event.ChapterFinished(today = readingHabits.todayCount(), goal = readingHabits.goal()))
     }
 
     private suspend fun updateChapterProgressOnComplete(readerChapter: ReaderChapter) {
@@ -1120,6 +1136,7 @@ class ReaderViewModel(
         data class SavedImage(val result: SaveImageResult) : Event
         data class ShareImage(val uri: Uri, val page: ReaderPage) : Event
         data class CopyImage(val uri: Uri) : Event
+        data class ChapterFinished(val today: Int, val goal: Int?) : Event
     }
 }
 

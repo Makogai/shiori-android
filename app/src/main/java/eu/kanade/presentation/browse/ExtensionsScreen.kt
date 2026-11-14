@@ -1,6 +1,7 @@
 package eu.kanade.presentation.browse
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,8 +31,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -72,6 +75,7 @@ import tachiyomi.presentation.core.screens.EmptyScreen
 import tachiyomi.presentation.core.screens.EmptyScreenAction
 import tachiyomi.presentation.core.screens.LoadingScreen
 import tachiyomi.presentation.core.theme.header
+import tachiyomi.presentation.core.theme.readableAccent
 import tachiyomi.presentation.core.util.plus
 
 @Composable
@@ -489,7 +493,11 @@ private fun ExtensionItemActions(
         }
         secondaryAction?.let { (icon, label) ->
             IconButton(onClick = { onClickItemSecondaryAction(extension) }) {
-                Icon(imageVector = icon, contentDescription = stringResource(label))
+                Icon(
+                    imageVector = icon,
+                    contentDescription = stringResource(label),
+                    tint = MaterialTheme.colorScheme.readableAccent(),
+                )
             }
         }
 
@@ -501,10 +509,19 @@ private fun ExtensionItemActions(
             }
             else -> null
         }
-        action?.let { (icon, label) ->
-            IconButton(onClick = { onClickItemAction(extension) }) {
-                Icon(imageVector = icon, contentDescription = stringResource(label))
-            }
+        action?.let { (_, label) ->
+            // The iOS "Get" / "Update" capsule.
+            Text(
+                text = stringResource(label),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onPrimary,
+                maxLines = 1,
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary)
+                    .clickable(role = Role.Button) { onClickItemAction(extension) }
+                    .padding(horizontal = 14.dp, vertical = 5.dp),
+            )
         }
     }
 }
@@ -533,11 +550,12 @@ private fun ExtensionHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = text,
+            text = text.uppercase(),
             modifier = Modifier
-                .padding(vertical = 8.dp)
+                .padding(start = 16.dp, top = 18.dp, bottom = 7.dp)
                 .weight(1f),
-            style = MaterialTheme.typography.header,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         action()
     }

@@ -1,6 +1,7 @@
 package eu.kanade.presentation.library.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -28,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
@@ -127,14 +129,14 @@ private fun BoxScope.CoverTextOverlay(
 ) {
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp))
             .background(
                 Brush.verticalGradient(
                     0f to Color.Transparent,
-                    1f to Color(0xAA000000),
+                    0.5f to Color.Black.copy(alpha = 0.55f),
+                    1f to Color.Black.copy(alpha = 0.8f),
                 ),
             )
-            .fillMaxHeight(0.33f)
+            .fillMaxHeight(0.45f)
             .fillMaxWidth()
             .align(Alignment.BottomCenter),
     )
@@ -238,17 +240,22 @@ private fun MangaGridCover(
     badgesEnd: (@Composable RowScope.() -> Unit)? = null,
     content: @Composable (BoxScope.() -> Unit)? = null,
 ) {
+    val coverShape = RoundedCornerShape(8.dp)
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .aspectRatio(MangaCover.Book.ratio),
+            .aspectRatio(MangaCover.Book.ratio)
+            // iOS cover frame: soft drop shadow and a hairline edge.
+            .shadow(elevation = 3.dp, shape = coverShape, clip = false)
+            .clip(coverShape)
+            .border(0.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), coverShape),
     ) {
         cover()
         content?.invoke(this)
         if (badgesStart != null) {
             BadgeGroup(
                 modifier = Modifier
-                    .padding(4.dp)
+                    .padding(5.dp)
                     .align(Alignment.TopStart),
                 content = badgesStart,
             )
@@ -257,7 +264,7 @@ private fun MangaGridCover(
         if (badgesEnd != null) {
             BadgeGroup(
                 modifier = Modifier
-                    .padding(4.dp)
+                    .padding(5.dp)
                     .align(Alignment.TopEnd),
                 content = badgesEnd,
             )

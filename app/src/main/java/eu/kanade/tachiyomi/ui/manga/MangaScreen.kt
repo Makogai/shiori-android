@@ -21,6 +21,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.domain.manga.model.toSManga
 import eu.kanade.presentation.browse.components.RemoveMangaDialog
 import eu.kanade.presentation.category.components.ChangeCategoryDialog
@@ -55,12 +56,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import logcat.LogPriority
+import mihon.feature.details.MangaExtrasSection
+import mihon.feature.friends.ui.SuggestToFriendSheet
+import mihon.feature.friends.ui.SuggestToFriendViewModel
 import mihon.feature.migration.config.MigrationConfigScreen
 import mihon.feature.migration.dialog.MigrateMangaDialog
+import mihon.feature.ratings.TopListsScreen
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.chapter.model.Chapter
+import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.presentation.core.screens.LoadingScreen
+import tachiyomi.source.local.isLocal
 
 class MangaScreen(
     private val mangaId: Long,
@@ -91,6 +98,9 @@ class MangaScreen(
 
         val successState = state as MangaViewModel.State.Success
         val isHttpSource = remember { successState.source is HttpSource }
+        val suggestViewModel = metroViewModel<SuggestToFriendViewModel>()
+        val canSuggest by suggestViewModel.canSuggest.collectAsStateWithLifecycle()
+        var showSuggestSheet by remember { mutableStateOf(false) }
 
         LaunchedEffect(successState.manga, viewModel.source) {
             if (isHttpSource) {
@@ -118,10 +128,11 @@ class MangaScreen(
             onAddToLibraryClicked = {
                 if (successState.manga.favorite) {
                     viewModel.showRemoveFromLibraryDialog()
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 } else {
                     viewModel.toggleFavorite()
+                    haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                 }
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             },
             onWebViewClicked = {
                 openMangaInWebView(
@@ -159,15 +170,36 @@ class MangaScreen(
             onMigrateClicked = {
                 navigator.push(MigrationConfigScreen(successState.manga.id))
             }.takeIf { successState.manga.favorite },
+            onSuggestClicked = { showSuggestSheet = true }.takeIf { canSuggest && !successState.source.isLocal() },
             onEditNotesClicked = { navigator.push(MangaNotesScreen(manga = successState.manga)) },
             onMultiBookmarkClicked = viewModel::bookmarkChapters,
-            onMultiMarkAsReadClicked = viewModel::markChaptersRead,
+            onMultiMarkAsReadClicked = { chapters, read ->
+                viewModel.markChaptersRead(chapters, read)
+                haptic.performHapticFeedback(if (read) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff)
+            },
             onMarkPreviousAsReadClicked = viewModel::markPreviousChapterRead,
             onMultiDeleteClicked = viewModel::showDeleteChapterDialog,
-            onChapterSwipe = viewModel::chapterSwipe,
+            onChapterSwipe = { item, action ->
+                viewModel.chapterSwipe(item, action)
+                if (action == LibraryPreferences.ChapterSwipeAction.ToggleRead) {
+                    haptic.performHapticFeedback(
+                        if (item.chapter.read) HapticFeedbackType.ToggleOff else HapticFeedbackType.ToggleOn,
+                    )
+                }
+            },
             onChapterSelected = viewModel::toggleSelection,
             onAllChapterSelected = viewModel::toggleAllSelection,
             onInvertSelection = viewModel::invertSelection,
+            extras = {
+                MangaExtrasSection(
+                    mangaId = successState.manga.id,
+                    onOpenPage = { chapterId, page ->
+                        context.startActivity(ReaderActivity.newIntent(context, successState.manga.id, chapterId, page))
+                    },
+                    onSearch = { navigator.push(GlobalSearchScreen(it)) },
+                    onManageTopLists = { navigator.push(TopListsScreen()) },
+                )
+            },
         )
 
         var showScanlatorsDialog by remember { mutableStateOf(false) }
@@ -287,6 +319,15 @@ class MangaScreen(
                         .takeIf { viewModel.isUpdateIntervalEnabled },
                 )
             }
+        }
+
+        if (showSuggestSheet) {
+            SuggestToFriendSheet(
+                viewModel = suggestViewModel,
+                manga = successState.manga,
+                source = successState.source,
+                onDismissRequest = { showSuggestSheet = false },
+            )
         }
 
         if (showScanlatorsDialog) {

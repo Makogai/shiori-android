@@ -26,7 +26,6 @@ import eu.kanade.presentation.more.settings.widget.PrefsHorizontalPadding
 import eu.kanade.presentation.more.settings.widget.PrefsVerticalPadding
 import eu.kanade.presentation.more.settings.widget.SwitchPreferenceWidget
 import eu.kanade.presentation.more.settings.widget.TextPreferenceWidget
-import eu.kanade.presentation.more.settings.widget.TitleFontSize
 import eu.kanade.presentation.more.settings.widget.TrackingPreferenceWidget
 import eu.kanade.tachiyomi.data.track.RefreshResult
 import eu.kanade.tachiyomi.util.system.toast
@@ -103,7 +102,7 @@ internal fun PreferenceItem(
                             }
                         }
                     },
-                    titleStyle = MaterialTheme.typography.titleLarge.copy(fontSize = TitleFontSize),
+                    titleStyle = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(
                         horizontal = PrefsHorizontalPadding,
                         vertical = PrefsVerticalPadding,

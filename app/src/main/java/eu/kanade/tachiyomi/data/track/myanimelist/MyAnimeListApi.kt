@@ -225,6 +225,11 @@ class MyAnimeListApi(
         return TrackSearch.create(trackerId).apply {
             remote_id = searchItem.id
             title = searchItem.title
+            alternative_titles = searchItem.alternativeTitles
+                ?.let { listOfNotNull(it.en, it.ja) + it.synonyms }
+                .orEmpty()
+                .filter { it.isNotBlank() && it != title }
+                .distinct()
             summary = searchItem.synopsis
             total_chapters = searchItem.numChapters
             score = searchItem.mean
@@ -272,7 +277,8 @@ class MyAnimeListApi(
         private const val BASE_API_URL = "https://api.myanimelist.net/v2"
 
         private const val SEARCH_FIELDS =
-            "id,title,synopsis,num_chapters,mean,main_picture,status,media_type,start_date,authors{first_name,last_name}"
+            "id,title,alternative_titles,synopsis,num_chapters,mean,main_picture,status,media_type,start_date," +
+                "authors{first_name,last_name}"
 
         private const val LIST_PAGINATION_AMOUNT = 250
 

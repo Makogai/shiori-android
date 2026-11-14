@@ -21,9 +21,11 @@ import androidx.compose.ui.util.fastAll
 import androidx.compose.ui.util.fastAny
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
+import eu.kanade.presentation.components.tabRootScrollBehavior
 import eu.kanade.presentation.manga.components.ChapterDownloadAction
 import eu.kanade.presentation.manga.components.MangaBottomActionMenu
 import eu.kanade.tachiyomi.data.download.model.Download
+import eu.kanade.tachiyomi.ui.recents.LocalRecentsHeader
 import eu.kanade.tachiyomi.ui.updates.UpdatesItem
 import eu.kanade.tachiyomi.ui.updates.UpdatesViewModel
 import kotlinx.coroutines.delay
@@ -34,6 +36,7 @@ import mihon.icons.materialsymbols.rounded.CalendarMonth
 import mihon.icons.materialsymbols.rounded.FilterList
 import mihon.icons.materialsymbols.rounded.FlipToBack
 import mihon.icons.materialsymbols.rounded.Refresh
+import mihon.icons.materialsymbols.rounded.Schedule
 import mihon.icons.materialsymbols.rounded.SelectAll
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.FastScrollLazyColumn
@@ -71,6 +74,7 @@ fun UpdateScreen(
     val scope = rememberCoroutineScope()
 
     Scaffold(
+        topBarScrollBehavior = tabRootScrollBehavior(),
         topBar = { scrollBehavior ->
             UpdatesAppBar(
                 onCalendarClicked = { onCalendarClicked() },
@@ -128,6 +132,9 @@ fun UpdateScreen(
                                     MR.strings.information_no_recent
                                 },
                                 modifier = Modifier.weight(1f),
+                                icon = MaterialSymbols.Rounded.Schedule,
+                                description = stringResource(MR.strings.empty_recents_description)
+                                    .takeIf { !hasActiveFilters },
                             )
                         }
                     } else {
@@ -166,9 +173,12 @@ private fun UpdatesAppBar(
     scrollBehavior: TopAppBarScrollBehavior,
     modifier: Modifier = Modifier,
 ) {
+    val recentsHeader = LocalRecentsHeader.current
     AppBar(
         modifier = modifier,
-        title = stringResource(MR.strings.label_recent_updates),
+        title = recentsHeader?.title ?: stringResource(MR.strings.label_recent_updates),
+        largeTitle = true,
+        bottomContent = recentsHeader?.picker,
         actions = {
             AppBarActions(
                 listOf(

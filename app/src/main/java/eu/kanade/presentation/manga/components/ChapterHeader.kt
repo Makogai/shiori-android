@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import tachiyomi.i18n.MR
@@ -23,6 +24,7 @@ fun ChapterHeader(
     chapterCount: Int?,
     missingChapterCount: Int,
     onClick: () -> Unit,
+    summary: String? = null,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -32,7 +34,7 @@ fun ChapterHeader(
                 enabled = enabled,
                 onClick = onClick,
             )
-            .padding(horizontal = 16.dp, vertical = 4.dp),
+            .padding(start = 20.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.extraSmall),
     ) {
         Text(
@@ -41,9 +43,18 @@ fun ChapterHeader(
             } else {
                 pluralStringResource(MR.plurals.manga_num_chapters, count = chapterCount, chapterCount)
             },
-            style = MaterialTheme.typography.titleMedium,
+            // iOS: the chapter count as a title 3 bold section heading.
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onBackground,
         )
+
+        if (summary != null) {
+            Text(
+                text = summary,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
 
         MissingChaptersWarning(missingChapterCount)
     }

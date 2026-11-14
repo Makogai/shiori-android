@@ -5,19 +5,24 @@ import androidx.activity.compose.ReportDrawnWhen
 import androidx.compose.animation.graphics.res.animatedVectorResource
 import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
 import androidx.compose.animation.graphics.vector.AnimatedImageVector
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastAll
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -27,6 +32,7 @@ import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.presentation.category.components.ChangeCategoryDialog
+import eu.kanade.presentation.components.tabRootScrollBehavior
 import eu.kanade.presentation.library.DeleteLibraryMangaDialog
 import eu.kanade.presentation.library.LibrarySettingsDialog
 import eu.kanade.presentation.library.components.LibraryContent
@@ -47,9 +53,26 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import mihon.feature.friends.cards.CardAlbumScreen
+import mihon.feature.friends.cards.CardDetailScreen
+import mihon.feature.friends.cards.CardsHubScreen
+import mihon.feature.friends.cards.LibraryCardsStrip
+import mihon.feature.friends.ui.ArenaScreen
+import mihon.feature.friends.ui.ArenaSummaryViewModel
+import mihon.feature.friends.ui.ArenaToolbarAction
+import mihon.feature.friends.ui.CardsToolbarAction
+import mihon.feature.friends.ui.LibraryArenaCard
+import mihon.feature.friends.ui.SuggestionsScreen
+import mihon.feature.habits.TodayPill
 import mihon.feature.migration.config.MigrationConfigScreen
+import mihon.feature.queue.BingeQueueScreen
+import mihon.feature.shelves.LibraryShelves
+import mihon.feature.shelves.LibraryShelvesViewModel
+import mihon.feature.tracklibrary.TrackLibraryScreen
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.Help
+import mihon.icons.materialsymbols.rounded.CollectionsBookmark
+import mihon.icons.materialsymbols.roundedfilled.CollectionsBookmark
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.library.model.LibraryManga
@@ -67,12 +90,10 @@ data object LibraryTab : Tab {
     override val options: TabOptions
         @Composable
         get() {
-            val isSelected = LocalTabNavigator.current.current.key == key
-            val image = AnimatedImageVector.animatedVectorResource(R.drawable.animated_library)
             return TabOptions(
                 index = 0u,
                 title = stringResource(MR.strings.label_library),
-                icon = rememberAnimatedVectorPainter(image, isSelected),
+                icon = rememberVectorPainter(MaterialSymbols.RoundedFilled.CollectionsBookmark),
             )
         }
 
@@ -89,6 +110,9 @@ data object LibraryTab : Tab {
 
         val viewModel = metroViewModel<LibraryViewModel>()
         val settingsViewModel = metroViewModel<LibrarySettingsViewModel>()
+        val shelvesViewModel = metroViewModel<LibraryShelvesViewModel>()
+        val leagueViewModel = metroViewModel<ArenaSummaryViewModel>()
+        val leagueSummary by leagueViewModel.summary.collectAsStateWithLifecycle()
         val state by viewModel.state.collectAsStateWithLifecycle()
 
         val snackbarHostState = remember { SnackbarHostState() }
@@ -107,6 +131,7 @@ data object LibraryTab : Tab {
         }
 
         Scaffold(
+            topBarScrollBehavior = tabRootScrollBehavior(),
             topBar = { scrollBehavior ->
                 val title = state.getToolbarTitle(
                     defaultTitle = stringResource(MR.strings.label_library),
@@ -120,6 +145,10 @@ data object LibraryTab : Tab {
                     onClickUnselectAll = viewModel::clearSelection,
                     onClickSelectAll = viewModel::selectAll,
                     onClickInvertSelection = viewModel::invertSelection,
+                    onClickAddToQueue = {
+                        shelvesViewModel.addToQueue(state.selectedManga)
+                        viewModel.clearSelection()
+                    },
                     onClickFilter = viewModel::showSettingsDialog,
                     onClickRefresh = { scope.launch { onClickRefresh(state.activeCategory) } },
                     onClickGlobalUpdate = { scope.launch { onClickRefresh(null) } },
@@ -135,10 +164,19 @@ data object LibraryTab : Tab {
                             }
                         }
                     },
+                    onClickTrackLibrary = { navigator.push(TrackLibraryScreen()) },
                     searchQuery = state.searchQuery,
                     onSearchQueryChange = viewModel::search,
-                    // For scroll overlay when no tab
-                    scrollBehavior = scrollBehavior.takeIf { !state.showCategoryTabs },
+                    scrollBehavior = scrollBehavior,
+                    // iOS order: the Arena trophy, then the 🃏 Cards button.
+                    leagueAction = {
+                        if (leagueSummary.configured) {
+                            ArenaToolbarAction(leagueSummary) { navigator.push(ArenaScreen()) }
+                        }
+                        if (leagueSummary.showCardsButton) {
+                            CardsToolbarAction { navigator.push(CardsHubScreen()) }
+                        }
+                    },
                 )
             },
             bottomBar = {
@@ -168,6 +206,8 @@ data object LibraryTab : Tab {
                     EmptyScreen(
                         stringRes = MR.strings.information_empty_library,
                         modifier = Modifier.padding(contentPadding),
+                        icon = MaterialSymbols.Rounded.CollectionsBookmark,
+                        description = stringResource(MR.strings.empty_library_description),
                         actions = listOf(
                             EmptyScreenAction(
                                 stringRes = MR.strings.getting_started_guide,
@@ -214,6 +254,31 @@ data object LibraryTab : Tab {
                         getDisplayMode = { viewModel.getDisplayMode() },
                         getColumnsForOrientation = { viewModel.getColumnsForOrientation(it) },
                         getItemsForCategory = { state.getItemsForCategory(it) },
+                        header = if (state.selection.isEmpty() && state.searchQuery.isNullOrEmpty()) {
+                            {
+                                Column {
+                                    TodayPill()
+                                    LibraryArenaCard(
+                                        leagueSummary,
+                                        onClick = { navigator.push(ArenaScreen()) },
+                                        onOpenSuggestions = { navigator.push(SuggestionsScreen()) },
+                                    )
+                                    LibrarySummary(state.libraryData)
+                                    LibraryShelves(
+                                        onOpenManga = { navigator.push(MangaScreen(it)) },
+                                        onEditQueue = { navigator.push(BingeQueueScreen()) },
+                                    )
+                                    if (leagueSummary.showCardsStrip) {
+                                        LibraryCardsStrip(
+                                            onSeeAll = { navigator.push(CardAlbumScreen()) },
+                                            onOpen = { card, ids -> navigator.push(CardDetailScreen(card.id, ids)) },
+                                        )
+                                    }
+                                }
+                            }
+                        } else {
+                            null
+                        },
                     )
                 }
             }
@@ -287,4 +352,26 @@ data object LibraryTab : Tab {
     // For opening settings sheet in LibraryController
     private val requestSettingsSheetEvent = Channel<Unit>()
     private suspend fun requestOpenSettingsSheet() = requestSettingsSheetEvent.send(Unit)
+}
+
+/** iOS's line under the Library title: "12 series · 34 unread", or "… · all caught up". */
+@Composable
+private fun LibrarySummary(data: LibraryViewModel.LibraryData) {
+    val manga = data.favoritesById.values
+    if (manga.isEmpty()) return
+    val unread = manga.sumOf { it.libraryManga.unreadCount }
+    Text(
+        text = listOf(
+            stringResource(MR.strings.library_summary_series, manga.size),
+            if (unread > 0) {
+                stringResource(MR.strings.library_summary_unread, unread)
+            } else {
+                stringResource(MR.strings.library_summary_caught_up)
+            },
+        )
+            .joinToString(" · "),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+    )
 }

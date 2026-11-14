@@ -22,6 +22,7 @@ fun ReaderTopBar(
     onOpenInBrowser: (() -> Unit)?,
     onShare: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    extraActions: List<AppBar.AppBarAction> = emptyList(),
 ) {
     AppBar(
         modifier = modifier,
@@ -73,6 +74,7 @@ fun ReaderTopBar(
                             ),
                         )
                     }
+                    addAll(extraActions)
                 },
             )
         },

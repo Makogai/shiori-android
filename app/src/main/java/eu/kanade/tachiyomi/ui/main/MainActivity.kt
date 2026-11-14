@@ -9,7 +9,6 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.os.SystemClock
 import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -91,10 +90,12 @@ import eu.kanade.tachiyomi.ui.home.HomeScreen
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
 import eu.kanade.tachiyomi.ui.more.NewUpdateScreen
 import eu.kanade.tachiyomi.ui.more.OnboardingScreen
+import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.ui.setting.SettingsScreen
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.isBenchmarkBuildType
 import eu.kanade.tachiyomi.util.system.isNavigationBarNeedsScrim
+import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.util.system.updaterEnabled
 import eu.kanade.tachiyomi.util.view.setComposeContent
 import kotlinx.coroutines.CancellationException
@@ -115,12 +116,20 @@ import mihon.core.metro.metroGraph
 import mihon.core.migration.Migrator
 import mihon.data.cache.ChapterCache
 import mihon.domain.database.repository.DatabaseRepository
+import mihon.feature.friends.cards.CardsHubScreen
+import mihon.feature.friends.ui.ArenaAlerts
+import mihon.feature.friends.ui.ArenaScreen
+import mihon.feature.habits.HabitsShortcuts
+import mihon.feature.habits.TodayScreen
+import mihon.feature.sourcehealth.SourceHealthMonitor
+import mihon.feature.sourcehealth.SourceHealthScreen
 import mihon.feature.support.SupportUsScreen
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.OpenInNew
 import mihon.icons.materialsymbols.roundedfilled.VolunteerActivism
 import tachiyomi.core.common.Constants
 import tachiyomi.core.common.util.system.logcat
+import tachiyomi.domain.history.interactor.GetNextChapters
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.release.interactor.GetApplicationRelease
 import tachiyomi.i18n.MR
@@ -130,7 +139,6 @@ import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlin.time.TimeSource
@@ -155,6 +163,8 @@ class MainActivity : BaseActivity() {
     @Inject private lateinit var getIncognitoState: GetIncognitoState
 
     @Inject private lateinit var extensionManager: ExtensionManager
+
+    @Inject private lateinit var getNextChapters: GetNextChapters
 
     // To be checked by splash screen. If true then splash screen will be removed.
     var ready = false
@@ -368,35 +378,27 @@ class MainActivity : BaseActivity() {
         // App updates
         LaunchedEffect(Unit) {
             if (!updaterEnabled) return@LaunchedEffect
-            var lastCheck: Long? = null
-            // The app can stay open for days now, so a cold start alone rarely checks.
-            // Elapsed realtime keeps counting while the device sleeps, unlike the monotonic clock.
+            // On every app open: each time the app comes to the foreground.
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                while (true) {
-                    lastCheck?.let {
-                        delay(it + APP_UPDATE_CHECK_INTERVAL.inWholeMilliseconds - SystemClock.elapsedRealtime())
+                try {
+                    val result = context.appGraph.updateChecker.checkForUpdate()
+                    if (
+                        result is GetApplicationRelease.Result.NewUpdate &&
+                        result.release.version != preferences.skippedAppUpdate.get() &&
+                        navigator.items.none { it is NewUpdateScreen }
+                    ) {
+                        val updateScreen = NewUpdateScreen(
+                            versionName = result.release.version,
+                            changelogInfo = result.release.info,
+                            releaseLink = result.release.releaseLink,
+                            downloadLink = result.release.downloadLink,
+                        )
+                        navigator.push(updateScreen)
                     }
-                    lastCheck = SystemClock.elapsedRealtime()
-                    try {
-                        val result = context.appGraph.updateChecker.checkForUpdate()
-                        if (
-                            result is GetApplicationRelease.Result.NewUpdate &&
-                            result.release.version != preferences.skippedAppUpdate.get() &&
-                            navigator.items.none { it is NewUpdateScreen }
-                        ) {
-                            val updateScreen = NewUpdateScreen(
-                                versionName = result.release.version,
-                                changelogInfo = result.release.info,
-                                releaseLink = result.release.releaseLink,
-                                downloadLink = result.release.downloadLink,
-                            )
-                            navigator.push(updateScreen)
-                        }
-                    } catch (e: CancellationException) {
-                        throw e
-                    } catch (e: Exception) {
-                        logcat(LogPriority.ERROR, e)
-                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    logcat(LogPriority.ERROR, e)
                 }
             }
         }
@@ -616,6 +618,37 @@ class MainActivity : BaseActivity() {
                 navigator.push(SettingsScreen())
                 null
             }
+            HabitsShortcuts.ACTION_CONTINUE_READING -> {
+                lifecycleScope.launch {
+                    val chapter = getNextChapters.await(onlyUnread = false).firstOrNull()
+                    if (chapter != null) {
+                        startActivity(ReaderActivity.newIntent(this@MainActivity, chapter.mangaId, chapter.id))
+                    } else {
+                        toast(MR.strings.no_next_chapter)
+                    }
+                }
+                HomeScreen.Tab.History
+            }
+            HabitsShortcuts.ACTION_TODAY -> {
+                navigator.popUntilRoot()
+                navigator.push(TodayScreen())
+                null
+            }
+            HabitsShortcuts.ACTION_CARDS -> {
+                navigator.popUntilRoot()
+                navigator.push(CardsHubScreen())
+                null
+            }
+            ArenaAlerts.ACTION_OPEN_ARENA -> {
+                navigator.popUntilRoot()
+                navigator.push(ArenaScreen())
+                null
+            }
+            SourceHealthMonitor.ACTION_OPEN_SOURCE_HEALTH -> {
+                navigator.popUntilRoot()
+                navigator.push(SourceHealthScreen())
+                null
+            }
             Intent.ACTION_SEARCH, Intent.ACTION_SEND, "com.google.android.gms.actions.SEARCH_ACTION" -> {
                 // If the intent match the "standard" Android search intent
                 // or the Google-specific search intent (triggered by saying or typing "search *query* on *Tachiyomi*" in Google Search/Google Assistant)
@@ -681,4 +714,3 @@ private const val SPLASH_MAX_DURATION = 5000 // ms
 private const val SPLASH_EXIT_ANIM_DURATION = 400L // ms
 
 private val MIGRATING_SCREEN_MIN_DURATION = 1.seconds
-private val APP_UPDATE_CHECK_INTERVAL = 6.hours

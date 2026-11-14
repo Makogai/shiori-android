@@ -66,9 +66,7 @@ fun TrackingPreferenceWidget(
                         text = tracker.name,
                         modifier = Modifier.padding(horizontal = 16.dp),
                         maxLines = 1,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontSize = TitleFontSize,
-                        fontWeight = FontWeight.Medium,
+                        style = MaterialTheme.typography.bodyLarge,
                     )
                     val displayName = tracker.getDisplayUsername()
                     if (isLoggedIn && displayName.isNotBlank()) {

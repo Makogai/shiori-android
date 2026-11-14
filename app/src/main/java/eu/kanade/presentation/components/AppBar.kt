@@ -1,22 +1,30 @@
 package eu.kanade.presentation.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TooltipAnchorPosition
@@ -26,6 +34,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTooltipState
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,6 +46,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
@@ -53,12 +63,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.flow.drop
 import mihon.icons.materialsymbols.MaterialSymbols
-import mihon.icons.materialsymbols.automirroredrounded.ArrowBack
+import mihon.icons.materialsymbols.automirroredrounded.ArrowBackIosNew
 import mihon.icons.materialsymbols.rounded.Close
-import mihon.icons.materialsymbols.rounded.MoreVert
+import mihon.icons.materialsymbols.rounded.MoreHoriz
 import mihon.icons.materialsymbols.rounded.Search
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.IosSearchField
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.theme.iosGlassCapsule
 import tachiyomi.presentation.core.util.clearFocusOnSoftKeyboardHide
 import tachiyomi.presentation.core.util.runOnEnterKeyPressed
 import tachiyomi.presentation.core.util.secondaryItemAlpha
@@ -83,6 +95,8 @@ fun AppBar(
     actionModeActions: @Composable RowScope.() -> Unit = {},
 
     scrollBehavior: TopAppBarScrollBehavior? = null,
+    largeTitle: Boolean = false,
+    bottomContent: (@Composable () -> Unit)? = null,
 ) {
     val isActionMode by remember(actionModeCounter) {
         derivedStateOf { actionModeCounter > 0 }
@@ -110,6 +124,8 @@ fun AppBar(
         isActionMode = isActionMode,
         onCancelActionMode = onCancelActionMode,
         scrollBehavior = scrollBehavior,
+        largeTitle = largeTitle,
+        bottomContent = bottomContent,
     )
 }
 
@@ -130,38 +146,97 @@ fun AppBar(
     onCancelActionMode: () -> Unit = {},
 
     scrollBehavior: TopAppBarScrollBehavior? = null,
+    largeTitle: Boolean = false,
+    bottomContent: (@Composable () -> Unit)? = null,
 ) {
-    Column(
-        modifier = modifier,
-    ) {
-        TopAppBar(
-            navigationIcon = {
-                if (isActionMode) {
-                    IconButton(onClick = onCancelActionMode) {
-                        Icon(
-                            imageVector = MaterialSymbols.Rounded.Close,
-                            contentDescription = stringResource(MR.strings.action_cancel),
-                        )
-                    }
-                } else {
-                    navigateUp?.let {
-                        IconButton(onClick = it) {
-                            UpIcon(navigationIcon = navigationIcon)
-                        }
-                    }
-                }
-            },
-            title = titleContent,
-            actions = actions,
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = backgroundColor ?: MaterialTheme.colorScheme.surfaceColorAtElevation(
-                    elevation = if (isActionMode) 3.dp else 0.dp,
-                ),
-            ),
-            scrollBehavior = scrollBehavior,
+    val glass = backgroundColor != Color.Transparent
+    val glassActions: @Composable RowScope.() -> Unit = {
+        // iOS 26 bar buttons: grouped on one floating glass capsule.
+        Row(
+            modifier = if (glass) Modifier.padding(end = 8.dp).iosGlassCapsule() else Modifier,
+            verticalAlignment = Alignment.CenterVertically,
+            content = actions,
         )
     }
+    val navigationIconContent: @Composable () -> Unit = {
+        if (isActionMode) {
+            IconButton(onClick = onCancelActionMode) {
+                Icon(
+                    imageVector = MaterialSymbols.Rounded.Close,
+                    contentDescription = stringResource(MR.strings.action_cancel),
+                )
+            }
+        } else {
+            navigateUp?.let {
+                IconButton(
+                    onClick = it,
+                    modifier = if (glass) Modifier.padding(start = 8.dp).iosGlassCapsule() else Modifier,
+                ) {
+                    UpIcon(navigationIcon = navigationIcon)
+                }
+            }
+        }
+    }
+    val containerColor = backgroundColor ?: MaterialTheme.colorScheme.surfaceColorAtElevation(
+        elevation = if (isActionMode) 3.dp else 0.dp,
+    )
+    // iOS tints bar buttons with the accent colour.
+    val colors = TopAppBarDefaults.topAppBarColors(
+        containerColor = containerColor,
+        scrolledContainerColor = if (bottomContent !=
+            null
+        ) {
+            containerColor
+        } else {
+            MaterialTheme.colorScheme.surfaceContainer
+        },
+        navigationIconContentColor = MaterialTheme.colorScheme.primary,
+        actionIconContentColor = MaterialTheme.colorScheme.primary,
+    )
+    Column(
+        modifier = if (bottomContent != null) modifier.background(containerColor) else modifier,
+    ) {
+        if (largeTitle && !isActionMode) {
+            LargeTopAppBar(
+                navigationIcon = navigationIconContent,
+                title = {
+                    // The bar draws the title twice, large and collapsed; iOS sets the large one at 34 bold.
+                    val style = LocalTextStyle.current
+                    val large = style.fontSize.value >= 24f
+                    ProvideTextStyle(
+                        if (large) {
+                            style.copy(fontSize = 34.sp, lineHeight = 41.sp, fontWeight = FontWeight.Bold)
+                        } else {
+                            style.copy(fontWeight = FontWeight.SemiBold)
+                        },
+                        titleContent,
+                    )
+                },
+                actions = glassActions,
+                expandedHeight = LargeTitleExpandedHeight,
+                colors = colors,
+                scrollBehavior = scrollBehavior,
+            )
+        } else {
+            TopAppBar(
+                navigationIcon = navigationIconContent,
+                title = titleContent,
+                actions = glassActions,
+                colors = colors,
+                scrollBehavior = scrollBehavior,
+            )
+        }
+        bottomContent?.invoke()
+    }
 }
+
+/** Scroll behaviour of a tab root's large title: it collapses into the bar as the content scrolls. */
+@Composable
+fun tabRootScrollBehavior(): TopAppBarScrollBehavior =
+    TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+
+/** Height of a tab root's bar with its iOS large title. */
+private val LargeTitleExpandedHeight = 116.dp
 
 @Composable
 fun AppBarTitle(
@@ -212,11 +287,17 @@ fun AppBarActions(
                 onClick = it.onClick,
                 enabled = it.enabled,
             ) {
-                Icon(
-                    imageVector = it.icon,
-                    tint = it.iconTint ?: LocalContentColor.current,
-                    contentDescription = it.title,
-                )
+                BadgedBox(
+                    badge = {
+                        if (it.badge) Badge()
+                    },
+                ) {
+                    Icon(
+                        imageVector = it.icon,
+                        tint = it.iconTint ?: LocalContentColor.current,
+                        contentDescription = it.title,
+                    )
+                }
             }
         }
     }
@@ -237,7 +318,7 @@ fun AppBarActions(
                 onClick = { showMenu = !showMenu },
             ) {
                 Icon(
-                    MaterialSymbols.Rounded.MoreVert,
+                    MaterialSymbols.Rounded.MoreHoriz,
                     contentDescription = stringResource(MR.strings.action_menu_overflow_description),
                 )
             }
@@ -279,7 +360,11 @@ fun SearchToolbar(
     actions: @Composable RowScope.() -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior? = null,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    largeTitle: Boolean = false,
+    bottomContent: (@Composable () -> Unit)? = null,
 ) {
+    // iOS keeps the search field under a large title instead of a magnifier in the bar.
+    val searchUnderTitle = largeTitle && searchEnabled
     val focusRequester = remember { FocusRequester() }
     val searchFieldState = rememberTextFieldState(searchQuery.orEmpty())
     val currentOnChangeSearchQuery by rememberUpdatedState(onChangeSearchQuery)
@@ -361,7 +446,7 @@ fun SearchToolbar(
             key("search") {
                 val onClick = { onChangeSearchQuery("") }
 
-                if (!searchEnabled) {
+                if (!searchEnabled || (searchUnderTitle && searchQuery == null)) {
                     // Don't show search action
                 } else if (searchQuery == null) {
                     TooltipBox(
@@ -414,6 +499,22 @@ fun SearchToolbar(
         },
         isActionMode = false,
         scrollBehavior = scrollBehavior,
+        largeTitle = largeTitle && searchQuery == null,
+        bottomContent = if (searchUnderTitle && searchQuery == null) {
+            {
+                Column {
+                    IosSearchField(
+                        query = "",
+                        onQueryChange = {},
+                        placeholder = placeholderText ?: stringResource(MR.strings.action_search_hint),
+                        onClick = { onChangeSearchQuery("") },
+                    )
+                    bottomContent?.invoke()
+                }
+            }
+        } else {
+            bottomContent
+        },
     )
 }
 
@@ -423,7 +524,7 @@ fun UpIcon(
     navigationIcon: ImageVector? = null,
 ) {
     val icon = navigationIcon
-        ?: MaterialSymbols.AutoMirroredRounded.ArrowBack
+        ?: MaterialSymbols.AutoMirroredRounded.ArrowBackIosNew
     Icon(
         imageVector = icon,
         contentDescription = stringResource(MR.strings.action_bar_up_description),
@@ -440,6 +541,8 @@ sealed interface AppBar {
         val iconTint: Color? = null,
         val onClick: () -> Unit,
         val enabled: Boolean = true,
+        /** A dot on the icon: something behind it needs attention. */
+        val badge: Boolean = false,
     ) : AppBarAction
 
     data class OverflowAction(

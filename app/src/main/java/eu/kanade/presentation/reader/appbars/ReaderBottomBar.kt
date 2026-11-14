@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import eu.kanade.presentation.reader.capture.ReaderScreenshotButton
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
 import mihon.icons.custommaterialsymbols.CustomMaterialSymbols
@@ -27,6 +28,10 @@ fun ReaderBottomBar(
     cropEnabled: Boolean,
     onClickCropBorder: () -> Unit,
     onClickSettings: () -> Unit,
+    onLongScreenshot: () -> Unit,
+    onStyledScreenshot: () -> Unit,
+    onPageAsIs: () -> Unit,
+    onMakeCard: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -55,6 +60,13 @@ fun ReaderBottomBar(
                 contentDescription = stringResource(MR.strings.pref_crop_borders),
             )
         }
+
+        ReaderScreenshotButton(
+            onLongScreenshot = onLongScreenshot,
+            onStyledScreenshot = onStyledScreenshot,
+            onPageAsIs = onPageAsIs,
+            onMakeCard = onMakeCard,
+        )
 
         IconButton(onClick = onClickSettings) {
             Icon(

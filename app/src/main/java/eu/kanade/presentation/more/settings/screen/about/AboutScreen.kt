@@ -226,7 +226,7 @@ object AboutScreen : Screen() {
         val updateChecker = context.appGraph.updateChecker
         withContext(Dispatchers.Main) {
             try {
-                when (val result = updateChecker.checkForUpdate(forceCheck = true)) {
+                when (val result = updateChecker.checkForUpdate()) {
                     is GetApplicationRelease.Result.NewUpdate -> {
                         onAvailableUpdate(result)
                     }

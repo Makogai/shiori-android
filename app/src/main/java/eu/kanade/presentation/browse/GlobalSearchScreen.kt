@@ -1,7 +1,9 @@
 package eu.kanade.presentation.browse
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
@@ -10,18 +12,24 @@ import eu.kanade.presentation.browse.components.GlobalSearchErrorResultItem
 import eu.kanade.presentation.browse.components.GlobalSearchLoadingResultItem
 import eu.kanade.presentation.browse.components.GlobalSearchResultItem
 import eu.kanade.presentation.browse.components.GlobalSearchToolbar
+import eu.kanade.presentation.components.tabRootScrollBehavior
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SearchItemResult
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SearchViewModel
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SourceFilter
 import eu.kanade.tachiyomi.util.system.LocaleHelper
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.TravelExplore
 import tachiyomi.domain.manga.model.Manga
+import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.screens.EmptyScreen
 
 @Composable
 fun GlobalSearchScreen(
     state: SearchViewModel.State,
-    navigateUp: () -> Unit,
+    navigateUp: (() -> Unit)?,
     onChangeSearchQuery: (String?) -> Unit,
     onSearch: (String) -> Unit,
     onChangeSearchFilter: (SourceFilter) -> Unit,
@@ -32,6 +40,13 @@ fun GlobalSearchScreen(
     onLongClickItem: (Manga) -> Unit,
 ) {
     Scaffold(
+        topBarScrollBehavior = if (navigateUp ==
+            null
+        ) {
+            tabRootScrollBehavior()
+        } else {
+            TopAppBarDefaults.pinnedScrollBehavior()
+        },
         topBar = { scrollBehavior ->
             GlobalSearchToolbar(
                 searchQuery = state.searchQuery,
@@ -49,6 +64,15 @@ fun GlobalSearchScreen(
             )
         },
     ) { paddingValues ->
+        if (navigateUp == null && state.searchQuery.isNullOrBlank()) {
+            EmptyScreen(
+                message = stringResource(MR.strings.search_all_sources_hint),
+                modifier = Modifier.padding(paddingValues),
+                icon = MaterialSymbols.Rounded.TravelExplore,
+                description = stringResource(MR.strings.search_tab_description),
+            )
+            return@Scaffold
+        }
         GlobalSearchContent(
             items = state.filteredItems,
             contentPadding = paddingValues,

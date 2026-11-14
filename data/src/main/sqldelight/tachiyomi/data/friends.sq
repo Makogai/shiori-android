@@ -1,0 +1,22 @@
+readsSince:
+SELECT
+    M.source_id,
+    M.remote_url AS manga_url,
+    M.remote_title,
+    M.remote_cover,
+    M.remote_genre,
+    C.remote_url AS chapter_url,
+    C.remote_name,
+    C.remote_chapter_number,
+    H.read_at,
+    H.read_duration,
+    C.user_read
+FROM history H
+JOIN chapter C ON C.id = H.chapter_id
+JOIN manga M ON M.id = C.manga_id
+WHERE H.read_at IS NOT NULL AND H.read_at > :after;
+
+readTimes:
+SELECT read_at, read_duration
+FROM history
+WHERE read_at IS NOT NULL;

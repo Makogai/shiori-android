@@ -12,9 +12,16 @@ import androidx.compose.ui.Modifier
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import eu.kanade.presentation.more.settings.screen.SettingsAdvancedScreen
 import eu.kanade.presentation.more.settings.screen.SettingsAppearanceScreen
+import eu.kanade.presentation.more.settings.screen.SettingsBrowseScreen
 import eu.kanade.presentation.more.settings.screen.SettingsDataScreen
+import eu.kanade.presentation.more.settings.screen.SettingsDownloadScreen
+import eu.kanade.presentation.more.settings.screen.SettingsLibraryScreen
 import eu.kanade.presentation.more.settings.screen.SettingsMainScreen
+import eu.kanade.presentation.more.settings.screen.SettingsReaderScreen
+import eu.kanade.presentation.more.settings.screen.SettingsSearchScreen
+import eu.kanade.presentation.more.settings.screen.SettingsSecurityScreen
 import eu.kanade.presentation.more.settings.screen.SettingsTrackingScreen
 import eu.kanade.presentation.more.settings.screen.about.AboutScreen
 import eu.kanade.presentation.util.DefaultNavigatorScreenTransition
@@ -34,12 +41,7 @@ class SettingsScreen(
         val parentNavigator = LocalNavigator.currentOrThrow
         if (!isTabletUi()) {
             Navigator(
-                screen = when (destination) {
-                    Destination.About.id -> AboutScreen
-                    Destination.DataAndStorage.id -> SettingsDataScreen
-                    Destination.Tracking.id -> SettingsTrackingScreen
-                    else -> SettingsMainScreen
-                },
+                screen = destinationScreen() ?: SettingsMainScreen,
                 onBackPressed = null,
             ) {
                 val pop: () -> Unit = {
@@ -55,12 +57,7 @@ class SettingsScreen(
             }
         } else {
             Navigator(
-                screen = when (destination) {
-                    Destination.About.id -> AboutScreen
-                    Destination.DataAndStorage.id -> SettingsDataScreen
-                    Destination.Tracking.id -> SettingsTrackingScreen
-                    else -> SettingsAppearanceScreen
-                },
+                screen = destinationScreen() ?: SettingsAppearanceScreen,
                 onBackPressed = null,
             ) {
                 val insets = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal)
@@ -79,9 +76,32 @@ class SettingsScreen(
         }
     }
 
+    private fun destinationScreen() = when (destination) {
+        Destination.About.id -> AboutScreen
+        Destination.DataAndStorage.id -> SettingsDataScreen
+        Destination.Tracking.id -> SettingsTrackingScreen
+        Destination.Appearance.id -> SettingsAppearanceScreen
+        Destination.Library.id -> SettingsLibraryScreen
+        Destination.Reader.id -> SettingsReaderScreen
+        Destination.Downloads.id -> SettingsDownloadScreen
+        Destination.Browse.id -> SettingsBrowseScreen
+        Destination.Security.id -> SettingsSecurityScreen
+        Destination.Advanced.id -> SettingsAdvancedScreen
+        Destination.Search.id -> SettingsSearchScreen()
+        else -> null
+    }
+
     sealed class Destination(val id: Int) {
         data object About : Destination(0)
         data object DataAndStorage : Destination(1)
         data object Tracking : Destination(2)
+        data object Appearance : Destination(3)
+        data object Library : Destination(4)
+        data object Reader : Destination(5)
+        data object Downloads : Destination(6)
+        data object Browse : Destination(7)
+        data object Security : Destination(8)
+        data object Advanced : Destination(9)
+        data object Search : Destination(10)
     }
 }

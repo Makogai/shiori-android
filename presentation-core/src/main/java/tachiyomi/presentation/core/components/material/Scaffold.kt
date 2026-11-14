@@ -3,6 +3,7 @@ package tachiyomi.presentation.core.components.material
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.add
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ScaffoldDefaults
@@ -11,6 +12,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -56,7 +58,7 @@ fun Scaffold(
         floatingActionButtonPosition = floatingActionButtonPosition,
         containerColor = containerColor,
         contentColor = contentColor,
-        contentWindowInsets = contentWindowInsets,
+        contentWindowInsets = contentWindowInsets.add(WindowInsets(bottom = LocalFloatingBarInset.current)),
     ) { contentPadding ->
         val paddingValues = remember(contentPadding) {
             FabAwarePaddingValues(contentPadding) {
@@ -66,6 +68,12 @@ fun Scaffold(
         content(paddingValues)
     }
 }
+
+/**
+ * Height the floating tab bar covers at the bottom of a tab's screen, so lists scroll under it and end
+ * above it, and FABs and snackbars sit above it.
+ */
+val LocalFloatingBarInset = compositionLocalOf { 0.dp }
 
 private class FabAwarePaddingValues(
     private val base: PaddingValues,

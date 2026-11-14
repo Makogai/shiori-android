@@ -32,6 +32,7 @@ import eu.kanade.presentation.more.settings.screen.about.AboutScreen
 import eu.kanade.presentation.more.settings.widget.TextPreferenceWidget
 import eu.kanade.presentation.util.LocalBackPress
 import eu.kanade.presentation.util.Screen
+import eu.kanade.tachiyomi.R
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.ChromeReaderMode
 import mihon.icons.materialsymbols.rounded.Code
@@ -47,6 +48,7 @@ import mihon.icons.materialsymbols.rounded.Sync
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
+import androidx.compose.ui.res.stringResource as androidStringResource
 import cafe.adriel.voyager.core.screen.Screen as VoyagerScreen
 
 object SettingsMainScreen : Screen() {
@@ -228,7 +230,7 @@ object SettingsMainScreen : Screen() {
         Item(
             titleRes = MR.strings.pref_category_about,
             formatSubtitle = {
-                "${stringResource(MR.strings.app_name)} ${AboutScreen.getVersionName(buildTime = null)}"
+                "${androidStringResource(R.string.launcher_name)} ${AboutScreen.getVersionName(buildTime = null)}"
             },
             icon = MaterialSymbols.Rounded.Info,
             screen = AboutScreen,

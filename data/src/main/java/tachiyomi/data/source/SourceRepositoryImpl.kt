@@ -10,6 +10,7 @@ import eu.kanade.tachiyomi.source.online.HttpSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import mihon.domain.source.health.SourceHealthRecorder
 import tachiyomi.data.Database
 import tachiyomi.data.subscribeToList
 import tachiyomi.domain.manga.interactor.NetworkToLocalManga
@@ -27,6 +28,7 @@ class SourceRepositoryImpl(
     private val sourceManager: SourceManager,
     private val database: Database,
     private val networkToLocalManga: NetworkToLocalManga,
+    private val sourceHealth: SourceHealthRecorder,
 ) : SourceRepository {
 
     override fun getSources(): Flow<List<DomainSource>> {
@@ -90,15 +92,16 @@ class SourceRepositoryImpl(
             query,
             filterList,
             networkToLocalManga,
+            sourceHealth,
         )
     }
 
     override fun getPopular(sourceId: Long): SourcePagingSource {
-        return SourcePopularPagingSource({ sourceManager.getOrStub(sourceId) }, networkToLocalManga)
+        return SourcePopularPagingSource({ sourceManager.getOrStub(sourceId) }, networkToLocalManga, sourceHealth)
     }
 
     override fun getLatest(sourceId: Long): SourcePagingSource {
-        return SourceLatestPagingSource({ sourceManager.getOrStub(sourceId) }, networkToLocalManga)
+        return SourceLatestPagingSource({ sourceManager.getOrStub(sourceId) }, networkToLocalManga, sourceHealth)
     }
 
     private fun mapSourceToDomainSource(source: Source): DomainSource = DomainSource(

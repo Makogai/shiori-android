@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!-- Debug only: Shiori Cards v1.2 preview from synthetic art (no sign-in) -->
+        <activity
+            android:name="mihon.feature.friends.cards.CardsPreviewActivity"
+            android:exported="true"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+    </application>
+
+</manifest>

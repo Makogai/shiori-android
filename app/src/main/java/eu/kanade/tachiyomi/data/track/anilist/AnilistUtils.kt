@@ -82,6 +82,10 @@ private fun MangaFragment.toTrackSearch(trackId: Long): TrackSearch {
     return TrackSearch.create(trackId).apply {
         remote_id = alManga.id.toLong()
         title = alManga.title?.userPreferred ?: "(no title)"
+        alternative_titles = listOfNotNull(alManga.title?.english, alManga.title?.romaji, alManga.title?.native)
+            .plus(alManga.synonyms.orEmpty().filterNotNull())
+            .filter { it.isNotBlank() && it != title }
+            .distinct()
         total_chapters = alManga.chapters?.toLong() ?: 0
         cover_url = alManga.coverImage?.large ?: ""
         summary = alManga.description?.htmlDecode() ?: ""

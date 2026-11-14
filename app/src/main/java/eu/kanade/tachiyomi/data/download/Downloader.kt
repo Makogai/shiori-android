@@ -50,6 +50,9 @@ import logcat.LogPriority
 import mihon.core.archive.ZipWriter
 import mihon.core.metro.AppCoroutineScope
 import mihon.data.cache.ChapterCache
+import mihon.domain.source.health.SourceHealthRecorder
+import mihon.domain.source.health.SourceOperation
+import mihon.domain.source.health.recording
 import nl.adaptivity.xmlutil.serialization.XML
 import okhttp3.Response
 import tachiyomi.core.common.i18n.stringResource
@@ -88,6 +91,7 @@ class Downloader(
     private val getTracks: GetTracks,
     private val store: DownloadStore,
     private val notifier: DownloadNotifier,
+    private val sourceHealth: SourceHealthRecorder,
 ) {
     /**
      * Queue where active downloads are kept.
@@ -448,7 +452,9 @@ class Downloader(
             // If the page list already exists, start from the file
             val pageList = download.pages ?: run {
                 // Otherwise, pull page list from network and add them to download object
-                val pages = download.source.getPageList(download.chapter.toSChapter())
+                val pages = sourceHealth.recording(download.source.id, SourceOperation.Pages) {
+                    download.source.getPageList(download.chapter.toSChapter())
+                }
 
                 if (pages.isEmpty()) {
                     throw Exception(context.stringResource(MR.strings.page_list_empty_error))

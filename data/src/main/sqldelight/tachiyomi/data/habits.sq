@@ -1,0 +1,24 @@
+finishedReads:
+SELECT
+    H.chapter_id,
+    H.manga_id,
+    H.read_at,
+    H.read_duration,
+    M.source_id,
+    M.remote_title,
+    M.remote_cover,
+    M.user_favorite_at,
+    M.state_cover_last_modified,
+    C.remote_name,
+    C.remote_chapter_number
+FROM history H
+JOIN chapter C ON C.id = H.chapter_id
+JOIN manga M ON M.id = H.manga_id
+WHERE H.read_at IS NOT NULL AND H.read_at > 0 AND C.user_read = 1;
+
+lastReadOfManga:
+SELECT chapter_id, read_at
+FROM history
+WHERE manga_id = :mangaId AND read_at IS NOT NULL AND read_at > 0
+ORDER BY read_at DESC
+LIMIT 1;

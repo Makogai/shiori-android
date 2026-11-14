@@ -11,6 +11,8 @@ import eu.kanade.tachiyomi.data.track.TrackerManager
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import mihon.feature.friends.data.FriendsPreferences
+import mihon.feature.shelves.SmartShelfPreferences
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.core.common.preference.getAndSet
@@ -28,6 +30,8 @@ import kotlin.time.Duration.Companion.seconds
 class LibrarySettingsViewModel(
     val preferences: BasePreferences,
     val libraryPreferences: LibraryPreferences,
+    val friendsPreferences: FriendsPreferences,
+    val shelfPreferences: SmartShelfPreferences,
     private val setDisplayMode: SetDisplayMode,
     private val setSortModeForCategory: SetSortModeForCategory,
     trackerManager: TrackerManager,

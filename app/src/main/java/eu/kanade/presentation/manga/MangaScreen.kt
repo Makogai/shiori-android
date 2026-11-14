@@ -2,9 +2,13 @@ package eu.kanade.presentation.manga
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
@@ -14,15 +18,21 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallExtendedFloatingActionButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -36,12 +46,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastAll
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastMap
@@ -61,6 +75,7 @@ import eu.kanade.tachiyomi.source.getNameForMangaInfo
 import eu.kanade.tachiyomi.ui.manga.ChapterList
 import eu.kanade.tachiyomi.ui.manga.MangaViewModel
 import eu.kanade.tachiyomi.util.system.copyToClipboard
+import mihon.feature.habits.CatchUpBanner
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.roundedfilled.PlayArrow
 import tachiyomi.domain.chapter.model.Chapter
@@ -73,6 +88,8 @@ import tachiyomi.presentation.core.components.VerticalFastScroller
 import tachiyomi.presentation.core.components.material.PullRefresh
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.theme.groupedRow
+import tachiyomi.presentation.core.theme.separator
 import tachiyomi.presentation.core.util.shouldExpandFAB
 import tachiyomi.source.local.isLocal
 import kotlin.time.Instant
@@ -111,6 +128,7 @@ fun MangaScreen(
     onEditCategoryClicked: (() -> Unit)?,
     onEditFetchIntervalClicked: (() -> Unit)?,
     onMigrateClicked: (() -> Unit)?,
+    onSuggestClicked: (() -> Unit)?,
     onEditNotesClicked: () -> Unit,
 
     // For bottom action menu
@@ -126,6 +144,7 @@ fun MangaScreen(
     onChapterSelected: (ChapterList.Item, Boolean, Boolean) -> Unit,
     onAllChapterSelected: (Boolean) -> Unit,
     onInvertSelection: () -> Unit,
+    extras: @Composable () -> Unit = {},
 ) {
     val context = LocalContext.current
     val onCopyTagToClipboard: (tag: String) -> Unit = {
@@ -161,6 +180,7 @@ fun MangaScreen(
             onEditCategoryClicked = onEditCategoryClicked,
             onEditIntervalClicked = onEditFetchIntervalClicked,
             onMigrateClicked = onMigrateClicked,
+            onSuggestClicked = onSuggestClicked,
             onEditNotesClicked = onEditNotesClicked,
             onMultiBookmarkClicked = onMultiBookmarkClicked,
             onMultiMarkAsReadClicked = onMultiMarkAsReadClicked,
@@ -170,6 +190,7 @@ fun MangaScreen(
             onChapterSelected = onChapterSelected,
             onAllChapterSelected = onAllChapterSelected,
             onInvertSelection = onInvertSelection,
+            extras = extras,
         )
     } else {
         MangaScreenLargeImpl(
@@ -198,6 +219,7 @@ fun MangaScreen(
             onEditCategoryClicked = onEditCategoryClicked,
             onEditIntervalClicked = onEditFetchIntervalClicked,
             onMigrateClicked = onMigrateClicked,
+            onSuggestClicked = onSuggestClicked,
             onEditNotesClicked = onEditNotesClicked,
             onMultiBookmarkClicked = onMultiBookmarkClicked,
             onMultiMarkAsReadClicked = onMultiMarkAsReadClicked,
@@ -207,6 +229,7 @@ fun MangaScreen(
             onChapterSelected = onChapterSelected,
             onAllChapterSelected = onAllChapterSelected,
             onInvertSelection = onInvertSelection,
+            extras = extras,
         )
     }
 }
@@ -245,6 +268,7 @@ private fun MangaScreenSmallImpl(
     onEditCategoryClicked: (() -> Unit)?,
     onEditIntervalClicked: (() -> Unit)?,
     onMigrateClicked: (() -> Unit)?,
+    onSuggestClicked: (() -> Unit)?,
     onEditNotesClicked: () -> Unit,
 
     // For bottom action menu
@@ -260,6 +284,7 @@ private fun MangaScreenSmallImpl(
     onChapterSelected: (ChapterList.Item, Boolean, Boolean) -> Unit,
     onAllChapterSelected: (Boolean) -> Unit,
     onInvertSelection: () -> Unit,
+    extras: @Composable () -> Unit,
 ) {
     val chapterListState = rememberLazyListState()
 
@@ -301,6 +326,7 @@ private fun MangaScreenSmallImpl(
                 onClickEditCategory = onEditCategoryClicked,
                 onClickRefresh = onRefresh,
                 onClickMigrate = onMigrateClicked,
+                onClickSuggest = onSuggestClicked,
                 onClickEditNotes = onEditNotesClicked,
                 actionModeCounter = state.selectedChapters.size,
                 onCancelActionMode = { onAllChapterSelected(false) },
@@ -324,23 +350,18 @@ private fun MangaScreenSmallImpl(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             val isFABVisible = state.hasUnreadChapters && !isAnySelected
-            SmallExtendedFloatingActionButton(
-                text = {
-                    Text(
-                        text = stringResource(
-                            if (state.hasReadChapters) MR.strings.action_resume else MR.strings.action_start,
-                        ),
-                    )
-                },
-                icon = { Icon(imageVector = MaterialSymbols.RoundedFilled.PlayArrow, contentDescription = null) },
+            ReadCapsule(
+                text = stringResource(
+                    if (state.hasReadChapters) MR.strings.action_resume else MR.strings.action_start,
+                ),
                 onClick = onContinueReading,
-                expanded = chapterListState.shouldExpandFAB(),
                 modifier = Modifier.animateFloatingActionButton(
                     visible = isFABVisible,
-                    alignment = Alignment.BottomEnd,
+                    alignment = Alignment.BottomCenter,
                 ),
             )
         },
+        floatingActionButtonPosition = FabPosition.Center,
     ) { contentPadding ->
         val topPadding = contentPadding.calculateTopPadding()
 
@@ -399,6 +420,10 @@ private fun MangaScreenSmallImpl(
                         )
                     }
 
+                    item(key = "catch-up") {
+                        CatchUpBanner(state.manga.id, state.chapters.map { it.chapter }, onResume = onContinueReading)
+                    }
+
                     item(
                         key = MangaScreenItem.DESCRIPTION_WITH_TAG,
                         contentType = MangaScreenItem.DESCRIPTION_WITH_TAG,
@@ -414,6 +439,8 @@ private fun MangaScreenSmallImpl(
                         )
                     }
 
+                    item(key = "extras") { extras() }
+
                     item(
                         key = MangaScreenItem.CHAPTER_HEADER,
                         contentType = MangaScreenItem.CHAPTER_HEADER,
@@ -422,6 +449,7 @@ private fun MangaScreenSmallImpl(
                             enabled = !isAnySelected,
                             chapterCount = chapters.size,
                             missingChapterCount = state.missingChapterCount,
+                            summary = chapterSummary(state),
                             onClick = onFilterClicked,
                         )
                     }
@@ -478,6 +506,7 @@ fun MangaScreenLargeImpl(
     onEditCategoryClicked: (() -> Unit)?,
     onEditIntervalClicked: (() -> Unit)?,
     onMigrateClicked: (() -> Unit)?,
+    onSuggestClicked: (() -> Unit)?,
     onEditNotesClicked: () -> Unit,
 
     // For bottom action menu
@@ -493,6 +522,7 @@ fun MangaScreenLargeImpl(
     onChapterSelected: (ChapterList.Item, Boolean, Boolean) -> Unit,
     onAllChapterSelected: (Boolean) -> Unit,
     onInvertSelection: () -> Unit,
+    extras: @Composable () -> Unit,
 ) {
     val layoutDirection = LocalLayoutDirection.current
     val density = LocalDensity.current
@@ -527,6 +557,7 @@ fun MangaScreenLargeImpl(
                 onClickEditCategory = onEditCategoryClicked,
                 onClickRefresh = onRefresh,
                 onClickMigrate = onMigrateClicked,
+                onClickSuggest = onSuggestClicked,
                 onClickEditNotes = onEditNotesClicked,
                 onCancelActionMode = { onAllChapterSelected(false) },
                 actionModeCounter = state.selectedChapters.size,
@@ -555,23 +586,18 @@ fun MangaScreenLargeImpl(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             val isFABVisible = state.hasUnreadChapters && !isAnySelected
-            SmallExtendedFloatingActionButton(
-                text = {
-                    Text(
-                        text = stringResource(
-                            if (state.hasReadChapters) MR.strings.action_resume else MR.strings.action_start,
-                        ),
-                    )
-                },
-                icon = { Icon(imageVector = MaterialSymbols.RoundedFilled.PlayArrow, contentDescription = null) },
+            ReadCapsule(
+                text = stringResource(
+                    if (state.hasReadChapters) MR.strings.action_resume else MR.strings.action_start,
+                ),
                 onClick = onContinueReading,
-                expanded = chapterListState.shouldExpandFAB(),
                 modifier = Modifier.animateFloatingActionButton(
                     visible = isFABVisible,
-                    alignment = Alignment.BottomEnd,
+                    alignment = Alignment.BottomCenter,
                 ),
             )
         },
+        floatingActionButtonPosition = FabPosition.Center,
     ) { contentPadding ->
         PullRefresh(
             refreshing = state.isRefreshingData,
@@ -616,6 +642,7 @@ fun MangaScreenLargeImpl(
                             onEditIntervalClicked = onEditIntervalClicked,
                             onEditCategory = onEditCategoryClicked,
                         )
+                        CatchUpBanner(state.manga.id, state.chapters.map { it.chapter }, onResume = onContinueReading)
                         ExpandableMangaDescription(
                             defaultExpandState = true,
                             description = state.manga.description,
@@ -625,6 +652,7 @@ fun MangaScreenLargeImpl(
                             onCopyTagToClipboard = onCopyTagToClipboard,
                             onEditNotes = onEditNotesClicked,
                         )
+                        extras()
                     }
                 },
                 endContent = {
@@ -648,6 +676,7 @@ fun MangaScreenLargeImpl(
                                     enabled = !isAnySelected,
                                     chapterCount = chapters.size,
                                     missingChapterCount = state.missingChapterCount,
+                                    summary = chapterSummary(state),
                                     onClick = onFilterButtonClicked,
                                 )
                             }
@@ -726,71 +755,81 @@ private fun LazyListScope.sharedChapterItems(
     onChapterSelected: (ChapterList.Item, Boolean, Boolean) -> Unit,
     onChapterSwipe: (ChapterList.Item, LibraryPreferences.ChapterSwipeAction) -> Unit,
 ) {
-    items(
+    itemsIndexed(
         items = chapters,
-        key = { item ->
+        key = { _, item ->
             when (item) {
                 is ChapterList.MissingCount -> "missing-count-${item.id}"
                 is ChapterList.Item -> "chapter-${item.id}"
             }
         },
-        contentType = { MangaScreenItem.CHAPTER },
-    ) { item ->
+        contentType = { _, _ -> MangaScreenItem.CHAPTER },
+    ) { index, item ->
         val haptic = LocalHapticFeedback.current
 
-        when (item) {
-            is ChapterList.MissingCount -> {
-                MissingChapterCountListItem(count = item.count)
+        // The chapter list is one iOS inset-grouped card.
+        Column(modifier = Modifier.groupedRow(index, chapters.size)) {
+            if (index > 0) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(start = 16.dp),
+                    thickness = 0.5.dp,
+                    color = MaterialTheme.colorScheme.separator,
+                )
             }
-            is ChapterList.Item -> {
-                MangaChapterListItem(
-                    title = if (manga.displayMode == Manga.CHAPTER_DISPLAY_NUMBER) {
-                        stringResource(
-                            MR.strings.display_mode_chapter,
-                            formatChapterNumber(item.chapter.chapterNumber),
-                        )
-                    } else {
-                        item.chapter.name
-                    },
-                    date = relativeDateText(item.chapter.dateUpload),
-                    readProgress = item.chapter.lastPageRead
-                        .takeIf { !item.chapter.read && it > 0L }
-                        ?.let {
+            when (item) {
+                is ChapterList.MissingCount -> {
+                    MissingChapterCountListItem(count = item.count)
+                }
+                is ChapterList.Item -> {
+                    MangaChapterListItem(
+                        title = if (manga.displayMode == Manga.CHAPTER_DISPLAY_NUMBER) {
                             stringResource(
-                                MR.strings.chapter_progress,
-                                it + 1,
+                                MR.strings.display_mode_chapter,
+                                formatChapterNumber(item.chapter.chapterNumber),
+                            )
+                        } else {
+                            item.chapter.name
+                        },
+                        date = relativeDateText(item.chapter.dateUpload),
+                        readProgress = item.chapter.lastPageRead
+                            .takeIf { !item.chapter.read && it > 0L }
+                            ?.let {
+                                stringResource(
+                                    MR.strings.chapter_progress,
+                                    it + 1,
+                                )
+                            },
+                        scanlator = item.chapter.scanlator.takeIf { !it.isNullOrBlank() },
+                        read = item.chapter.read,
+                        bookmark = item.chapter.bookmark,
+                        selected = item.selected,
+                        downloadIndicatorEnabled = !isAnyChapterSelected && !manga.isLocal(),
+                        downloadStateProvider = { item.downloadState },
+                        downloadProgressProvider = { downloadProgressProvider(item.id) },
+                        chapterSwipeStartAction = chapterSwipeStartAction,
+                        chapterSwipeEndAction = chapterSwipeEndAction,
+                        onLongClick = {
+                            onChapterSelected(item, !item.selected, true)
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        },
+                        onClick = {
+                            onChapterItemClick(
+                                chapterItem = item,
+                                isAnyChapterSelected = isAnyChapterSelected,
+                                onToggleSelection = { onChapterSelected(item, !item.selected, false) },
+                                onChapterClicked = onChapterClicked,
                             )
                         },
-                    scanlator = item.chapter.scanlator.takeIf { !it.isNullOrBlank() },
-                    read = item.chapter.read,
-                    bookmark = item.chapter.bookmark,
-                    selected = item.selected,
-                    downloadIndicatorEnabled = !isAnyChapterSelected && !manga.isLocal(),
-                    downloadStateProvider = { item.downloadState },
-                    downloadProgressProvider = { downloadProgressProvider(item.id) },
-                    chapterSwipeStartAction = chapterSwipeStartAction,
-                    chapterSwipeEndAction = chapterSwipeEndAction,
-                    onLongClick = {
-                        onChapterSelected(item, !item.selected, true)
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    },
-                    onClick = {
-                        onChapterItemClick(
-                            chapterItem = item,
-                            isAnyChapterSelected = isAnyChapterSelected,
-                            onToggleSelection = { onChapterSelected(item, !item.selected, false) },
-                            onChapterClicked = onChapterClicked,
-                        )
-                    },
-                    onDownloadClick = if (onDownloadChapter != null) {
-                        { onDownloadChapter(listOf(item), it) }
-                    } else {
-                        null
-                    },
-                    onChapterSwipe = {
-                        onChapterSwipe(item, it)
-                    },
-                )
+                        onDownloadClick = if (onDownloadChapter != null) {
+                            { onDownloadChapter(listOf(item), it) }
+                        } else {
+                            null
+                        },
+                        onChapterSwipe = {
+                            onChapterSwipe(item, it)
+                        },
+                    )
+                }
             }
         }
     }
@@ -807,4 +846,66 @@ private fun onChapterItemClick(
         isAnyChapterSelected -> onToggleSelection(true)
         else -> onChapterClicked(chapterItem.chapter)
     }
+}
+
+/** The iOS details page's floating read button: a wide accent capsule with a play mark. */
+@Composable
+private fun ReadCapsule(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .padding(horizontal = 8.dp)
+            .fillMaxWidth()
+            .shadow(10.dp, CircleShape)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primary)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(start = 8.dp, end = 20.dp, top = 7.dp, bottom = 7.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(34.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = MaterialSymbols.RoundedFilled.PlayArrow,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onPrimary,
+            maxLines = 1,
+        )
+    }
+}
+
+/** iOS's line under the chapter count: "3 unread · 2 downloaded", or "All read". */
+@Composable
+private fun chapterSummary(state: MangaViewModel.State.Success): String? {
+    val chapters = state.processedChapters
+    if (chapters.isEmpty()) return null
+    val unread = chapters.count { !it.chapter.read }
+    val downloaded = chapters.count { it.downloadState == Download.State.DOWNLOADED }
+    return listOfNotNull(
+        if (unread >
+            0
+        ) {
+            stringResource(MR.strings.chapters_unread_count, unread)
+        } else {
+            stringResource(MR.strings.chapters_all_read)
+        },
+        downloaded.takeIf { it > 0 }?.let { stringResource(MR.strings.chapters_downloaded_count, it) },
+    )
+        .joinToString(" · ")
 }

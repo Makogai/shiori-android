@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
@@ -28,6 +29,7 @@ import kotlinx.coroutines.launch
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.MoreVert
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.SegmentedPicker
 import tachiyomi.presentation.core.components.material.TabText
 import tachiyomi.presentation.core.i18n.stringResource
 
@@ -52,21 +54,28 @@ fun TabbedDialog(
         val scope = rememberCoroutineScope()
 
         Column {
-            Row {
-                PrimaryTabRow(
+            // The iOS options sheets switch their pages with a segmented control.
+            Row(
+                modifier = Modifier.padding(
+                    start = 16.dp,
+                    end = if (tabOverflowMenuContent !=
+                        null
+                    ) {
+                        4.dp
+                    } else {
+                        16.dp
+                    },
+                    top = 4.dp,
+                    bottom = 8.dp,
+                ),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                SegmentedPicker(
+                    options = tabTitles,
+                    selectedIndex = pagerState.currentPage,
+                    onSelect = { scope.launch { pagerState.animateScrollToPage(it) } },
                     modifier = Modifier.weight(1f),
-                    selectedTabIndex = pagerState.currentPage,
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                ) {
-                    tabTitles.fastForEachIndexed { index, tab ->
-                        Tab(
-                            selected = pagerState.currentPage == index,
-                            onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
-                            text = { TabText(text = tab) },
-                            unselectedContentColor = MaterialTheme.colorScheme.onSurface,
-                        )
-                    }
-                }
+                )
 
                 tabOverflowMenuContent?.let { MoreMenu(it) }
             }

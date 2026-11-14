@@ -45,6 +45,8 @@ fun LibraryContent(
     getDisplayMode: (Int) -> PreferenceMutableState<LibraryDisplayMode>,
     getColumnsForOrientation: (Boolean) -> PreferenceMutableState<Int>,
     getItemsForCategory: (Category) -> List<LibraryItem>,
+    /** Scrolls away with each category page as its first item. */
+    header: (@Composable () -> Unit)? = null,
 ) {
     Column(
         modifier = Modifier.padding(
@@ -109,6 +111,7 @@ fun LibraryContent(
                 },
                 onLongClickManga = onToggleRangeSelection,
                 onClickContinueReading = onContinueReadingClicked,
+                header = header,
             )
         }
 

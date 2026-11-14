@@ -19,6 +19,7 @@ import eu.kanade.presentation.components.TabbedDialog
 import eu.kanade.presentation.components.TabbedDialogPaddings
 import eu.kanade.tachiyomi.ui.library.LibrarySettingsViewModel
 import eu.kanade.tachiyomi.util.system.isReleaseBuildType
+import mihon.feature.shelves.SmartShelvesSettings
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Refresh
 import tachiyomi.core.common.preference.TriState
@@ -178,6 +179,7 @@ private fun ColumnScope.SortPage(
             MR.strings.action_sort_chapter_fetch_date to LibrarySort.Type.ChapterFetchDate,
             MR.strings.action_sort_date_added to LibrarySort.Type.DateAdded,
             trackerMeanPair,
+            MR.strings.action_sort_my_score to LibrarySort.Type.MyScore,
             MR.strings.action_sort_random to LibrarySort.Type.Random,
         )
     }
@@ -294,5 +296,21 @@ private fun ColumnScope.DisplayPage(
     CheckboxItem(
         label = stringResource(MR.strings.action_display_show_number_of_items),
         pref = viewModel.libraryPreferences.categoryNumberOfItems,
+    )
+
+    SmartShelvesSettings(viewModel.shelfPreferences)
+
+    HeadingItem(MR.strings.friends_league)
+    CheckboxItem(
+        label = stringResource(MR.strings.friends_pref_library_banner),
+        pref = viewModel.friendsPreferences.showLibraryBanner,
+    )
+    CheckboxItem(
+        label = stringResource(MR.strings.friends_pref_cards_button),
+        pref = viewModel.friendsPreferences.showCardsButton,
+    )
+    CheckboxItem(
+        label = stringResource(MR.strings.friends_pref_library_cards),
+        pref = viewModel.friendsPreferences.showLibraryCards,
     )
 }
