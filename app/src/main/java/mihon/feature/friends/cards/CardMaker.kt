@@ -60,6 +60,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -429,6 +431,8 @@ private fun Reveal(card: ShioriCard, pulledToday: Int, onDone: () -> Unit) {
     var glowing by remember(card.id) { mutableStateOf(false) }
     var flipped by remember(card.id) { mutableStateOf(false) }
     var confetti by remember(card.id) { mutableIntStateOf(0) }
+    // The rank roulette's current rank: presentation only, it always ends on the card's real rank
+    var rolling by remember(card.id) { mutableStateOf<CardGrade?>(null) }
     val backScale = remember(card.id) { Animatable(0.9f) }
     val album by repository.album.collectAsStateWithLifecycle()
     val current = album.firstOrNull { it.id == card.id } ?: card
@@ -440,7 +444,19 @@ private fun Reveal(card: ShioriCard, pulledToday: Int, onDone: () -> Unit) {
         glowing = true
         launch { backScale.animateTo(1.04f, tween(if (reduced) 100 else 900)) }
         CardHaptics.press(view)
-        delay(if (reduced) 200 else 1_100)
+        if (reduced) {
+            // Remove animations: just the real rank, briefly
+            rolling = card.grade
+            delay(CardRankRoulette.HOLD_MS)
+        } else {
+            val ticks = CardRankRoulette.ticks(card.grade)
+            ticks.forEachIndexed { index, tick ->
+                rolling = tick.grade
+                CardHaptics.tick(view)
+                delay(if (index == ticks.lastIndex) CardRankRoulette.HOLD_MS else tick.delayMs)
+            }
+        }
+        rolling = null
         flipped = true
         CardHaptics.success(view)
         if (card.grade.celebrates) confetti++
@@ -470,6 +486,17 @@ private fun Reveal(card: ShioriCard, pulledToday: Int, onDone: () -> Unit) {
                 trigger = confetti,
                 accent = repository.accent(card.grade),
                 modifier = Modifier.matchParentSize(),
+            )
+        }
+        rolling?.let { grade ->
+            val description = stringResource(MR.strings.cards_rank_roulette_description, grade.rank)
+            Text(
+                text = grade.rank,
+                color = repository.accent(grade),
+                style = MaterialTheme.typography.displayMedium,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 2.sp,
+                modifier = Modifier.clearAndSetSemantics { contentDescription = description },
             )
         }
         if (flipped) {

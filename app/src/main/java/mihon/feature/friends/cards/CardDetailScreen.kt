@@ -57,6 +57,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -473,6 +475,10 @@ private fun Details(card: ShioriCard, repository: CardRepository) {
                     "${stringResource(MR.strings.cards_stat_aura)} ${card.stats.aura} · " +
                     "${stringResource(MR.strings.cards_stat_drama)} ${card.stats.drama}",
             )
+            CardRankProgress.of(card)?.let { rank ->
+                HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.separator)
+                RankProgressSection(rank, repository.accent(rank.grade))
+            }
             card.scores?.let { scores ->
                 HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.separator)
                 Text(
@@ -485,8 +491,73 @@ private fun Details(card: ShioriCard, repository: CardRepository) {
                 ScoreBar(stringResource(MR.strings.cards_score_composition), scores.composition)
                 ScoreBar(stringResource(MR.strings.cards_score_action), scores.action)
                 ScoreBar(stringResource(MR.strings.cards_score_art), scores.artQuality)
+                ScoreBar(stringResource(MR.strings.cards_score_story), scores.story)
             }
         }
+    }
+}
+
+/** A v3 card's rank score: its rank, "68.4 / 100", progress through the rank's band and what's next. */
+@Composable
+private fun RankProgressSection(rank: CardRankProgress, color: Color) {
+    val locale = Locale.getDefault()
+    val score = CardRankProgress.format(rank.score, locale)
+    val status = when (val status = rank.status) {
+        is CardRankStatus.Next -> stringResource(
+            MR.strings.cards_rank_points_to,
+            CardRankProgress.format(status.points, locale),
+            status.next.rank,
+        )
+        CardRankStatus.Top -> stringResource(MR.strings.cards_rank_top)
+        is CardRankStatus.Held -> stringResource(MR.strings.cards_rank_held, status.rank.rank)
+    }
+    val description = stringResource(MR.strings.cards_rank_progress_description, rank.grade.rank, score, status)
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.clearAndSetSemantics { contentDescription = description },
+    ) {
+        Text(
+            text = stringResource(MR.strings.cards_rank_progress),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+        )
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            // The rank badge: dark text on the rank's colour reads in light and dark mode alike
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(color)
+                    .widthIn(min = 36.dp)
+                    .padding(horizontal = 8.dp, vertical = 2.dp),
+            ) {
+                Text(
+                    text = rank.grade.rank,
+                    color = Color.Black.copy(alpha = 0.85f),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Black,
+                )
+            }
+            Text(
+                text = stringResource(MR.strings.cards_rank_score, score),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+        LinearProgressIndicator(
+            progress = { rank.progress },
+            modifier = Modifier.fillMaxWidth().height(6.dp),
+            color = color,
+            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            strokeCap = StrokeCap.Round,
+            gapSize = 0.dp,
+            drawStopIndicator = {},
+        )
+        Text(
+            text = status,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

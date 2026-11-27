@@ -785,6 +785,11 @@ fun CardGradeCounts(
 }
 
 object CardHaptics {
+    /** A light tick (the reveal's rank roulette). */
+    fun tick(view: View) {
+        view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+    }
+
     fun press(view: View) {
         view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
     }

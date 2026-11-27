@@ -1488,6 +1488,14 @@
     <string name="cards_score_composition">Composition</string>
     <string name="cards_score_action">Impact</string>
     <string name="cards_score_art">Art quality</string>
+    <string name="cards_score_story">Story</string>
+    <string name="cards_rank_progress">Rank progress</string>
+    <string name="cards_rank_score">%1$s / 100</string>
+    <string name="cards_rank_points_to">%1$s points to %2$s</string>
+    <string name="cards_rank_top">Top rank</string>
+    <string name="cards_rank_held">Held at %1$s by a limit</string>
+    <string name="cards_rank_progress_description">Rank %1$s, score %2$s out of 100. %3$s</string>
+    <string name="cards_rank_roulette_description">Rolling rank: %1$s</string>
     <string name="cards_empty_title">No cards yet</string>
     <string name="cards_empty_hint">In the reader, tap the camera button → Make a card.</string>
     <string name="cards_no_match_title">No cards match</string>
@@ -1641,6 +1649,8 @@
     <string name="whats_new_47_english_title">English titles in More like this</string>
     <string name="whats_new_47_english">Show recommendations by their English title instead of the romaji one, when AniList has one. Off unless you turn it on below.</string>
     <string name="whats_new_47_more_like_this_title">More like this moved up</string>
+    <string name="whats_new_48_grading_title">Fairer card ranks</string>
+    <string name="whats_new_48_grading">New pulls are graded on one 0–100 score, with no luck: the same panel gets the same rank. A card's details show its score and how close it came to the next rank, and a pull spins through the ranks before it lands.</string>
     <string name="whats_new_47_more_like_this">It now sits under the description. Tap its header to fold it away; it stays folded on every series until you open it again.</string>
     <string name="whats_new_46_js">Extensions now has an \"Our sources\" section with the same sources as the iPhone app, Mangasushi and Aster Scans included. Install them from there.</string>
     <string name="pref_remove_after_read_days">Delete some days after reading</string>

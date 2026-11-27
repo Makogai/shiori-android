@@ -165,6 +165,14 @@ private val notesByVersion: List<Pair<Int, List<Highlight>>> = listOf(
             MR.strings.whats_new_47_more_like_this,
         ),
     ),
+    48 to listOf(
+        Highlight(
+            MaterialSymbols.Rounded.LocalFireDepartment,
+            Color(0xFFFF9500),
+            MR.strings.whats_new_48_grading_title,
+            MR.strings.whats_new_48_grading,
+        ),
+    ),
 )
 
 /** The notes to show: every release after [sinceVersion] (so a skipped update isn't missed), else the latest. */

@@ -107,11 +107,102 @@ data class CardScores(
     val action: Double? = null,
     val iconic: Double? = null,
     @SerialName("art_quality") val artQuality: Double? = null,
+    /** Grading pipeline v3 adds the story dimension (0–10). */
+    val story: Double? = null,
     val quality: Double? = null,
     @SerialName("suggested_grade") val suggestedGrade: String? = null,
     @SerialName("base_grade") val baseGrade: String? = null,
     val luck: String? = null,
+    /** v3: the canonical score, 0–100 (one decimal); the rest of the rank fields only come with it. */
+    @SerialName("rank_score") val rankScore: Double? = null,
+    /** v3: the lowest score of the next display rank (100 at SR). */
+    @SerialName("next_rank_score") val nextRankScore: Double? = null,
+    /** v3: 0 at SR, and 0 when a limit holds the card below what its score would reach. */
+    @SerialName("points_to_next_rank") val pointsToNextRank: Double? = null,
+    /** v3: 0–1 through the current rank's score band. */
+    @SerialName("rank_progress") val rankProgress: Double? = null,
+    /** v3: the next rank's stored grade code ("L" = A), null at the top. */
+    @SerialName("next_grade") val nextGrade: String? = null,
+    /** v3: the rule that held the card below its score's rank ("S30", "ceiling:plain_closeup"), else null. */
+    @SerialName("rank_held_by") val rankHeldBy: String? = null,
+    @SerialName("pipeline_version") val pipelineVersion: Int? = null,
 )
+
+/**
+ * The rank progress line under a v3 card's details (pipeline_version 3), from the server's numbers only: the app never
+ * grades. [Next]: "7.6 points to A"; [Top]: SR; [Held]: a limit keeps the card at [rank] whatever its score.
+ */
+sealed interface CardRankStatus {
+    data class Next(val points: Double, val next: CardGrade) : CardRankStatus
+    data object Top : CardRankStatus
+    data class Held(val rank: CardGrade) : CardRankStatus
+}
+
+/** A v3 card's rank score and where it stands in its rank's band. */
+data class CardRankProgress(val grade: CardGrade, val score: Double, val progress: Float, val status: CardRankStatus) {
+
+    companion object {
+        /** The lowest score of each display rank, E … SR (grading pipeline v3). */
+        val BAND_FLOORS = listOf(0.0, 35.0, 48.0, 62.0, 76.0, 87.0, 94.0)
+
+        /** Null for cards graded before v3 (no `rank_score`). */
+        fun of(card: ShioriCard): CardRankProgress? {
+            val scores = card.scores ?: return null
+            val score = scores.rankScore ?: return null
+            val grade = card.grade
+            val nextGrade = scores.nextGrade?.let { code -> CardGrade.entries.firstOrNull { it.code == code } }
+                ?: CardGrade.entries.getOrNull(grade.ordinal + 1)
+            val points = (scores.pointsToNextRank ?: scores.nextRankScore?.let { it - score } ?: 0.0).coerceAtLeast(0.0)
+            val status = when {
+                grade == CardGrade.SECRET || nextGrade == null -> CardRankStatus.Top
+                scores.rankHeldBy != null && points == 0.0 -> CardRankStatus.Held(grade)
+                else -> CardRankStatus.Next(points, nextGrade)
+            }
+            val progress = when (status) {
+                CardRankStatus.Top -> scores.rankProgress ?: 1.0
+                else -> scores.rankProgress ?: bandProgress(grade, score)
+            }
+            return CardRankProgress(grade, score, progress.coerceIn(0.0, 1.0).toFloat(), status)
+        }
+
+        /** The share of [grade]'s band [score] has covered, for a row without `rank_progress`. */
+        fun bandProgress(grade: CardGrade, score: Double): Double {
+            val floor = BAND_FLOORS[grade.ordinal]
+            val ceiling = BAND_FLOORS.getOrNull(grade.ordinal + 1) ?: 100.0
+            return ((score - floor) / (ceiling - floor)).coerceIn(0.0, 1.0)
+        }
+
+        /** "68.4", "7.6": one decimal, as the server rounds. */
+        fun format(value: Double, locale: java.util.Locale = java.util.Locale.getDefault()): String =
+            String.format(locale, "%.1f", value)
+    }
+}
+
+/**
+ * The pull reveal's rank roulette: presentation only, it never grades. The ranks tick E → SR around twice and then up to
+ * the card's real rank, fast first and slowing down, so the last tick lands on [final] (never a jump).
+ */
+object CardRankRoulette {
+    const val TOTAL_MS = 3_000L
+    const val HOLD_MS = 600L
+    const val LAPS = 2
+    private const val FIRST_MS = 45.0
+    private const val LAST_MS = 420.0
+
+    data class Tick(val grade: CardGrade, val delayMs: Long)
+
+    /** The ticks for [final]: each grade is shown, then held for its delay; the delays add up to about [TOTAL_MS]. */
+    fun ticks(final: CardGrade): List<Tick> {
+        val ranks = CardGrade.entries
+        val count = LAPS * ranks.size + final.ordinal + 1
+        val raw = List(count) { i ->
+            val t = if (count == 1) 1.0 else i.toDouble() / (count - 1)
+            FIRST_MS + (LAST_MS - FIRST_MS) * t * t
+        }
+        val scale = TOTAL_MS / raw.sum()
+        return List(count) { i -> Tick(ranks[i % ranks.size], (raw[i] * scale).toLong()) }
+    }
+}
 
 /** One row of `cards` (backend README v7). */
 @Serializable
