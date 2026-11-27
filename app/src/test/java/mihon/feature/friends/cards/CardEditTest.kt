@@ -38,9 +38,9 @@ class CardEditTest {
     private fun editLayers(picked: List<String>) =
         (picked + listOf("holo_rainbow", "foil_noise")).filter { it in manifest.effects }.map(CardLayer::Effect)
 
-    /** An edit's plan: backdrop, the image, [effects], the card number. */
+    /** An edit's plan: backdrop, the image, [effects]; no card number (that is on the back). */
     private fun edit(effects: List<CardLayer>) =
-        listOf(CardLayer.Backdrop, CardLayer.CustomFrame) + effects + CardLayer.Metadata
+        listOf(CardLayer.Backdrop, CardLayer.CustomFrame) + effects
 
     private fun face(card: ShioriCard) = CardFace(card, ZoneOffset.UTC)
 
@@ -74,26 +74,46 @@ class CardEditTest {
         for (grade in listOf(CardGrade.COMMON, CardGrade.UNCOMMON, CardGrade.RARE)) {
             CardLayerPlan.layers(face(card(grade, "edit")), manifest, customFrame = true) shouldBe edit(emptyList())
         }
-        // Animated: backdrop, the GIF, the number; no effects
+        // Animated: backdrop and the GIF; no effects, no number
         CardLayerPlan.layers(
             face(card(CardGrade.SECRET, "edit")),
             manifest,
             customFrame = true,
             animation = true,
         ) shouldBe
-            listOf(CardLayer.Backdrop, CardLayer.AnimatedFrame, CardLayer.Metadata)
-        // The backdrop sits under the frame (the live view's cached "below"), the number on top
+            listOf(CardLayer.Backdrop, CardLayer.AnimatedFrame)
+        // The backdrop sits under the frame (the live view's cached "below")
         CardLayerPlan.isBelowFrame(CardLayer.Backdrop, manifest) shouldBe true
-        CardLayerPlan.isBelowFrame(CardLayer.Metadata, manifest) shouldBe false
     }
 
     @Test
-    fun `the face carries the card number, the season no rank symbol`() {
+    fun `the face carries the season, no rank symbol`() {
         val face = face(card(CardGrade.LEGENDARY, "edit").copy(createdAt = "2026-11-12T10:00:00Z"))
-        face.cardId shouldBe "No. 0042"
         face.season shouldBe "S1·2026"
-        face(card(CardGrade.SECRET, "edit").copy(serial = 0)).cardId shouldBe null
     }
+
+    @Test
+    fun `no front plan draws the card number, it is only on the back`() {
+        for (grade in CardGrade.entries) {
+            val plans = listOf(
+                // Pack template (no custom frame), custom border, still AI edit, animated AI edit
+                CardLayerPlan.layers(face(card(grade, null)), manifest, customFrame = false),
+                CardLayerPlan.layers(face(card(grade, "border")), manifest, customFrame = true),
+                CardLayerPlan.layers(face(card(grade, "edit")), manifest, customFrame = true),
+                CardLayerPlan.layers(face(card(grade, "edit")), manifest, customFrame = true, animation = true),
+                CardRenderer.plan(face(card(grade, "edit")), manifest, customFrame = true),
+            )
+            plans.forEach { plan ->
+                plan.map { it.toString() }.none { "Metadata" in it || "Number" in it } shouldBe true
+                // Every plan ends on the card art, its text or an effect: nothing is drawn after them
+                (plan.last() is CardLayer.Effect || plan.last() in frontTops) shouldBe true
+            }
+        }
+        // The number is on the back instead ("№ 0042 · RANK A")
+        CardBackLayout.numberText(42, CardGrade.LEGENDARY) shouldBe "№ 0042 · RANK A"
+    }
+
+    private val frontTops = setOf(CardLayer.Wordmark, CardLayer.CustomFrame, CardLayer.AnimatedFrame)
 
     @Test
     fun `only Epic's holo is dimmed over an AI card`() {
@@ -117,15 +137,14 @@ class CardEditTest {
             CardLayer.Effect("aura_glow"),
             CardLayer.Effect("holo_rainbow"),
             CardLayer.Effect("foil_noise"),
-            CardLayer.Metadata,
         )
         // Pending, or the image didn't download: the pack frame
         val pending = CardLayerPlan.layers(face(card(CardGrade.SECRET, "edit")), manifest, customFrame = false)
         pending.first() shouldBe CardLayer.Base
         pending.contains(CardLayer.Text) shouldBe true
         pending.contains(CardLayer.Frame) shouldBe true
-        // Template cards end with the card number too
-        pending.last() shouldBe CardLayer.Metadata
+        // Template cards end with the overlays, no card number
+        pending.last() shouldBe CardLayer.Effect("foil_noise")
     }
 
     @Test

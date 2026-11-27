@@ -15,15 +15,13 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.nativeCanvas
 import kotlin.math.hypot
 import kotlin.math.max
 
 /**
  * Draws [shine] over the card filling this scope. Every part, the edge glow and glints included, is drawn inside
  * one clip to the card's rounded shape, so nothing reaches past its edge; the foil and the screen-lit parts each draw
- * on their own layer (composited with [BlendMode.Overlay] and [BlendMode.Screen]) which then fades out over the
- * metadata zones ([CardZoneFade]), so nothing covers the card number and no box shows. [seconds]: the glints' clock (0 for a
+ * on their own layer (composited with [BlendMode.Overlay] and [BlendMode.Screen]). [seconds]: the glints' clock (0 for a
  * still card). Glare and glints use [BlendMode.Screen], foil [BlendMode.Overlay]; alphas are capped at
  * [CardShine.MAX_ALPHA] (glints at [CardShine.MAX_SPARKLE_ALPHA]) so the art stays readable.
  */
@@ -128,15 +126,11 @@ private fun DrawScope.screenParts(
 
 private fun Float.cap() = coerceIn(0f, CardShine.MAX_ALPHA)
 
-/**
- * Runs [block] on an offscreen layer composited onto the card with [mode], then fades that layer out over the metadata
- * zones ([CardZoneFade], scaled from master pixels).
- */
+/** Runs [block] on an offscreen layer composited onto the card with [mode]. */
 private fun DrawScope.fadedLayer(mode: BlendMode, block: DrawScope.() -> Unit) {
     drawIntoCanvas { canvas ->
         canvas.saveLayer(Rect(0f, 0f, size.width, size.height), Paint().apply { blendMode = mode })
         block()
-        CardZoneFade.apply(canvas.nativeCanvas, CardSpec.scale(size.width))
         canvas.restore()
     }
 }

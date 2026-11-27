@@ -1,5 +1,6 @@
 package mihon.feature.friends.cards
 
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -28,11 +29,7 @@ sealed interface CardLayer {
     /** Under a legacy (not 5:7) AI card: a blurred, darkened copy of it filling the card. */
     data object Backdrop : CardLayer
 
-    /**
-     * The app-drawn card number ("No. 0003", CardSpec), last on every card; the print fraction stays empty. On screen
-     * it is drawn separately, over the shine ([CardNumberOverlay]).
-     */
-    data object Metadata : CardLayer
+    // The card number is not on the front: only the back shows it ("№ 0042 · RANK A", CardBackLayout.numberText)
 }
 
 /** Where an effect may draw. */
@@ -69,7 +66,7 @@ object CardLayerPlan {
                 CardLayer.Scrim,
                 CardLayer.Text,
                 CardLayer.Wordmark,
-            ) + overlays + CardLayer.Metadata
+            ) + overlays
         }
         val ornament = theme == null || hasOrnament(manifest.theme(theme))
         return listOf(CardLayer.Base, CardLayer.Art) + group(EffectLayer.UNDER) + group(EffectLayer.ART) +
@@ -81,7 +78,7 @@ object CardLayerPlan {
                 CardLayer.Scrim,
                 CardLayer.Text,
                 CardLayer.Wordmark,
-            ) + overlays + CardLayer.Metadata
+            ) + overlays
     }
 
     /**
@@ -144,12 +141,11 @@ object CardLayerPlan {
         animation: Boolean = false,
     ): List<CardLayer> =
         if (isAnimated(face, animation)) {
-            listOf(CardLayer.Backdrop, CardLayer.AnimatedFrame, CardLayer.Metadata)
+            listOf(CardLayer.Backdrop, CardLayer.AnimatedFrame)
         } else if (isEdit(face, customFrame)) {
-            // The AI drew the whole card (scene, rank, name); R+ get the app's effects over it, the app the number
+            // The AI drew the whole card (scene, rank, name); R+ get the app's effects over it
             listOf(CardLayer.Backdrop, CardLayer.CustomFrame) +
-                editEffects(face).filter { it in manifest.effects }.map(CardLayer::Effect) +
-                CardLayer.Metadata
+                editEffects(face).filter { it in manifest.effects }.map(CardLayer::Effect)
         } else {
             layers(face.effects, manifest, customFrame, face.theme)
         }
@@ -413,10 +409,16 @@ object CardTextLayout {
     }
 }
 
+/** The crop's upload: [width] × [height] pixels, the image drawn at [image], grey where [fill] says. */
+data class CardCropExport(val width: Int, val height: Int, val image: CardBox, val fill: CardArtFill)
+
 /** The crop screen's maths: a fixed frame in the art window's shape over the capture, panned and zoomed. */
 object CardCrop {
     const val ASPECT = CardRules.ART_WIDTH.toFloat() / CardRules.ART_HEIGHT
     const val MAX_ZOOM = 6f
+
+    /** The bars of a zoomed-out crop, in the preview and the upload. */
+    const val FILL_ARGB = 0xFF808080.toInt()
 
     /** The largest frame of that shape inside [width] × [height] less [inset] on every side, centred. */
     fun frame(width: Float, height: Float, inset: Float): CardBox {
@@ -432,7 +434,17 @@ object CardCrop {
         return max(frameWidth / imageWidth, frameHeight / imageHeight)
     }
 
-    /** The image centre's shift from the frame centre, kept so the image still covers the frame. */
+    /** The smallest zoom: the whole image fits inside the frame (1 when it already has the frame's shape). */
+    fun minZoom(imageWidth: Float, imageHeight: Float, frameWidth: Float, frameHeight: Float): Float {
+        if (imageWidth <= 0f || imageHeight <= 0f) return 1f
+        val fit = min(frameWidth / imageWidth, frameHeight / imageHeight)
+        return (fit / baseScale(imageWidth, imageHeight, frameWidth, frameHeight)).coerceAtMost(1f)
+    }
+
+    /**
+     * The image centre's shift from the frame centre. On an axis where the image is larger than the frame it keeps
+     * covering the frame; where it is smaller it moves freely but stays inside the frame.
+     */
     fun clamp(
         offsetX: Float,
         offsetY: Float,
@@ -442,10 +454,31 @@ object CardCrop {
         frameHeight: Float,
         zoom: Float,
     ): Pair<Float, Float> {
-        val scale = baseScale(imageWidth, imageHeight, frameWidth, frameHeight) * max(zoom, 1f)
-        val slackX = max((imageWidth * scale - frameWidth) / 2, 0f)
-        val slackY = max((imageHeight * scale - frameHeight) / 2, 0f)
+        val z = max(zoom, minZoom(imageWidth, imageHeight, frameWidth, frameHeight))
+        val scale = baseScale(imageWidth, imageHeight, frameWidth, frameHeight) * z
+        val slackX = abs(imageWidth * scale - frameWidth) / 2
+        val slackY = abs(imageHeight * scale - frameHeight) / 2
         return offsetX.coerceIn(-slackX, slackX) to offsetY.coerceIn(-slackY, slackY)
+    }
+
+    /** The frame in image pixels; zoomed out past aspect-fill it reaches past the image. */
+    fun frameRect(
+        imageWidth: Float,
+        imageHeight: Float,
+        frameWidth: Float,
+        frameHeight: Float,
+        zoom: Float,
+        offsetX: Float,
+        offsetY: Float,
+    ): CardBox {
+        val z = max(zoom, minZoom(imageWidth, imageHeight, frameWidth, frameHeight))
+        val (ox, oy) = clamp(offsetX, offsetY, imageWidth, imageHeight, frameWidth, frameHeight, z)
+        val scale = baseScale(imageWidth, imageHeight, frameWidth, frameHeight) * z
+        val w = frameWidth / scale
+        val h = frameHeight / scale
+        val cx = imageWidth / 2 - ox / scale
+        val cy = imageHeight / 2 - oy / scale
+        return CardBox(cx - w / 2, cy - h / 2, w, h)
     }
 
     /** The part of the image, in its pixels, inside the frame. */
@@ -457,15 +490,20 @@ object CardCrop {
         zoom: Float,
         offsetX: Float,
         offsetY: Float,
-    ): CardBox {
-        val z = max(zoom, 1f)
-        val (ox, oy) = clamp(offsetX, offsetY, imageWidth, imageHeight, frameWidth, frameHeight, z)
-        val scale = baseScale(imageWidth, imageHeight, frameWidth, frameHeight) * z
-        val w = frameWidth / scale
-        val h = frameHeight / scale
-        val cx = imageWidth / 2 - ox / scale
-        val cy = imageHeight / 2 - oy / scale
-        return CardBox(cx - w / 2, cy - h / 2, w, h).intersect(CardBox(0f, 0f, imageWidth, imageHeight))
+    ): CardBox = frameRect(imageWidth, imageHeight, frameWidth, frameHeight, zoom, offsetX, offsetY)
+        .intersect(CardBox(0f, 0f, imageWidth, imageHeight))
+
+    /**
+     * The upload for [frame] (image pixels) over a [imageWidth] × [imageHeight] image: its size, where the image is
+     * drawn in it (never stretched) and the grey bars left around it.
+     */
+    fun export(imageWidth: Float, imageHeight: Float, frame: CardBox): CardCropExport {
+        val (width, height) = outputSize(frame.width, frame.height)
+        val w = width.coerceAtLeast(1)
+        val h = height.coerceAtLeast(1)
+        val factor = w / max(frame.width, 1e-3f)
+        val image = CardBox(-frame.left * factor, -frame.top * factor, imageWidth * factor, imageHeight * factor)
+        return CardCropExport(w, h, image, CardArtFill.of(image, w, h))
     }
 
     /** The upload's size: the crop's pixels scaled down (never up) to fit 1428 × 2028. */

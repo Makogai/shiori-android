@@ -1649,6 +1649,10 @@
     <string name="whats_new_47_english_title">English titles in More like this</string>
     <string name="whats_new_47_english">Show recommendations by their English title instead of the romaji one, when AniList has one. Off unless you turn it on below.</string>
     <string name="whats_new_47_more_like_this_title">More like this moved up</string>
+    <string name="whats_new_49_card_fronts_title">Cleaner card fronts</string>
+    <string name="whats_new_49_card_fronts">The card number is now only on the back. New B to SR cards place the name where it suits the art best, not always at the bottom.</string>
+    <string name="whats_new_49_zoom_out_title">Zoom out when making a card</string>
+    <string name="whats_new_49_zoom_out">Pinch out until the whole panel fits and move it anywhere. The grey bars are filled in by the card artist, and wide scenes are graded as a whole.</string>
     <string name="whats_new_48_grading_title">Fairer card ranks</string>
     <string name="whats_new_48_grading">New pulls are graded on one 0–100 score, with no luck: the same panel gets the same rank. A card's details show its score and how close it came to the next rank, and a pull spins through the ranks before it lands.</string>
     <string name="whats_new_47_more_like_this">It now sits under the description. Tap its header to fold it away; it stays folded on every series until you open it again.</string>

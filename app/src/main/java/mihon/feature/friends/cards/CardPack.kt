@@ -39,9 +39,6 @@ class CardPack(private val context: Context) {
             ?: Typeface.create(Typeface.SERIF, Typeface.BOLD)
     }
 
-    /** The bundled metadata font (Inter Medium, SIL OFL): the card number, measured and drawn with it. */
-    val metadataTypeface: Typeface by lazy { bundled(CardSpec.METADATA_FONT, Typeface.DEFAULT) }
-
     /** The supporting sans (Inter Regular) for the card back's small lines. */
     val supportTypeface: Typeface by lazy { bundled(CardSpec.SUPPORT_FONT, Typeface.SANS_SERIF) }
 

@@ -173,6 +173,20 @@ private val notesByVersion: List<Pair<Int, List<Highlight>>> = listOf(
             MR.strings.whats_new_48_grading,
         ),
     ),
+    49 to listOf(
+        Highlight(
+            MaterialSymbols.Rounded.Photo,
+            Color(0xFFAF52DE),
+            MR.strings.whats_new_49_card_fronts_title,
+            MR.strings.whats_new_49_card_fronts,
+        ),
+        Highlight(
+            MaterialSymbols.Rounded.Explore,
+            Color(0xFF34C759),
+            MR.strings.whats_new_49_zoom_out_title,
+            MR.strings.whats_new_49_zoom_out,
+        ),
+    ),
 )
 
 /** The notes to show: every release after [sinceVersion] (so a skipped update isn't missed), else the latest. */

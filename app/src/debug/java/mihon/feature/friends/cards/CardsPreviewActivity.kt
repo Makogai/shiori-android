@@ -65,10 +65,10 @@ class CardsPreviewActivity : ComponentActivity() {
             } else {
                 ""
             }
-            // The export (number as its last layer) to a file; on screen, as the app: number drawn over the shine
+            // The export to a file; on screen, as the app (the card number is only on the back)
             val (artIn, frameIn) = if (template) art to null else null to art
             renderer.render(face, artIn, frameIn, 1500)?.let { png(it, File(out, "front-${grade.rank}$suffix.png")) }
-            renderer.render(face, artIn, frameIn, 1080) { it != CardLayer.Metadata }
+            renderer.render(face, artIn, frameIn, 1080)
         }
         grades.forEach {
             png(
@@ -80,11 +80,11 @@ class CardsPreviewActivity : ComponentActivity() {
         intent.getStringExtra("viewer")?.let { code ->
             val grade = CardGrade.of(code)
             val face = face(grade, serial(grade), template = false)
-            val front = renderer.render(face, null, art(grade, 1000, 1400), 1080) { it != CardLayer.Metadata }
+            val front = renderer.render(face, null, art(grade, 1000, 1400), 1080)
             val back = CardBackRenderer.render(CardBackFace(grade, SERIES[grade.ordinal], serial(grade)), fonts, 1080)
             val faces = CardViewerFaces(
-                front = front?.let { CardTexture.bake(it, CardSpec.cardIdText(serial(grade)), pack.metadataTypeface) },
-                back = CardTexture.bake(back, null, null),
+                front = front?.let { CardTexture.bake(it) },
+                back = CardTexture.bake(back),
             )
             val yaw = intent.getFloatExtra("yaw", 0f)
             val pitch = intent.getFloatExtra("pitch", 0f)
@@ -126,18 +126,6 @@ class CardsPreviewActivity : ComponentActivity() {
                                     }
                                     ComposeCanvas(Modifier.fillMaxSize()) {
                                         drawCardShine(CardShine.of(grade), CardTilt.EXPORT, 0.0)
-                                    }
-                                    ComposeCanvas(Modifier.fillMaxSize()) {
-                                        val canvas = drawContext.canvas.nativeCanvas
-                                        canvas.save()
-                                        val k = CardSpec.scale(size.width)
-                                        canvas.scale(k, k)
-                                        CardNumber.draw(
-                                            canvas,
-                                            CardSpec.cardIdText(serial(grade))!!,
-                                            pack.metadataTypeface,
-                                        )
-                                        canvas.restore()
                                     }
                                 }
                                 Text(grade.label, color = Color(grade.rankColor), fontSize = 11.sp)

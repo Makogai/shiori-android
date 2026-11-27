@@ -126,7 +126,59 @@ data class CardScores(
     /** v3: the rule that held the card below its score's rank ("S30", "ceiling:plain_closeup"), else null. */
     @SerialName("rank_held_by") val rankHeldBy: String? = null,
     @SerialName("pipeline_version") val pipelineVersion: Int? = null,
+    /** The grey bars of a zoomed-out crop (pull-card's `art_fill`), null for a panel that filled its frame. */
+    @SerialName("art_fill") val artFill: CardArtFill? = null,
 )
+
+/**
+ * A zoomed-out crop's grey (#808080) bars in the uploaded art JPEG: the fraction of its width covered at the left and
+ * right and of its height at the top and bottom, each 0…0.5. Card fronts draw only [innerRect], never the bars.
+ */
+@Serializable
+data class CardArtFill(
+    val left: Double = 0.0,
+    val top: Double = 0.0,
+    val right: Double = 0.0,
+    val bottom: Double = 0.0,
+) {
+    val isEmpty: Boolean get() = left <= 0.0 && top <= 0.0 && right <= 0.0 && bottom <= 0.0
+
+    /**
+     * The panel's part of a [width] × [height] art JPEG (the JPEG minus its bars), on whole pixels inside the bars;
+     * the whole JPEG when there are none or the rest would be empty.
+     */
+    fun innerRect(width: Float, height: Float): CardBox {
+        val full = CardBox(0f, 0f, width, height)
+        if (isEmpty || width <= 0f || height <= 0f) return full
+        fun bar(value: Double, size: Float) = value.coerceIn(0.0, 0.5) * size
+        val l = kotlin.math.ceil(bar(left, width) - EPSILON).toFloat()
+        val t = kotlin.math.ceil(bar(top, height) - EPSILON).toFloat()
+        val r = kotlin.math.floor(width - bar(right, width) + EPSILON).toFloat()
+        val b = kotlin.math.floor(height - bar(bottom, height) + EPSILON).toFloat()
+        if (r - l < 1f || b - t < 1f) return full
+        return CardBox(l, t, r - l, b - t)
+    }
+
+    companion object {
+        private const val EPSILON = 1e-6
+        private const val THRESHOLD = 0.005
+
+        /** A bar of [bar] pixels across [size]: 0…0.5, three decimals, under 0.005 is none. */
+        fun fraction(bar: Float, size: Float): Double {
+            if (size <= 0f || bar <= 0f) return 0.0
+            val value = Math.round((bar / size).toDouble().coerceIn(0.0, 0.5) * 1000) / 1000.0
+            return if (value < THRESHOLD) 0.0 else value
+        }
+
+        /** The bars around [image] (output pixels) in a [width] × [height] output. */
+        fun of(image: CardBox, width: Int, height: Int): CardArtFill = CardArtFill(
+            left = fraction(image.left, width.toFloat()),
+            top = fraction(image.top, height.toFloat()),
+            right = fraction(width - image.right, width.toFloat()),
+            bottom = fraction(height - image.bottom, height.toFloat()),
+        )
+    }
+}
 
 /**
  * The rank progress line under a v3 card's details (pipeline_version 3), from the server's numbers only: the app never
@@ -323,7 +375,7 @@ data class CardSeriesContext(
 
 /**
  * The body of `POST /functions/v1/pull-card`; `chapter_number` is sent as null rather than left out, `card_name`
- * (the player's own name for the card, else the AI names it) only when set.
+ * (the player's own name for the card, else the AI names it) and `art_fill` only when set.
  */
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
@@ -338,8 +390,17 @@ data class CardPullRequest(
     @EncodeDefault(EncodeDefault.Mode.NEVER)
     @SerialName("card_name")
     val cardName: String? = null,
+    /** A zoomed-out crop's bars, only when it has any. */
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    @SerialName("art_fill")
+    val artFill: CardArtFill? = null,
 ) {
-    constructor(artPath: String, context: CardSeriesContext, cardName: String? = null) : this(
+    constructor(
+        artPath: String,
+        context: CardSeriesContext,
+        cardName: String? = null,
+        artFill: CardArtFill? = null,
+    ) : this(
         artPath = artPath,
         seriesTitle = context.seriesTitle,
         sourceName = context.sourceName,
@@ -348,6 +409,7 @@ data class CardPullRequest(
         genres = context.genres,
         seriesKey = context.seriesKey,
         cardName = CardRules.normalizedName(cardName),
+        artFill = artFill?.takeUnless { it.isEmpty },
     )
 }
 

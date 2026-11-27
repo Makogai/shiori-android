@@ -167,8 +167,7 @@ class CardRepository(
     }
 
     /**
-     * [card] drawn still, [width] pixels wide (thumbnails, and the live view with animations off), without the card
-     * number (the view draws it over the shine). With [animated]
+     * [card] drawn still, [width] pixels wide (thumbnails, and the live view with animations off). With [animated]
      * (the detail view or the reveal under Reduce Motion) an animated card edit shows its GIF's first frame.
      */
     suspend fun still(card: ShioriCard, width: Int, animated: Boolean = false): Bitmap? {
@@ -183,15 +182,11 @@ class CardRepository(
                 images.customFrame,
                 width,
                 animationFrame = animation?.firstFrame,
-                include = onScreen,
             )
         } ?: return null
         if (images.art != null || images.customFrame != null) stills.put(key, bitmap)
         return bitmap
     }
-
-    /** On screen the card number is drawn by the view, over the shine ([CardNumberOverlay]). */
-    private val onScreen: (CardLayer) -> Boolean = { it != CardLayer.Metadata }
 
     /** The album thumbnail's cache key: `card id | frame | frame_anim | name`. */
     fun thumbnailKey(card: ShioriCard): String =
@@ -211,7 +206,7 @@ class CardRepository(
         val frame = card.frameImagePath?.let { image(CardRequests.FRAME_BUCKET, it) }
         val art = if (card.frameImagePath == null) image(CardRequests.ART_BUCKET, card.artPath) else null
         val bitmap = withContext(thumbDispatcher) {
-            renderer.render(CardFace(card, zone), art, frame, THUMB_WIDTH, include = onScreen)
+            renderer.render(CardFace(card, zone), art, frame, THUMB_WIDTH)
         } ?: return null
         if (art != null || frame != null) thumbs.put(key, bitmap)
         return bitmap
@@ -290,7 +285,7 @@ class CardRepository(
      * Uploads the crop and pulls a card from it, named [name] when given (else the AI names it); the phase says how
      * it went.
      */
-    fun pullCard(jpeg: ByteArray, series: CardSeriesContext, name: String? = null) {
+    fun pullCard(jpeg: ByteArray, series: CardSeriesContext, name: String? = null, artFill: CardArtFill? = null) {
         val me = me ?: run {
             pull.value = CardPullPhase.Failed("Join the Reading Arena to collect cards.", retry = false)
             return
@@ -302,7 +297,7 @@ class CardRepository(
                 friends.authed { api.uploadJpeg(it, requests.uploadArtPath(path), jpeg) }
                 withContext(Dispatchers.IO) { store(File(folder, hash("${CardRequests.ART_BUCKET}/$path")), jpeg) }
                 pull.value = CardPullPhase.Summoning
-                val call = requests.pull(CardPullRequest(path, series, name))
+                val call = requests.pull(CardPullRequest(path, series, name, artFill))
                 val result = try {
                     requests.decodePull(friends.authed { api.send(it, call, slow = true) })
                 } catch (e: FriendsApiException) {

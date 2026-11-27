@@ -97,8 +97,7 @@ class CardLayoutTest {
             effects.filter { manifest.effects[it]?.placement == EffectLayer.ART } +
             listOf("Frame", "Ornament", "Emblem", "Badge", "Scrim", "Text", "Wordmark") +
             effects.filter { manifest.effects[it]?.placement == EffectLayer.OVER } +
-            effects.filter { manifest.effects[it]?.placement == EffectLayer.FRAME } +
-            "Metadata"
+            effects.filter { manifest.effects[it]?.placement == EffectLayer.FRAME }
         names shouldBe expected
         names.contains("unknown") shouldBe false
     }
@@ -115,8 +114,7 @@ class CardLayoutTest {
             CardLayer.Text,
             CardLayer.Wordmark,
         )
-        layers.last() shouldBe CardLayer.Metadata
-        val rest = layers.drop(6).dropLast(1).map { (it as CardLayer.Effect).id }
+        val rest = layers.drop(6).map { (it as CardLayer.Effect).id }
         rest shouldBe effects.filter { manifest.effects.getValue(it).placement == EffectLayer.OVER } +
             effects.filter { manifest.effects.getValue(it).placement == EffectLayer.FRAME }
         rest.contains("ember_particles") shouldBe false

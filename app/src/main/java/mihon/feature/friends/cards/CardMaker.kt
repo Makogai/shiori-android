@@ -131,33 +131,29 @@ class CardMakerViewModel(val repository: CardRepository) : ViewModel() {
         _started.value = false
     }
 
-    fun summon(crop: CardBox) {
+    /** [frame]: the crop frame in the image's pixels (past the image when zoomed out). */
+    fun summon(frame: CardBox) {
         val current = request.value ?: return
         val name = CardRules.normalizedName(_name.value)
         _started.value = true
         viewModelScope.launch {
-            val jpeg = withContext(Dispatchers.Default) { cropJpeg(current.image, crop) }
-            repository.pullCard(jpeg, current.series, name)
+            val export = CardCrop.export(current.image.width.toFloat(), current.image.height.toFloat(), frame)
+            val jpeg = withContext(Dispatchers.Default) { cropJpeg(current.image, export) }
+            repository.pullCard(jpeg, current.series, name, export.fill)
         }
     }
 
     companion object {
-        /** The crop's pixels, at most 1428 × 2028, JPEG quality 85. */
-        fun cropJpeg(image: Bitmap, crop: CardBox): ByteArray {
-            val (width, height) = CardCrop.outputSize(crop.width, crop.height)
-            val output = Bitmap.createBitmap(width.coerceAtLeast(1), height.coerceAtLeast(1), Bitmap.Config.ARGB_8888)
-            val factor = width / crop.width
+        /** The frame's pixels, at most 1428 × 2028, JPEG quality 85: #808080 where the image doesn't reach. */
+        fun cropJpeg(image: Bitmap, export: CardCropExport): ByteArray {
+            val output = Bitmap.createBitmap(export.width, export.height, Bitmap.Config.ARGB_8888)
+            val rect = export.image
             Canvas(output).apply {
-                drawColor(android.graphics.Color.BLACK)
+                drawColor(CardCrop.FILL_ARGB)
                 drawBitmap(
                     image,
                     null,
-                    RectF(
-                        -crop.left * factor,
-                        -crop.top * factor,
-                        (image.width - crop.left) * factor,
-                        (image.height - crop.top) * factor,
-                    ),
+                    RectF(rect.left, rect.top, rect.right, rect.bottom),
                     Paint(Paint.FILTER_BITMAP_FLAG),
                 )
             }
@@ -230,7 +226,10 @@ fun CardMakerDialog(viewModel: CardMakerViewModel) {
     }
 }
 
-/** A fixed 1428:2028 frame over the capture; pinch and drag move the image under it. */
+/**
+ * A fixed 1428:2028 frame over the capture; pinch and drag move the image under it. Zoomed out down to the whole image
+ * inside the frame, grey bars fill the rest.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ColumnScope.CropStage(
@@ -262,12 +261,13 @@ private fun ColumnScope.CropStage(
             return Offset(x, y)
         }
         val offset = relativeOffset * frame.width
+        val minZoom = CardCrop.minZoom(imageWidth, imageHeight, frame.width, frame.height)
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
                 .pointerInput(image, frame) {
                     detectTransformGestures { _, pan, gestureZoom, _ ->
-                        zoom = (zoom * gestureZoom).coerceIn(1f, CardCrop.MAX_ZOOM)
+                        zoom = (zoom * gestureZoom).coerceIn(minZoom, CardCrop.MAX_ZOOM)
                         relativeOffset = clamped(relativeOffset * frame.width + pan, zoom) / frame.width
                     }
                 },
@@ -276,6 +276,9 @@ private fun ColumnScope.CropStage(
             val shown = clamped(offset, zoom)
             val width = imageWidth * scale
             val height = imageHeight * scale
+            val hole = RoundRect(frame.left, frame.top, frame.right, frame.bottom, CornerRadius(corner))
+            // Where the zoomed-out image doesn't cover the frame
+            drawPath(path = Path().apply { addRoundRect(hole) }, color = CropFill)
             drawImage(
                 image = bitmap,
                 dstOffset = IntOffset(
@@ -285,7 +288,6 @@ private fun ColumnScope.CropStage(
                 dstSize = IntSize(width.roundToInt(), height.roundToInt()),
                 filterQuality = FilterQuality.Medium,
             )
-            val hole = RoundRect(frame.left, frame.top, frame.right, frame.bottom, CornerRadius(corner))
             drawPath(
                 path = Path().apply {
                     fillType = PathFillType.EvenOdd
@@ -307,7 +309,7 @@ private fun ColumnScope.CropStage(
             onClick = {
                 CardHaptics.press(view)
                 onSummon(
-                    CardCrop.cropRect(imageWidth, imageHeight, frame.width, frame.height, zoom, offset.x, offset.y),
+                    CardCrop.frameRect(imageWidth, imageHeight, frame.width, frame.height, zoom, offset.x, offset.y),
                 )
             },
             enabled = pulledToday < CardRules.DAILY_LIMIT,
@@ -596,3 +598,5 @@ fun FlipCard(
 }
 
 private val SUMMON_GLOW = Color(0xFF9B5CFF)
+
+private val CropFill = Color(CardCrop.FILL_ARGB)

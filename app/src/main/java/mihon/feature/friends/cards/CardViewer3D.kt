@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.RectF
-import android.graphics.Typeface
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -114,7 +113,7 @@ import kotlin.math.min
  * A card full screen as a 3-D object: drag turns it on both axes (it coasts on a fling and settles on the nearest
  * face), double tap flips it, pinch zooms, and at rest the gyroscope sways it a little. System back, the close
  * button or a swipe down from outside the card closes it; the save button puts the front PNG in the gallery. Loads
- * the card's front (the on-screen composite with the card number) and back sized for the screen, and releases them
+ * the card's front (the on-screen composite) and back sized for the screen, and releases them
  * when closed.
  */
 @Composable
@@ -128,13 +127,11 @@ fun CardViewerDialog(card: ShioriCard, startOnBack: Boolean, onSave: () -> Unit,
     val placeholder = remember(card.id) { repository.cachedThumbnail(card)?.let { CardTexture(it, 0, owned = false) } }
     val faces by produceState<CardViewerFaces?>(null, card.id, card.frameImagePath, textureWidth) {
         val front = repository.still(card, textureWidth, animated = true)
-        val number = CardSpec.cardIdText(card.serial)
-        val typeface = repository.pack.metadataTypeface
         val back = repository.back(card, textureWidth)
         value = withContext(Dispatchers.Default) {
             CardViewerFaces(
-                front = front?.let { CardTexture.bake(it, number, typeface) },
-                back = CardTexture.bake(back, null, null).also { back.recycle() },
+                front = front?.let { CardTexture.bake(it) },
+                back = CardTexture.bake(back).also { back.recycle() },
             )
         }
         awaitDispose { value?.release() }
@@ -163,10 +160,9 @@ class CardTexture(val bitmap: Bitmap, val pad: Int, val owned: Boolean) {
         private const val PAD = 2
 
         /**
-         * [source] clipped to the card's rounded corners with a clear margin, the card [number] drawn last (as the
-         * on-screen card does, over everything). The source is not changed.
+         * [source] clipped to the card's rounded corners with a clear margin. The source is not changed.
          */
-        fun bake(source: Bitmap, number: String?, typeface: Typeface?): CardTexture {
+        fun bake(source: Bitmap): CardTexture {
             val w = source.width
             val h = source.height
             val out = Bitmap.createBitmap(w + PAD * 2, h + PAD * 2, Bitmap.Config.ARGB_8888)
@@ -178,12 +174,6 @@ class CardTexture(val bitmap: Bitmap, val pad: Int, val owned: Boolean) {
             canvas.save()
             canvas.clipPath(clip)
             canvas.drawBitmap(source, PAD.toFloat(), PAD.toFloat(), paint)
-            if (number != null && typeface != null) {
-                canvas.translate(PAD.toFloat(), PAD.toFloat())
-                val k = CardSpec.scale(w.toFloat())
-                canvas.scale(k, k)
-                CardNumber.draw(canvas, number, typeface)
-            }
             canvas.restore()
             return CardTexture(out, PAD, owned = true)
         }

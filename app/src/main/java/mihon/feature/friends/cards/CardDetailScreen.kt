@@ -388,7 +388,9 @@ private fun CardActions(
             CardBorderedButton(
                 title = stringResource(MR.strings.cards_original_panel),
                 icon = MaterialSymbols.Rounded.Photo,
-                onClick = { scope.launch { onOriginal(repository.images(card).art) } },
+                onClick = {
+                    scope.launch { onOriginal(repository.images(card).art?.withoutArtBars(card.scores?.artFill)) }
+                },
                 modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
             )
         }

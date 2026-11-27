@@ -21,7 +21,7 @@ object CardSpec {
     val PRINT = CardBox(75f, 84f, 315f, 105f)
     const val PRINT_BASELINE = 161f
 
-    /** The card number ("No. 0003"). */
+    /** Where the card number used to be ("No. 0003"); the front no longer draws it (the back does). */
     val CARD_ID = CardBox(75f, 1953f, 420f, 84f)
     const val CARD_ID_BASELINE = 2012f
 
@@ -30,23 +30,10 @@ object CardSpec {
     val CARD_ID_EXCLUSION = CardBox(60f, 1932f, 465f, 126f)
     val EXCLUSIONS: List<CardBox> get() = listOf(PRINT_EXCLUSION, CARD_ID_EXCLUSION)
 
-    const val FONT_SIZE = 42f
-    const val MIN_FONT_SIZE = 32f
-    const val FONT_STEP = 1f
-    const val FILL = 0xFFF2EEE8L
-
-    /** The line may use the region's width less this. */
-    const val TEXT_PADDING = 12f
-
-    /** A very subtle dark outline for contrast (≤ 1.5 px at master size): 1.2 px, black at 45 %. */
-    const val STROKE_WIDTH = 1.2f
-    const val STROKE_COLOR = 0x73000000L
-
     /** An image within 1 % of 5:7 is Full Art and fills the card; anything else is a legacy image. */
     const val ASPECT_TOLERANCE = 0.01f
 
-    /** The bundled metadata font (SIL OFL, licence beside it). */
-    const val METADATA_FONT = "fonts/Inter-Medium.ttf"
+    /** The bundled support font (SIL OFL, licence beside it): the card back's small lines. */
     const val SUPPORT_FONT = "fonts/Inter-Regular.ttf"
 
     fun scale(outputWidth: Float): Float = outputWidth / WIDTH
@@ -70,35 +57,6 @@ object CardSpec {
         if (index == null || total == null || index < 1 || index > total) return null
         val width = max(2, total.toString().length)
         return index.toString().padStart(width, '0') + "/" + total.toString().padStart(width, '0')
-    }
-
-    /** How the card number fits its line. */
-    sealed interface Fit {
-        data class Fits(val size: Float) : Fit
-
-        /** Too wide even at [MIN_FONT_SIZE]: a layout error, never truncated or squeezed. */
-        data class TooWide(val widthAtMinimum: Float) : Fit
-    }
-
-    /**
-     * The largest size from [FONT_SIZE] down to [MIN_FONT_SIZE] (1 px steps, master pixels) at which [measure]
-     * (the text's advance at a size, measured with the rendering font) fits [maxWidth].
-     */
-    fun fitCardId(maxWidth: Float = CARD_ID.width - TEXT_PADDING, measure: (Float) -> Float): Fit {
-        var size = FONT_SIZE
-        while (size >= MIN_FONT_SIZE) {
-            if (measure(size) <= maxWidth) return Fit.Fits(size)
-            size -= FONT_STEP
-        }
-        return Fit.TooWide(measure(MIN_FONT_SIZE))
-    }
-
-    /** Where text goes on an output [outputWidth] pixels wide: left x, baseline and size, all scaled uniformly. */
-    data class Placement(val x: Float, val baseline: Float, val size: Float)
-
-    fun cardIdPlacement(outputWidth: Float, masterSize: Float = FONT_SIZE): Placement {
-        val k = scale(outputWidth)
-        return Placement(CARD_ID.left * k, CARD_ID_BASELINE * k, masterSize * k)
     }
 
     /** An image is Full Art (5:7) within [ASPECT_TOLERANCE]. */

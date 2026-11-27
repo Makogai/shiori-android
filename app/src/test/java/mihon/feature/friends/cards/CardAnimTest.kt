@@ -70,16 +70,15 @@ class CardAnimTest {
     @Test
     fun `animated plan versus static`() {
         val face = face(decode("c1.gif"))
-        // Playing: the GIF is the whole card (over its backdrop when legacy), only the card number over it
+        // Playing: the GIF is the whole card (over its backdrop when legacy), nothing over it
         CardLayerPlan.layers(face, manifest, customFrame = true, animation = true) shouldBe
-            listOf(CardLayer.Backdrop, CardLayer.AnimatedFrame, CardLayer.Metadata)
+            listOf(CardLayer.Backdrop, CardLayer.AnimatedFrame)
         // No GIF decoded: the static edit, with the S card's effects (its holo, plus the foil) over it
         CardLayerPlan.layers(face, manifest, customFrame = true) shouldBe listOf(
             CardLayer.Backdrop,
             CardLayer.CustomFrame,
             CardLayer.Effect("holo_rainbow"),
             CardLayer.Effect("foil_noise"),
-            CardLayer.Metadata,
         )
         CardLayerPlan.isBelowFrame(CardLayer.AnimatedFrame, manifest) shouldBe true
         CardLayerPlan.isAnimated(face.copy(frameStyle = CardFrameStyle.BORDER), animation = true) shouldBe false
@@ -93,7 +92,6 @@ class CardAnimTest {
             CardLayer.CustomFrame,
             CardLayer.Effect("holo_rainbow"),
             CardLayer.Effect("foil_noise"),
-            CardLayer.Metadata,
         )
     }
 }

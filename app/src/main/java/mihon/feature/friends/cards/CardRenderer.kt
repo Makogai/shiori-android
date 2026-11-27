@@ -16,8 +16,6 @@ import android.text.TextPaint
 import android.text.TextUtils
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.withSave
-import logcat.LogPriority
-import tachiyomi.core.common.util.system.logcat
 import java.time.ZoneId
 import kotlin.math.roundToInt
 
@@ -46,8 +44,8 @@ data class CardFace(
     val effects: List<String>,
     val accentHex: String?,
     val frameStyle: CardFrameStyle = CardFrameStyle.BORDER,
-    /** The card number drawn over an AI card ("No. 0003"); null draws nothing. */
-    val cardId: String? = null,
+    /** The art JPEG's grey bars (a zoomed-out crop): the front draws only the panel inside them. */
+    val artFill: CardArtFill? = null,
 ) {
     constructor(card: ShioriCard, zone: ZoneId) : this(
         name = card.cardName,
@@ -59,8 +57,16 @@ data class CardFace(
         effects = card.effects,
         accentHex = card.accentHex,
         frameStyle = card.frameStyle,
-        cardId = CardSpec.cardIdText(card.serial),
+        artFill = card.scores?.artFill?.takeUnless { it.isEmpty },
     )
+}
+
+/** The uploaded art without a zoomed-out crop's grey bars (itself when there are none). */
+fun Bitmap.withoutArtBars(fill: CardArtFill?): Bitmap {
+    if (fill == null || fill.isEmpty) return this
+    val inner = fill.innerRect(width.toFloat(), height.toFloat())
+    if (inner.width >= width && inner.height >= height) return this
+    return Bitmap.createBitmap(this, inner.left.toInt(), inner.top.toInt(), inner.width.toInt(), inner.height.toInt())
 }
 
 /**
@@ -125,9 +131,8 @@ class CardRenderer(private val pack: CardPack) {
         val below = render(face, art, customFrame, width, animationFrame = first) { layer ->
             layer != CardLayer.AnimatedFrame && CardLayerPlan.isBelowFrame(layer, manifest) && !animated(layer)
         }
-        // The card number is drawn by the view over the shine ([CardNumberOverlay])
         val top = render(face, art, customFrame, width, animationFrame = first) { layer ->
-            layer !is CardLayer.Effect && layer != CardLayer.Metadata && !CardLayerPlan.isBelowFrame(layer, manifest)
+            layer !is CardLayer.Effect && !CardLayerPlan.isBelowFrame(layer, manifest)
         }
         val effects = plan(face, manifest, customFrame != null, playing != null).filterIsInstance<CardLayer.Effect>()
         return CardLiveLayers(
@@ -205,7 +210,6 @@ class CardRenderer(private val pack: CardPack) {
             when (layer) {
                 CardLayer.Base -> image(canvas, grade?.base, full)
                 CardLayer.Backdrop -> (animationFrame ?: customFrame)?.let { backdrop(canvas, it) }
-                CardLayer.Metadata -> drawMetadata(canvas)
                 CardLayer.Art -> drawArt(canvas)
                 CardLayer.CustomFrame -> customFrame?.let {
                     if (CardLayerPlan.isEdit(
@@ -257,9 +261,18 @@ class CardRenderer(private val pack: CardPack) {
         private fun drawArt(canvas: Canvas) {
             val art = art ?: return
             val window = CardBox.of(manifest.regions.art)
-            val rect = CardGeometry.coverFit(art.width.toFloat(), art.height.toFloat(), window)
+            // Only the panel, never a zoomed-out crop's grey bars: aspect-filled, centre cropped
+            val inner = face.artFill?.innerRect(art.width.toFloat(), art.height.toFloat())
+            val source = inner?.let {
+                android.graphics.Rect(it.left.toInt(), it.top.toInt(), it.right.toInt(), it.bottom.toInt())
+            }
+            val rect = CardGeometry.coverFit(
+                inner?.width ?: art.width.toFloat(),
+                inner?.height ?: art.height.toFloat(),
+                window,
+            )
             val save = canvas.saveLayer(full, null)
-            canvas.drawBitmap(art, null, rect.toRectF(), bitmapPaint)
+            canvas.drawBitmap(art, source, rect.toRectF(), bitmapPaint)
             mask(canvas, manifest.masks.art, PorterDuff.Mode.DST_IN)
             canvas.restoreToCount(save)
         }
@@ -288,8 +301,6 @@ class CardRenderer(private val pack: CardPack) {
                 }
             }
             if (editBox == null) applyClip(canvas, CardLayerPlan.clip(effect.placement))
-            // Shine and holo never cover the metadata zones (a soft fade, never a box)
-            CardZoneFade.apply(canvas, 1f)
             canvas.restoreToCount(save)
         }
 
@@ -352,7 +363,7 @@ class CardRenderer(private val pack: CardPack) {
                 fontFeatureSettings = "tnum"
                 letterSpacing = 1f / CardTextLayout.FOOTER_SIZE
             }
-            // The card number is the Metadata layer; the footer keeps the season on the right
+            // The card number is only on the back; the footer keeps the season on the right
             val third = CardTextLayout.footerThird
             footer.textAlign = Paint.Align.RIGHT
             line(canvas, face.season, footer, CardTextLayout.RIGHT, CardTextLayout.FOOTER_BASELINE, third)
@@ -374,10 +385,6 @@ class CardRenderer(private val pack: CardPack) {
             val back = CardBackdrop.of(image, (full.width() * k).roundToInt(), (full.height() * k).roundToInt())
                 ?: return
             canvas.drawBitmap(back, null, full, bitmapPaint)
-        }
-
-        private fun drawMetadata(canvas: Canvas) {
-            face.cardId?.let { CardNumber.draw(canvas, it, pack.metadataTypeface) }
         }
 
         private fun line(canvas: Canvas, text: String, paint: TextPaint, x: Float, baseline: Float, width: Float) {
@@ -444,39 +451,6 @@ class CardRenderer(private val pack: CardPack) {
 }
 
 fun CardBox.toRectF() = RectF(left, top, right, bottom)
-
-/** The card number ("No. 0003", CardSpec): Inter Medium, tabular, #F2EEE8 over a faint dark outline, no box. */
-object CardNumber {
-    /** [text] onto [canvas], which is in master pixels; nothing (a logged layout error) when it can't fit. */
-    fun draw(canvas: Canvas, text: String, typeface: Typeface) {
-        val paint = TextPaint(Paint.ANTI_ALIAS_FLAG or Paint.SUBPIXEL_TEXT_FLAG).apply {
-            this.typeface = typeface
-            fontFeatureSettings = "tnum"
-        }
-        val size = when (
-            val fit = CardSpec.fitCardId { size ->
-                paint.textSize = size
-                paint.measureText(text)
-            }
-        ) {
-            is CardSpec.Fit.Fits -> fit.size
-            is CardSpec.Fit.TooWide -> {
-                logcat(LogPriority.WARN) { "Card number \"$text\" doesn't fit its region (${fit.widthAtMinimum} px)" }
-                return
-            }
-        }
-        paint.textSize = size
-        // The outline first (centred on the glyph edge, so half shows), then the fill
-        paint.style = Paint.Style.STROKE
-        paint.strokeWidth = CardSpec.STROKE_WIDTH
-        paint.strokeJoin = Paint.Join.ROUND
-        paint.color = CardSpec.STROKE_COLOR.toInt()
-        canvas.drawText(text, CardSpec.CARD_ID.left, CardSpec.CARD_ID_BASELINE, paint)
-        paint.style = Paint.Style.FILL
-        paint.color = CardSpec.FILL.toInt()
-        canvas.drawText(text, CardSpec.CARD_ID.left, CardSpec.CARD_ID_BASELINE, paint)
-    }
-}
 
 fun CardManifest.Rect.toRectF() = RectF(x, y, right, bottom)
 

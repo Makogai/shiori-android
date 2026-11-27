@@ -109,31 +109,3 @@ object CardBackdrop {
         }
     }
 }
-
-/**
- * Keeps shine and holo off the metadata zones without drawing a box: on an effect's own layer, fades the effect out
- * over the exclusion rectangles (grown by [GROW]) with a soft [FEATHER] edge, so it is all but gone over the text
- * and blends away continuously around it.
- */
-object CardZoneFade {
-    const val FEATHER = 32f
-    const val GROW = 24f
-
-    /** [canvas] is drawing a layer that holds only effects; [scale] is its output pixels per master pixel. */
-    fun apply(canvas: Canvas, scale: Float) {
-        if (scale <= 0f) return
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.DST_OUT)
-            maskFilter = android.graphics.BlurMaskFilter(FEATHER * scale, android.graphics.BlurMaskFilter.Blur.NORMAL)
-        }
-        CardSpec.EXCLUSIONS.forEach {
-            canvas.drawRect(
-                (it.left - GROW) * scale,
-                (it.top - GROW) * scale,
-                (it.right + GROW) * scale,
-                (it.bottom + GROW) * scale,
-                paint,
-            )
-        }
-    }
-}

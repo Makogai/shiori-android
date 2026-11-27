@@ -215,8 +215,6 @@ fun ShioriCardView(
                     drawCardShine(shine, swing.tilt(), if (moving) seconds.value else 0.0)
                 }
             }
-            // The card number last, over every effect and the shine
-            if (manifest != null) CardNumberOverlay(card, repository, Modifier.fillMaxSize())
             overlay()
         }
     }
@@ -373,24 +371,6 @@ private fun LiveCard(
         effects(layers.belowEffects)
         layers.top?.let { canvas.drawBitmap(it, null, full, paint) }
         effects(layers.topEffects)
-        canvas.restore()
-    }
-}
-
-/**
- * The card number ("No. 0003", CardSpec) over a card filling this box, scaled from master pixels: drawn by the view
- * so it sits over the effects and the shine (the on-screen renders leave it out; exports draw it as their last layer).
- */
-@Composable
-fun CardNumberOverlay(card: ShioriCard, repository: CardRepository, modifier: Modifier = Modifier) {
-    val text = remember(card.serial) { CardSpec.cardIdText(card.serial) } ?: return
-    val typeface = repository.pack.metadataTypeface
-    Canvas(modifier) {
-        val canvas = drawContext.canvas.nativeCanvas
-        canvas.save()
-        val k = CardSpec.scale(size.width)
-        canvas.scale(k, k)
-        CardNumber.draw(canvas, text, typeface)
         canvas.restore()
     }
 }
@@ -699,7 +679,7 @@ fun CardThumb(card: ShioriCard, caption: String, modifier: Modifier = Modifier, 
 
 /**
  * A still card (CARD_SPEC §13): the 300 × 420 still from the cache (a placeholder in the grade colour until it's
- * rendered) with its shine, card number and, with [glow], the grade glow; [overlay] draws over it.
+ * rendered) with its shine and, with [glow], the grade glow; [overlay] draws over it.
  */
 @Composable
 fun CardMiniature(
@@ -736,7 +716,6 @@ fun CardMiniature(
         if (thumbnail != null && !thumbShine.isNone) {
             Canvas(Modifier.fillMaxSize()) { drawCardShine(thumbShine, CardTilt.EXPORT, 0.0) }
         }
-        if (thumbnail != null) CardNumberOverlay(card, repository, Modifier.fillMaxSize())
         overlay()
     }
 }

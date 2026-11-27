@@ -2,10 +2,9 @@ package mihon.feature.friends.cards
 
 import io.kotest.matchers.floats.plusOrMinus
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeInstanceOf
 import org.junit.jupiter.api.Test
 
-/** Shiori Cards v1.2: display ranks, the card number, the 5:7 geometry and legacy images (BRIEF §2–4, §6, §10). */
+/** Shiori Cards v1.2: display ranks, the 5:7 geometry and legacy images (BRIEF §2–4, §6, §10). */
 class CardSpecTest {
 
     @Test
@@ -76,14 +75,7 @@ class CardSpecTest {
     }
 
     @Test
-    fun `the number sits at the master anchor scaled by width over 1500`() {
-        CardSpec.cardIdPlacement(1500f) shouldBe CardSpec.Placement(75f, 2012f, 42f)
-        CardSpec.cardIdPlacement(300f).let {
-            it.x shouldBe (15f plusOrMinus 1e-4f)
-            it.baseline shouldBe (402.4f plusOrMinus 1e-3f)
-            it.size shouldBe (8.4f plusOrMinus 1e-4f)
-        }
-        CardSpec.cardIdPlacement(1080f, masterSize = 32f).size shouldBe (23.04f plusOrMinus 1e-3f)
+    fun `the reserved metadata regions lie inside the card`() {
         // The text anchor lies in its region, the region in its exclusion zone, both inside the card
         val id = CardSpec.CARD_ID
         (CardSpec.CARD_ID_BASELINE in id.top..id.bottom) shouldBe true
@@ -91,19 +83,6 @@ class CardSpecTest {
         CardSpec.PRINT_EXCLUSION.intersect(CardSpec.PRINT) shouldBe CardSpec.PRINT
         (CardSpec.PRINT_BASELINE in CardSpec.PRINT.top..CardSpec.PRINT.bottom) shouldBe true
         CardSpec.EXCLUSIONS.forEach { (it.right < CardSpec.WIDTH && it.bottom < CardSpec.HEIGHT) shouldBe true }
-    }
-
-    @Test
-    fun `the number shrinks from 42 to 32 to fit, else it is a layout error`() {
-        // An advance of 9 px per px of size: 408 / 9 = 45.3, fits at 42
-        CardSpec.fitCardId { it * 9 } shouldBe CardSpec.Fit.Fits(42f)
-        // 12 px per px: 408 / 12 = 34, so 34
-        CardSpec.fitCardId { it * 12 } shouldBe CardSpec.Fit.Fits(34f)
-        // Exactly the limit at 32
-        CardSpec.fitCardId { it * 12.75f } shouldBe CardSpec.Fit.Fits(32f)
-        // Wider than 408 even at 32: never truncated or squeezed
-        CardSpec.fitCardId { it * 13 }.shouldBeInstanceOf<CardSpec.Fit.TooWide>().widthAtMinimum shouldBe 416f
-        (CardSpec.CARD_ID.width - CardSpec.TEXT_PADDING) shouldBe 408f
     }
 
     @Test
